@@ -22,7 +22,7 @@ public class Initializer {
 
 	public String[] initialize() {
 
-		Generate viewer = new Generate();
+		Transformer viewer = new Transformer();
 		Transform printTransform = new Transform("jtp.printcfg", viewer);
 		printTransform.setDeclaredOptions("enabled " + altClassPathOptionName + ' ' + graphTypeOptionName + ' '
 				+ irOptionName + ' ' + multipageOptionName + ' ' + briefLabelOptionName + ' ');
@@ -32,13 +32,9 @@ public class Initializer {
 		PackManager.v().getPack("jtp").add(printTransform);
 
 		String[] soot_args = new String[3];
-		// soot_args[0] = "-cp";
 		soot_args[0] = "--soot-classpath";
-		soot_args[1] = "/Users/Kiarash/dev/eclipse_workspace/SampleApplication/target/classes:" + _RT_PATH + _JCE_PATH;
-		//soot_args[2] = "-w";
-		soot_args[2] = "MySQLAccess";
-		//oot_args[3] = "A";
-
+		soot_args[1] = "/Users/Kiarash/dev/eclipse_workspace/Transformer/bin:" + _RT_PATH + _JCE_PATH;
+		soot_args[2] = "tests.SampleApp";
 
 		return soot_args;
 	}
