@@ -2,7 +2,7 @@
 import java.util.ArrayList;
 
 import ir.Application;
-import ir.Table;
+import ir.schema.Table;
 import soot.Body;
 import soot.Scene;
 import soot.Unit;

@@ -3,6 +3,7 @@ import java.util.Map;
 
 import anomaly.Anomaly;
 import ir.*;
+import ir.schema.Table;
 import soot.Body;
 import soot.BodyTransformer;
 import soot.Local;
@@ -17,6 +18,7 @@ import soot.jimple.JimpleBody;
 import soot.jimple.internal.*;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.util.cfgcmd.CFGIntermediateRep;
+import sql.DDLParser;
 import sun.net.www.content.audio.x_aiff;
 import z3.Z3Driver;
 
@@ -44,15 +46,16 @@ public class Transformer extends BodyTransformer {
 		String[] soot_args = init.initialize();
 		soot.Main.main(soot_args);
 		// extract tables from ddl file
-		SQLParser sqlp = new SQLParser();
-		ArrayList<Table> tables = sqlp.parse();
+		DDLParser ddlp = new DDLParser();
+		ArrayList<Table> tables = ddlp.parse();
 		// generate the intermediate representation
 		GimpToApp gta = new GimpToApp(Scene.v(), bodies, tables);
-		Application app = gta.transform(1);
-		// generate the anomaly
+		Application app = gta.transform(1); // app is in my ir
+		// generate the anomaly given the ir
 		Z3Driver zdr = new Z3Driver();
 		Anomaly anml = zdr.analyze(app);
-		// now we can use the anomaly to create graphs or concrete execution plans
+		
+		// now we can use the anomaly to create graphs or concrete execution plans, etc.
 		System.out.println(anml);
 	}
 

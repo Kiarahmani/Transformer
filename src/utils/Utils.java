@@ -1,4 +1,4 @@
-package ir;
+package utils;
 
 public class Utils {
 

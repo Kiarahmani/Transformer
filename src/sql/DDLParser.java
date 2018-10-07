@@ -1,3 +1,4 @@
+package sql;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -6,15 +7,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import ir.Table;
+import ir.schema.Table;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.*;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
-public class SQLParser {
-	ArrayList<Table> parse() {
+public class DDLParser {
+	public ArrayList<Table> parse() {
 
 		BufferedReader in = null;
 		ArrayList<String> statements = new ArrayList<String>();
@@ -39,7 +40,7 @@ public class SQLParser {
 				System.out.println("----------------------");
 				statement = CCJSqlParserUtil.parse(s);
 				CreateTable createStatement = (CreateTable) statement;
-				System.out.println(createStatement.getColumnDefinitions().get(2).getColDataType());
+				System.out.println(createStatement.getColumnDefinitions());
 				System.out.println("----------------------");
 			}
 	

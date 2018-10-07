@@ -1,4 +1,4 @@
-package ir;
+package ir.schema;
 
 public class Table {
 
