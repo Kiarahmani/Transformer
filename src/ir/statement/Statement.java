@@ -1,4 +1,4 @@
-package ir;
+package ir.statement;
 
 public class Statement {
 

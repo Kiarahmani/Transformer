@@ -48,13 +48,17 @@ public class Transformer extends BodyTransformer {
 		// extract tables from ddl file
 		DDLParser ddlp = new DDLParser();
 		ArrayList<Table> tables = ddlp.parse();
+		System.out.println("Schema Extracted:");
+		for (Table t : tables)
+			t.printTable();
+		
 		// generate the intermediate representation
 		GimpToApp gta = new GimpToApp(Scene.v(), bodies, tables);
 		Application app = gta.transform(1); // app is in my ir
 		// generate the anomaly given the ir
 		Z3Driver zdr = new Z3Driver();
 		Anomaly anml = zdr.analyze(app);
-		
+
 		// now we can use the anomaly to create graphs or concrete execution plans, etc.
 		System.out.println(anml);
 	}
