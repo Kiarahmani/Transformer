@@ -48,8 +48,13 @@ public class DDLParser {
 			Statement statement;
 			for (String s : statements) {
 				statement = CCJSqlParserUtil.parse(s);
-				CreateTable createStatement = (CreateTable) statement;
-				tables.add(createTable(createStatement));
+				try {
+					CreateTable createStatement = (CreateTable) statement;
+					tables.add(createTable(createStatement));
+				} catch (java.lang.ClassCastException e) {
+					//e.printStackTrace();
+				}
+
 			}
 
 		} catch (Exception e) {

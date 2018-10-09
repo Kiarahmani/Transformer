@@ -1,12 +1,19 @@
 package anomaly;
 
+import com.microsoft.z3.Model;
+
 public class Anomaly {
 	private String name;
+	private Model model;
 
 	public Anomaly() {
-		// TODO Auto-generated constructor stub
+		this.model = model;
 	}
 
+	public void announce() {
+		System.out.println("I'm an anomaly!");
+	}
+	
 	public String getName() {
 		return name;
 	}

@@ -51,16 +51,17 @@ public class Transformer extends BodyTransformer {
 		System.out.println("Schema Extracted:");
 		for (Table t : tables)
 			t.printTable();
-		
+
 		// generate the intermediate representation
 		GimpToApp gta = new GimpToApp(Scene.v(), bodies, tables);
-		Application app = gta.transform(1); // app is in my ir
-		// generate the anomaly given the ir
-		Z3Driver zdr = new Z3Driver();
-		Anomaly anml = zdr.analyze(app);
+		Application app = gta.transform(1); // application written in my IR
+		// generate the anomaly given the IR
+		Z3Driver zdr = new Z3Driver(app, tables);
+		Anomaly anml = zdr.analyze();
 
-		// now we can use the anomaly to create graphs or concrete execution plans, etc.
-		System.out.println(anml);
+		// now we can visualize the anomaly or generate concrete execution plans, etc.
+		if (anml != null)
+			anml.announce();
 	}
 
 }

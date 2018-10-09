@@ -27,9 +27,9 @@ public class SampleApp {
 
 	public void increment(int key) throws Exception {
 		int x = key * 2;
-		//System.out.println(x);
+		// System.out.println(x);
 		x = key * 100;
-		//System.out.println(x);
+		// System.out.println(x);
 
 	}
 

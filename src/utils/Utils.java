@@ -24,6 +24,8 @@ public class Utils {
 				return Type.REAL;
 			case "FLOAT":
 				return Type.REAL;
+			case "DOUBLE":
+				return Type.REAL;
 			case "DOUBLE PRECISION":
 				return Type.REAL;
 			case "DATE":
