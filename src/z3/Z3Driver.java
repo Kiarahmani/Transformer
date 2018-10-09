@@ -24,7 +24,7 @@ public class Z3Driver {
 	Solver slv;
 	Model model;
 	DeclaredObjects objs;
-	Constants cons;
+	StaticAssertions cons;
 	// a log file containing all assertions and defs for debugging
 	File file = new File("z3-encoding.smt2");
 	FileWriter writer;
@@ -47,7 +47,8 @@ public class Z3Driver {
 			e.printStackTrace();
 		}
 		this.objs = new DeclaredObjects(printer);
-		this.cons = new Constants(ctx, objs);
+		ctxInitializeSorts();
+		this.cons = new StaticAssertions(ctx, objs);
 
 	}
 
@@ -59,10 +60,8 @@ public class Z3Driver {
 	/*
 	 * 
 	 * adds the constant assertions and defs to the context
-	 * 
-	 * 
 	 */
-	private void ctxInitialize() {
+	private void ctxInitializeSorts() {
 		LogZ3(";sorts");
 		objs.addSort("T", ctx.mkUninterpretedSort("T"));
 		objs.addSort("O", ctx.mkUninterpretedSort("O"));
@@ -70,7 +69,9 @@ public class Z3Driver {
 		objs.addSort("Int", ctx.mkIntSort());
 		objs.addSort("String", ctx.mkStringSort());
 		objs.addSort("Real", ctx.mkRealSort());
+	}
 
+	private void ctxInitialize() {
 		LogZ3(";data types");
 		objs.addDataType("TType",
 				mkDataType("TType", new String[] { "New_reservation", "Find_flights", "Find_open_seats" }));
@@ -94,19 +95,37 @@ public class Z3Driver {
 				ctx.mkFuncDecl("vis", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
 		objs.addFunc("ar",
 				ctx.mkFuncDecl("ar", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
-		LogZ3(";assertions");
-		BoolExpr assertion = cons.mk_par_then_sib();
-		objs.addAssertion("par_then_sib", assertion);
-		slv.add(assertion);
+		// Dependency Graph Relations
+		objs.addFunc("D",
+				ctx.mkFuncDecl("D", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
+		objs.addFunc("X",
+				ctx.mkFuncDecl("X", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
+		// assertions
+		addAssertion("par_then_sib", cons.mk_par_then_sib());
+		addAssertion("sib_then_par", cons.mk_sib_then_par());
+		addAssertion("ar_on_writes", cons.mk_ar_on_writes());
+		addAssertion("vis_then_ar", cons.mk_vis_then_ar());
+		addAssertion("types_then_eq", cons.mk_types_then_eq());
+		addAssertion("no_loops_o", cons.mk_no_loops_o());
+		addAssertion("trans_ar", cons.mk_trans_ar());
+		addAssertion("total_ar", cons.mk_total_ar());
+		addAssertion("wr_then_vis", cons.mk_wr_then_vis());
+		addAssertion("ww_then_ar", cons.mk_ww_then_ar());
+		addAssertion("rw_then_not_vis", cons.mk_rw_then_not_vis());
+		addAssertion("irreflx_ar", cons.mk_irreflx_ar());
+		//addAssertion("irreflx_sibling", cons.mk_irreflx_sibling());
+		addAssertion("gen_dep", cons.mk_gen_dep());
+		addAssertion("gen_depx", cons.mk_gen_depx());
+		addAssertion("cycle", cons.mk_cycle());
+	}
 
+	private void addAssertion(String name, BoolExpr ass) {
+		LogZ3(";" + name);
+		objs.addAssertion(name, ass);
+		slv.add(ass);
 	}
 
 	/*
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
 	 */
 	private DatatypeSort mkDataType(String name, String[] consts) {
 		String[] head_tail = new String[] {};
@@ -119,11 +138,7 @@ public class Z3Driver {
 	}
 
 	/*
-	 * 
-	 * 
 	 * final call to Z3 when the context is completely done
-	 * 
-	 * 
 	 */
 	private Anomaly checkSAT() {
 		if (slv.check() == Status.SATISFIABLE) {
@@ -141,11 +156,7 @@ public class Z3Driver {
 	}
 
 	/*
-	 * 
-	 * 
 	 * public function called from main
-	 * 
-	 * 
 	 */
 	@SuppressWarnings("resource")
 	public Anomaly analyze() {
