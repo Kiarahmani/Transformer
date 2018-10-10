@@ -107,7 +107,7 @@ public class StaticAssertions {
 
 	public Quantifier mk_rw_then_not_vis() {
 		BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), o1, o2);
-		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("vis"), o1, o2);
+		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("vis"), o2, o1);
 		BoolExpr body = ctx.mkImplies(lhs, ctx.mkNot(rhs));
 		Quantifier x = ctx.mkForall(new Expr[] { o1, o2 }, body, 1, null, null, null, null);
 		return x;

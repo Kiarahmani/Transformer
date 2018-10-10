@@ -113,7 +113,7 @@ public class Z3Driver {
 		addAssertion("ww_then_ar", cons.mk_ww_then_ar());
 		addAssertion("rw_then_not_vis", cons.mk_rw_then_not_vis());
 		addAssertion("irreflx_ar", cons.mk_irreflx_ar());
-		//addAssertion("irreflx_sibling", cons.mk_irreflx_sibling());
+		// addAssertion("irreflx_sibling", cons.mk_irreflx_sibling());
 		addAssertion("gen_dep", cons.mk_gen_dep());
 		addAssertion("gen_depx", cons.mk_gen_depx());
 		addAssertion("cycle", cons.mk_cycle());
@@ -143,11 +143,7 @@ public class Z3Driver {
 	private Anomaly checkSAT() {
 		if (slv.check() == Status.SATISFIABLE) {
 			model = slv.getModel();
-			System.out.println("-----------\nModel: ");
-			System.out.println(model);
-			System.out.println("-----------\n");
-			ctx.close();
-			return new Anomaly();
+			return new Anomaly(model, ctx, objs);
 		} else {
 			System.err.println("Failed to generate a counter example");
 			ctx.close();
@@ -160,7 +156,6 @@ public class Z3Driver {
 	 */
 	@SuppressWarnings("resource")
 	public Anomaly analyze() {
-		LogZ3("Z3 LOG FILE \n----------- \n");
 		ctxInitialize();
 		return checkSAT();
 	}
