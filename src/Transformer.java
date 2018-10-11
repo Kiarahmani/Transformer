@@ -2,6 +2,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import anomaly.Anomaly;
+import exceptions.UnknownUnitException;
+import gimpToApp.GimpToApp;
+import gimpToApp.GimpToAppOne;
+import gimpToApp.GimpToAppTwo;
 import ir.*;
 import ir.schema.Table;
 import soot.Body;
@@ -45,23 +49,51 @@ public class Transformer extends BodyTransformer {
 		Initializer init = new Initializer();
 		String[] soot_args = init.initialize();
 		soot.Main.main(soot_args);
-		// extract tables from ddl file
+		GimpToApp gta = null;
+		Application app = null;
+
+		/*
+		 * extract tables from ddl file
+		 */
 		DDLParser ddlp = new DDLParser();
 		ArrayList<Table> tables = ddlp.parse();
-		System.out.println("Schema Extracted:");
-		for (Table t : tables)
-			t.printTable();
+		// System.out.print("\nSchema Extracted:");
+		// for (Table t : tables)
+		// t.printTable();
 
-		// generate the intermediate representation
-		GimpToApp gta = new GimpToApp(Scene.v(), bodies, tables);
-		Application app = gta.transform(1); // application written in my IR
-		// generate the anomaly given the IR
+		/*
+		 * generate the intermediate representation
+		 */
+		int absLvl = 1;
+		switch (absLvl) {
+		case 1:
+			// most abstract version (no data value or flow is extracted)
+			gta = new GimpToAppOne(Scene.v(), bodies, tables);
+			try {
+				app = ((GimpToAppOne) gta).transform();
+			} catch (UnknownUnitException e) {
+				e.printStackTrace();
+			}
+			break;
+		case 2:
+			gta = new GimpToAppTwo(Scene.v(), bodies, tables);
+			app = ((GimpToAppTwo) gta).transform();
+			break;
+		default:
+			System.err.println("ERROR: Unknown abstraction level requested");
+			break;
+		}
+		//app.printApp();
+
+		/*
+		 * generate the anomaly given the IR
+		 */
 		Z3Driver zdr = new Z3Driver(app, tables);
 		Anomaly anml = zdr.analyze();
-
-		// now we can visualize the anomaly or generate concrete execution plans, etc.
+		// now we can visualize the anomaly or
+		// generate concrete execution plans, etc.
 		if (anml != null)
-			anml.announce();
+			;// anml.announce();
 	}
 
 }

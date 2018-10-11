@@ -26,41 +26,6 @@ public class SampleApp {
 	}
 
 	public void increment(int key) throws Exception {
-		int x = key * 2;
-		// System.out.println(x);
-		x = key * 100;
-		// System.out.println(x);
-
-	}
-
-	public void doubleUpdate(int key) throws Exception {
-		try {
-			Object o = Class.forName("MyDriver").newInstance();
-			DriverManager.registerDriver((Driver) o);
-			Driver driver = DriverManager.getDriver("jdbc:mydriver://");
-			connect = driver.connect(null, p);
-			connect.setAutoCommit(false);
-			connect.setTransactionIsolation(_ISOLATION);
-			// update 1
-			preparedStatement = connect.prepareStatement("update feedback.kv set value=1000 where id=?");
-			preparedStatement.setInt(1, key);
-			preparedStatement.executeUpdate();
-
-			// update 2
-			preparedStatement = connect.prepareStatement("update feedback.kv set value=2000 where id=?");
-			preparedStatement.setInt(1, key);
-			// Thread.sleep(5000);
-			preparedStatement.executeUpdate();
-			connect.commit();
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			close();
-		}
-
-	}
-
-	public void select(int key) {
 		try {
 
 			Object o = Class.forName("MyDriver").newInstance();
@@ -71,28 +36,14 @@ public class SampleApp {
 			connect.setTransactionIsolation(_ISOLATION);
 			preparedStatement = connect.prepareStatement("select * from feedback.kv where id=?");
 			preparedStatement.setInt(1, key);
-			// Thread.sleep(2500);
-			rs = preparedStatement.executeQuery();
+			
+			PreparedStatement k = preparedStatement;
+			rs = k.executeQuery();
 			rs.next();
+			connect.prepareStatement("select * from feedback.kv where id=1").executeQuery();
 			System.out.println("(" + rs.getInt("id") + "," + rs.getInt("value") + ")");
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			close();
-		}
-	}
-
-	public void initialize(int key) throws Exception {
-		try {
-			Object o = Class.forName("MyDriver").newInstance();
-			DriverManager.registerDriver((Driver) o);
-			Driver driver = DriverManager.getDriver("jdbc:mydriver://");
-			connect = driver.connect(null, p);
-			preparedStatement = connect.prepareStatement("update feedback.kv set value=0 where id=?");
-			preparedStatement.setInt(1, key);
-			preparedStatement.executeUpdate();
-		} catch (Exception e) {
-			throw e;
 		} finally {
 			close();
 		}
@@ -101,6 +52,7 @@ public class SampleApp {
 
 	private void close() {
 		try {
+			System.out.println("CLOSING DOWN!");
 			if (rs != null)
 				rs.close();
 			if (rs != null)

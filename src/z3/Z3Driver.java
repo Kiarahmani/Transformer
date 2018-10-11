@@ -113,7 +113,7 @@ public class Z3Driver {
 		addAssertion("ww_then_ar", cons.mk_ww_then_ar());
 		addAssertion("rw_then_not_vis", cons.mk_rw_then_not_vis());
 		addAssertion("irreflx_ar", cons.mk_irreflx_ar());
-		// addAssertion("irreflx_sibling", cons.mk_irreflx_sibling());
+		//addAssertion("irreflx_sibling", cons.mk_irreflx_sibling());
 		addAssertion("gen_dep", cons.mk_gen_dep());
 		addAssertion("gen_depx", cons.mk_gen_depx());
 		addAssertion("cycle", cons.mk_cycle());
@@ -145,7 +145,7 @@ public class Z3Driver {
 			model = slv.getModel();
 			return new Anomaly(model, ctx, objs);
 		} else {
-			System.err.println("Failed to generate a counter example");
+			System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
 			ctx.close();
 			return null;
 		}
