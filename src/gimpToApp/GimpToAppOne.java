@@ -1,6 +1,7 @@
 package gimpToApp;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import exceptions.UnknownUnitException;
 import ir.Application;
@@ -29,36 +30,23 @@ public class GimpToAppOne extends GimpToApp {
 	private Transaction extractTxn(Body b) throws UnknownUnitException {
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
+		List<GValue> gValueList = new ArrayList<GValue>();
 		System.out.println("\n---\nExtracting a transaction from Gimp body (" + name + ")");
 		for (Unit u : b.getUnits()) {
-			System.out.println("UNIT:     "+u+"\n--");
-			LHS lhs = extractLHS(u);
-			RHS rhs = extractRHS(u);
-			Statement sqlStmt = extrctStmt(lhs, rhs);
-			if (sqlStmt != null)
-				txn.addStmt(sqlStmt);
+			 System.out.println("UNIT: "+u+"\n--");
+			GValueExtractor gve = new GValueExtractor(u);
+			if (gve.lhs != null&&gve.rhs != null) {
+				gve.lhs.print();
+				System.out.println("===");
+			}
+			if (gve.rhs != null)
+				gve.rhs.print();
+			// gValueList.add();
 			System.out.println(String.format("%0" + 120 + "d", 0).replace("0", "-"));
 
 		}
 		// super.printGimpBody(b);
 		return txn;
-	}
-
-	private LHS extractLHS(Unit u) {
-		return new LHS(u);
-	}
-
-	private RHS extractRHS(Unit u) {
-		try {
-			return new RHS(u);
-		} catch (UnknownUnitException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private Statement extrctStmt(LHS lhs, RHS rhs) {
-		return null;
 	}
 
 }
