@@ -5,9 +5,7 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Date;
 import java.util.Properties;
 
 public class SampleApp {
@@ -36,11 +34,11 @@ public class SampleApp {
 			connect.setTransactionIsolation(_ISOLATION);
 			preparedStatement = connect.prepareStatement("select * from feedback.kv where id=?");
 			preparedStatement.setInt(1, key);
-			
-			PreparedStatement k = preparedStatement;
-			rs = k.executeQuery();
+			rs = preparedStatement.executeQuery();
 			rs.next();
-			connect.prepareStatement("select * from feedback.kv where id=1").executeQuery();
+
+			String query = "select * from feedback.kv where id=" + String.valueOf(key);
+			connect.prepareStatement(query).executeQuery();
 			System.out.println("(" + rs.getInt("id") + "," + rs.getInt("value") + ")");
 		} catch (Exception e) {
 			e.printStackTrace();
