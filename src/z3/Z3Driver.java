@@ -15,6 +15,7 @@ import java.util.List;
 import com.microsoft.z3.*;
 import anomaly.Anomaly;
 import ir.Application;
+import ir.Transaction;
 import ir.schema.Table;
 
 public class Z3Driver {
@@ -24,7 +25,8 @@ public class Z3Driver {
 	Solver slv;
 	Model model;
 	DeclaredObjects objs;
-	StaticAssertions cons;
+	StaticAssertions staticAssrtions;
+	DynamicAssertsions dynamicAssertions;
 	// a log file containing all assertions and defs for debugging
 	File file = new File("z3-encoding.smt2");
 	FileWriter writer;
@@ -48,7 +50,8 @@ public class Z3Driver {
 		}
 		this.objs = new DeclaredObjects(printer);
 		ctxInitializeSorts();
-		this.cons = new StaticAssertions(ctx, objs);
+		this.staticAssrtions = new StaticAssertions(ctx, objs);
+		this.dynamicAssertions = new DynamicAssertsions(ctx, objs);
 
 	}
 
@@ -73,11 +76,8 @@ public class Z3Driver {
 
 	private void ctxInitialize() {
 		LogZ3(";data types");
-		objs.addDataType("TType",
-				mkDataType("TType", new String[] { "New_reservation", "Find_flights", "Find_open_seats" }));
-		objs.addDataType("OType", mkDataType("OType",
-				new String[] { "New_reservation_select_1", "New_reservation_select_2", "New_reservation_update_3" }));
-
+		objs.addDataType("TType", mkDataType("TType", app.getAllTxnNames()));
+		objs.addDataType("OType", mkDataType("OType", app.getAllStmtTypes()));
 		LogZ3(";functions");
 		objs.addFunc("ttype", ctx.mkFuncDecl("ttype", objs.getSort("T"), objs.getDataTypes("TType")));
 		objs.addFunc("otype", ctx.mkFuncDecl("otype", objs.getSort("O"), objs.getDataTypes("OType")));
@@ -101,22 +101,33 @@ public class Z3Driver {
 		objs.addFunc("X",
 				ctx.mkFuncDecl("X", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
 		// assertions
-		addAssertion("par_then_sib", cons.mk_par_then_sib());
-		addAssertion("sib_then_par", cons.mk_sib_then_par());
-		addAssertion("ar_on_writes", cons.mk_ar_on_writes());
-		addAssertion("vis_then_ar", cons.mk_vis_then_ar());
-		addAssertion("types_then_eq", cons.mk_types_then_eq());
-		addAssertion("no_loops_o", cons.mk_no_loops_o());
-		addAssertion("trans_ar", cons.mk_trans_ar());
-		addAssertion("total_ar", cons.mk_total_ar());
-		addAssertion("wr_then_vis", cons.mk_wr_then_vis());
-		addAssertion("ww_then_ar", cons.mk_ww_then_ar());
-		addAssertion("rw_then_not_vis", cons.mk_rw_then_not_vis());
-		addAssertion("irreflx_ar", cons.mk_irreflx_ar());
-		//addAssertion("irreflx_sibling", cons.mk_irreflx_sibling());
-		addAssertion("gen_dep", cons.mk_gen_dep());
-		addAssertion("gen_depx", cons.mk_gen_depx());
-		addAssertion("cycle", cons.mk_cycle());
+		addAssertion("par_then_sib", staticAssrtions.mk_par_then_sib());
+		addAssertion("sib_then_par", staticAssrtions.mk_sib_then_par());
+		addAssertion("ar_on_writes", staticAssrtions.mk_ar_on_writes());
+		addAssertion("vis_then_ar", staticAssrtions.mk_vis_then_ar());
+		addAssertion("types_then_eq", staticAssrtions.mk_types_then_eq());
+		addAssertion("no_loops_o", staticAssrtions.mk_no_loops_o());
+		addAssertion("trans_ar", staticAssrtions.mk_trans_ar());
+		addAssertion("total_ar", staticAssrtions.mk_total_ar());
+		addAssertion("wr_then_vis", staticAssrtions.mk_wr_then_vis());
+		addAssertion("ww_then_ar", staticAssrtions.mk_ww_then_ar());
+		addAssertion("rw_then_not_vis", staticAssrtions.mk_rw_then_not_vis());
+		addAssertion("irreflx_ar", staticAssrtions.mk_irreflx_ar());
+		addAssertion("oType_to_is_update", dynamicAssertions.mk_oType_to_is_update(app.getAllUpdateStmtTypes()));
+		addAssertion("is_update_to_oType", dynamicAssertions.mk_is_update_to_oType(app.getAllUpdateStmtTypes()));
+		for (Transaction txn : app.getTxns()) {
+			String name = txn.getName();
+			for (String stmtName : txn.getStmtNames())
+				addAssertion("op_types_" + name + "_" + stmtName,
+						dynamicAssertions.op_types_to_parent_type(name, stmtName));
+		}
+
+		// dependency assertions
+
+		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
+		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
+		addAssertion("cycle", staticAssrtions.mk_cycle());
+
 	}
 
 	private void addAssertion(String name, BoolExpr ass) {
@@ -128,6 +139,11 @@ public class Z3Driver {
 	/*
 	 */
 	private DatatypeSort mkDataType(String name, String[] consts) {
+		Symbol sname = ctx.mkSymbol("fruit");
+		EnumSort fruit = ctx.mkEnumSort(name, consts);
+		System.out.println(fruit);
+		
+		
 		String[] head_tail = new String[] {};
 		Sort[] sorts = new Sort[] {};
 		int[] sort_refs = new int[] {};

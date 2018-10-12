@@ -29,6 +29,8 @@ public class Anomaly {
 	Map<Expr, ArrayList<Expr>> RWPairs;
 	Map<Expr, ArrayList<Expr>> parentChildPairs;
 	Map<Expr, Expr> cycle;
+	Map<Expr, Expr> otypes;
+	Map<Expr, Expr> ttypes;
 
 	public Anomaly(Model model, Context ctx, DeclaredObjects objs) {
 		this.model = model;
@@ -46,8 +48,11 @@ public class Anomaly {
 		RWPairs = getRWPairs(functions.get("RW_O"));
 		visPairs = getVisPairs(functions.get("vis"));
 		cycle = getCycle(functions.get("D"));
-
+		otypes = getOType(functions.get("otype"));
+		ttypes = getTType(functions.get("ttype"));
 		System.out.println("Parent-Child: " + parentChildPairs);
+		System.out.println("OType: " + otypes);
+		System.out.println("TType: " + ttypes);
 		System.out.println("WW:  " + WWPairs);
 		System.out.println("RW:  " + RWPairs);
 		System.out.println("WR:  " + WRPairs);
@@ -55,7 +60,8 @@ public class Anomaly {
 		System.out.println("cyc: " + cycle);
 		// System.out.println(model);
 		System.out.println("-----------\n");
-		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs,WRPairs,RWPairs,visPairs,cycle,model,objs,parentChildPairs);
+		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
+				parentChildPairs, otypes);
 		av.createGraph();
 		ctx.close();
 	}
@@ -71,7 +77,6 @@ public class Anomaly {
 			}
 		return result;
 	}
-
 
 	public Map<String, FuncDecl> getFunctions() {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
@@ -92,6 +97,11 @@ public class Anomaly {
 				result.put("D", f);
 			else if (f.getName().toString().contains("X"))
 				result.put("X", f);
+			else if (f.getName().toString().contains("ttype"))
+				result.put("ttype", f);
+			else if (f.getName().toString().contains("otype")) {
+				result.put("otype", f);
+			}
 		}
 		return result;
 	}
@@ -161,6 +171,28 @@ public class Anomaly {
 					result.put(o, relation);
 				}
 			}
+		return result;
+	}
+
+	private Map<Expr, Expr> getOType(FuncDecl oType) {
+		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
+		Map<Expr, Expr> result = new HashMap<>();
+		Expr t;
+		for (Expr o : Os) {
+			t = model.eval(oType.apply(o), true);
+			result.put(o, t);
+		}
+		return result;
+	}
+
+	private Map<Expr, Expr> getTType(FuncDecl ttype) {
+		Expr[] Ts = model.getSortUniverse(objs.getSort("T"));
+		Map<Expr, Expr> result = new HashMap<>();
+		Expr tp;
+		for (Expr t : Ts) {
+			tp = model.eval(ttype.apply(t), true);
+			result.put(t, tp);
+		}
 		return result;
 	}
 

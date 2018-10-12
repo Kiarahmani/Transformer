@@ -1,5 +1,5 @@
 package z3;
 
 public class ConstantArgs {
-	public static final int _DEP_CYCLE_LENGTH = 7;
+	public static final int _DEP_CYCLE_LENGTH = 4;
 }

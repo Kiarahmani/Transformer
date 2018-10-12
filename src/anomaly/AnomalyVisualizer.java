@@ -1,4 +1,5 @@
 package anomaly;
+
 /*
  * creates a .dot file to be used for visualization 
  * 
@@ -23,13 +24,14 @@ public class AnomalyVisualizer {
 	Map<Expr, ArrayList<Expr>> RWPairs;
 	Map<Expr, ArrayList<Expr>> visPairs;
 	Map<Expr, Expr> cycle;
+	Map<Expr, Expr> otype;
 	Model model;
 	DeclaredObjects objs;
 	Map<Expr, ArrayList<Expr>> parentChildPairs;
 
 	public AnomalyVisualizer(Map<Expr, ArrayList<Expr>> wWPairs, Map<Expr, ArrayList<Expr>> wRPairs,
 			Map<Expr, ArrayList<Expr>> rWPairs, Map<Expr, ArrayList<Expr>> visPairs, Map<Expr, Expr> cycle, Model model,
-			DeclaredObjects objs, Map<Expr, ArrayList<Expr>> parentChildPairs) {
+			DeclaredObjects objs, Map<Expr, ArrayList<Expr>> parentChildPairs, Map<Expr, Expr> otype) {
 		this.WRPairs = wRPairs;
 		this.WWPairs = wWPairs;
 		this.visPairs = visPairs;
@@ -38,6 +40,7 @@ public class AnomalyVisualizer {
 		this.model = model;
 		this.objs = objs;
 		this.parentChildPairs = parentChildPairs;
+		this.otype = otype;
 	}
 
 	public void createGraph() {
@@ -72,8 +75,12 @@ public class AnomalyVisualizer {
 			ttype = model.eval(objs.getfuncs("ttype").apply(Ts[1]), true).toString();
 			printer.append("\nsubgraph cluster_" + iter + " {\n");
 			printer.append("label=\" " + t.toString().replaceAll("!val!", "") + "\n(" + ttype + ")" + "\";\n");
-			for (Expr o : parentChildPairs.get(t))
-				printer.append(o.toString().replaceAll("!val!", "") + "; ");
+			for (Expr o : parentChildPairs.get(t)) {
+				String name = o.toString().replaceAll("!val!", "");
+				String title = "[ label=\"" + otype.get(o).toString().replace('|', ' ').replace('-', ' ').split(" ")[2]
+						+ "\"]";
+				printer.append(name + title + ";\n ");
+			}
 			printer.append("}");
 			iter++;
 		}

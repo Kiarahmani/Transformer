@@ -93,7 +93,7 @@ public class Transformer extends BodyTransformer {
 		// now we can visualize the anomaly or
 		// generate concrete execution plans, etc.
 		if (anml != null)
-			;// anml.announce();
+		 anml.announce();
 	}
 
 }
