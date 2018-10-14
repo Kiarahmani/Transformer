@@ -3,6 +3,7 @@ package z3;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.microsoft.z3.*;
@@ -23,6 +24,14 @@ public class DeclaredObjects {
 		Map<String, FuncDecl> map = this.constructors.get(type);
 		map.put(cnstrctrName, cnstrctr);
 		this.constructors.put(type, map);
+	}
+
+	public Map<String, FuncDecl> getAllTTypes() {
+		return this.constructors.get("TType");
+	}
+
+	public Map<String, FuncDecl> getAllOTypes() {
+		return this.constructors.get("OType");
 	}
 
 	public FuncDecl getConstructor(String type, String cnstrctrName) {

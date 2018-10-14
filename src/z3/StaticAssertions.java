@@ -71,7 +71,8 @@ public class StaticAssertions {
 		BoolExpr ass1 = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), o1, o1);
 		BoolExpr ass2 = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), o1, o1);
 		BoolExpr ass3 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), o1, o1);
-		BoolExpr body = ctx.mkNot(ctx.mkOr(ass1, ass2, ass3));
+		BoolExpr ass4 = (BoolExpr) ctx.mkApp(objs.getfuncs("vis"), o1, o1);
+		BoolExpr body = ctx.mkNot(ctx.mkOr(ass1, ass2, ass3, ass4));
 		Quantifier x = ctx.mkForall(new Expr[] { o1 }, body, 1, null, null, null, null);
 		return x;
 	}
@@ -175,6 +176,8 @@ public class StaticAssertions {
 		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
 		return x;
 	}
+
+	
 
 	//
 

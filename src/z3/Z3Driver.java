@@ -3,7 +3,6 @@
 // be used for user information or execution path generations
 package z3;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,13 +10,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.microsoft.z3.*;
 import anomaly.Anomaly;
 import ir.Application;
 import ir.Transaction;
 import ir.schema.Table;
-import sun.net.www.content.audio.x_aiff;
 
 public class Z3Driver {
 	Application app;
@@ -32,6 +31,7 @@ public class Z3Driver {
 	File file = new File("z3-encoding.smt2");
 	FileWriter writer;
 	PrintWriter printer;
+	Expr vo1, vo2, vt1, vt2;
 
 	// constructor
 	public Z3Driver(Application app, ArrayList<Table> tables) {
@@ -53,6 +53,12 @@ public class Z3Driver {
 		ctxInitializeSorts();
 		this.staticAssrtions = new StaticAssertions(ctx, objs);
 		this.dynamicAssertions = new DynamicAssertsions(ctx, objs);
+
+		// to be used in the rules
+		vo1 = ctx.mkFreshConst("o", objs.getSort("O"));
+		vo2 = ctx.mkFreshConst("o", objs.getSort("O"));
+		vt1 = ctx.mkFreshConst("t", objs.getSort("T"));
+		vt2 = ctx.mkFreshConst("t", objs.getSort("T"));
 
 	}
 
@@ -116,17 +122,24 @@ public class Z3Driver {
 		addAssertion("irreflx_ar", staticAssrtions.mk_irreflx_ar());
 		addAssertion("oType_to_is_update", dynamicAssertions.mk_oType_to_is_update(app.getAllUpdateStmtTypes()));
 		addAssertion("is_update_to_oType", dynamicAssertions.mk_is_update_to_oType(app.getAllUpdateStmtTypes()));
+		// relating operation otypes to parent ttypes
 		for (Transaction txn : app.getTxns()) {
 			String name = txn.getName();
-			for (String stmtName : txn.getStmtNames()) {
+			for (String stmtName : txn.getStmtNames())
 				addAssertion("op_types_" + name + "_" + stmtName,
 						dynamicAssertions.op_types_to_parent_type(name, stmtName));
-			}
-
 		}
+		// RULES
+		LogZ3("\n\n;==========");
+		thenWW();
+		thenWR();
+		thenRW();
+		WWthen();
+		WRthen();
+		RWthen();
+		LogZ3(";==========\n\n");
 
 		// dependency assertions
-
 		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
 		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 		addAssertion("cycle", staticAssrtions.mk_cycle());
@@ -165,6 +178,83 @@ public class Z3Driver {
 			ctx.close();
 			return null;
 		}
+	}
+
+	//
+	//
+	//
+	// ---------------------------------------------------------------------------
+	// functions adding assertions for every pair of operations that 'potentially'
+	// create the edge
+	private void RWthen() {
+
+		Map<String, FuncDecl> Ts = objs.getAllTTypes();
+		for (FuncDecl t1 : Ts.values())
+			for (FuncDecl t2 : Ts.values()) {
+				List<BoolExpr> conditions = dynamicAssertions.return_conditions_rw_then(vo1, vo2, vt1, vt2);
+				conditions.add(ctx.mkFalse());
+				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
+				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
+				BoolExpr lhs2 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo2), vt2);
+				BoolExpr lhs3 = ctx.mkEq(ctx.mkApp(objs.getfuncs("ttype"), vt1),
+						ctx.mkApp(objs.getConstructor("TType", t1.getName().toString())));
+				BoolExpr lhs4 = ctx.mkEq(ctx.mkApp(objs.getfuncs("ttype"), vt2),
+						ctx.mkApp(objs.getConstructor("TType", t2.getName().toString())));
+				BoolExpr lhs5 = ctx.mkNot(ctx.mkEq(vo1, vo2));
+				BoolExpr lhs6 = ctx.mkNot(ctx.mkEq(vt1, vt2));
+				BoolExpr lhs7 = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), vo1, vo2);
+				BoolExpr lhs = ctx.mkAnd(lhs1, lhs2, lhs3, lhs4, lhs5, lhs6, lhs7);
+				BoolExpr body = ctx.mkImplies(lhs, rhs);
+				Quantifier rw_then = ctx.mkForall(new Expr[] { vo1, vo2, vt1, vt2 }, body, 1, null, null, null, null);
+				String rule_name = t1.getName().toString() + "-" + t2.getName().toString() + "-rw-then";
+				addAssertion(rule_name, rw_then);
+			}
+
+	}
+
+	private void WRthen() {
+		Map<String, FuncDecl> Ts = objs.getAllTTypes();
+		for (FuncDecl t1 : Ts.values())
+			for (FuncDecl t2 : Ts.values()) {
+				List<BoolExpr> conditions = dynamicAssertions.return_conditions_wr_then(vo1, vo2, vt1, vt2);
+				conditions.add(ctx.mkFalse());
+				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
+				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
+				BoolExpr lhs2 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo2), vt2);
+				BoolExpr lhs3 = ctx.mkEq(ctx.mkApp(objs.getfuncs("ttype"), vt1),
+						ctx.mkApp(objs.getConstructor("TType", t1.getName().toString())));
+				BoolExpr lhs4 = ctx.mkEq(ctx.mkApp(objs.getfuncs("ttype"), vt2),
+						ctx.mkApp(objs.getConstructor("TType", t2.getName().toString())));
+				BoolExpr lhs5 = ctx.mkNot(ctx.mkEq(vo1, vo2));
+				BoolExpr lhs6 = ctx.mkNot(ctx.mkEq(vt1, vt2));
+				BoolExpr lhs7 = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), vo1, vo2);
+				BoolExpr lhs = ctx.mkAnd(lhs1, lhs2, lhs3, lhs4, lhs5, lhs6, lhs7);
+				BoolExpr body = ctx.mkImplies(lhs, rhs);
+				Quantifier rw_then = ctx.mkForall(new Expr[] { vo1, vo2, vt1, vt2 }, body, 1, null, null, null, null);
+				String rule_name = t1.getName().toString() + "-" + t2.getName().toString() + "-wr-then";
+				addAssertion(rule_name, rw_then);
+			}
+
+	}
+
+	private void WWthen() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void thenRW() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void thenWR() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void thenWW() {
+		// TODO Auto-generated method stub
+
 	}
 
 	/*

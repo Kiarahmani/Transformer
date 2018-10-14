@@ -51,15 +51,15 @@ public class AnomalyVisualizer {
 		String edge_style = "\nedge[fontsize=12, fontname=\"Helvetica\"]";
 		String graph_style = "\nrankdir=RL\n" + "style=filled\n" + "fontname=\"Helvetica\"\n"
 				+ "fontcolor=darkgoldenrod4\n" + "color=cornsilk1\n style=\"rounded,filled\"\n" + "fontsize=10\n";
-		String bold_style = "concentrate=true, penwidth=2.0,weight=2, style=bold, arrowhead=normal, arrowtail=inv, arrowsize=0.9, color=red3, fontsize=11, fontcolor=red3";
-		String normal_style = "concentrate=true, style=solid,weight=0.2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray60, fontsize=10, fontcolor=gray60";
+		String bold_style = " penwidth=2.0,weight=2, style=bold, arrowhead=normal, arrowtail=inv, arrowsize=0.9, color=red3, fontsize=11, fontcolor=red3";
+		String normal_style = " style=solid,weight=0.2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray70, fontsize=10, fontcolor=gray60";
 		String rw_edge_setting = "[label = \"rw\", " + normal_style + "]";
 		String wr_edge_setting = "[label = \"wr\", " + normal_style + "]";
 		String ww_edge_setting = "[label = \"ww\", " + normal_style + "]";
 		String rwB_edge_setting = "[label = \"RW\"," + bold_style + "]";
 		String wrB_edge_setting = "[label = \"WR\"," + bold_style + "]";
 		String wwB_edge_setting = "[label = \"WW\"," + bold_style + "]";
-		String vis_edge_setting = "[label = \"vis\",style=solid,weight=0.2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray60, fontsize=10, fontcolor=gray60]";
+		String vis_edge_setting = "[label = \"vis\",concentrate=true, style=dotted,weight=0.2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray70, fontsize=10, fontcolor=gray60]";
 		try {
 			writer = new FileWriter(file, false);
 		} catch (IOException e) {

@@ -59,4 +59,28 @@ public class DynamicAssertsions {
 		return x;
 	}
 
+	/*
+	 * 
+	 * 
+	 * RULES
+	 * 
+	 * 
+	 */
+
+	public List<BoolExpr> return_conditions_rw_then(Expr vo1, Expr vo2, Expr vt1, Expr vt2) {
+		List<BoolExpr> result = new ArrayList<BoolExpr>();
+		BoolExpr cond1 = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo2);
+		BoolExpr cond2 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo1));
+		result.add(ctx.mkAnd(cond1, cond2));
+		return result;
+	}
+
+	public List<BoolExpr> return_conditions_wr_then(Expr vo1, Expr vo2, Expr vt1, Expr vt2) {
+		List<BoolExpr> result = new ArrayList<BoolExpr>();
+		BoolExpr cond1 = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo1);
+		BoolExpr cond2 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo2));
+		result.add(ctx.mkAnd(cond1, cond2));
+		return result;
+	}
+
 }
