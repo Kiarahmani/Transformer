@@ -27,7 +27,7 @@ public class DynamicAssertsions {
 		BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), o1);
 		for (String s : updateTypes) {
 			Expr exp = ctx.mkApp(objs.getfuncs("otype"), o1);
-			ors[iter] = ctx.mkEq(exp, ctx.mkConst(s, objs.getDataTypes("OType")));
+			ors[iter] = ctx.mkEq(exp, ctx.mkApp(objs.getConstructor("OType", s)));
 			iter++;
 		}
 		BoolExpr body = ctx.mkImplies(lhs, ctx.mkOr(ors));
@@ -41,7 +41,7 @@ public class DynamicAssertsions {
 		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), o1);
 		for (String s : updateTypes) {
 			Expr exp = ctx.mkApp(objs.getfuncs("otype"), o1);
-			ors[iter] = ctx.mkEq(exp, ctx.mkConst(s, objs.getDataTypes("OType")));
+			ors[iter] = ctx.mkEq(exp, ctx.mkApp(objs.getConstructor("OType", s)));
 			iter++;
 		}
 		BoolExpr body = ctx.mkImplies(ctx.mkOr(ors), rhs);
@@ -51,9 +51,9 @@ public class DynamicAssertsions {
 
 	public BoolExpr op_types_to_parent_type(String name, String stmtName) {
 		BoolExpr rhs = ctx.mkEq(ctx.mkApp(objs.getfuncs("ttype"), ctx.mkApp(objs.getfuncs("parent"), o1)),
-				ctx.mkConst(name, objs.getDataTypes("TType")));
+				ctx.mkApp(objs.getConstructor("TType", name)));
 		BoolExpr lhs = (BoolExpr) ctx.mkEq(ctx.mkApp(objs.getfuncs("otype"), o1),
-				ctx.mkConst(stmtName, objs.getDataTypes("OType")));
+				ctx.mkApp(objs.getConstructor("OType", stmtName)));
 		BoolExpr body = ctx.mkImplies(lhs, rhs);
 		Quantifier x = ctx.mkForall(new Expr[] { o1 }, body, 1, null, null, null, null);
 		return x;

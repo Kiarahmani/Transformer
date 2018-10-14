@@ -96,7 +96,7 @@ public class SampleApp {
 
 	}
 */
-	public void newReservation(long r_id, long c_id, long f_id, long seatnum, double price, long attrs[])
+	public void foo(long r_id, long c_id, long f_id, long seatnum, double price, long attrs[])
 			throws Exception {
 		try {
 			Object o = Class.forName("MyDriver").newInstance();
@@ -111,7 +111,7 @@ public class SampleApp {
 
 
 			
-			stmt = connect.prepareStatement("UPDATE " + "" + "   SET F_SEATS_LEFT = F_SEATS_LEFT - 1 " + " WHERE F_ID = ? ");
+			stmt = connect.prepareStatement("SELECT " + "" + "   SET F_SEATS_LEFT = F_SEATS_LEFT - 1 " + " WHERE F_ID = ? ");
 			stmt.setLong(1, f_id);
 			rs = stmt.executeQuery();
 			
@@ -122,7 +122,7 @@ public class SampleApp {
 		}
 
 	}
-	public void test(long r_id, long c_id, long f_id, long seatnum, double price, long attrs[])
+	public void bar(long r_id, long c_id, long f_id, long seatnum, double price, long attrs[])
 			throws Exception {
 		try {
 			Object o = Class.forName("MyDriver").newInstance();
@@ -136,7 +136,16 @@ public class SampleApp {
 			boolean found;
 
 			// Flight Information
-			stmt = connect.prepareStatement("SELECT " + "" + "   SET F_SEATS_LEFT = F_SEATS_LEFT - 1 " + " WHERE F_ID = ? ");
+			stmt = connect.prepareStatement("DELETE " + "" + "   SET F_SEATS_LEFT = F_SEATS_LEFT - 1 " + " WHERE F_ID = ? ");
+			stmt.setLong(1, f_id);
+			rs = stmt.executeQuery();
+			stmt = connect.prepareStatement("INSERT " + "" + "   SET F_SEATS_LEFT = F_SEATS_LEFT - 1 " + " WHERE F_ID = ? ");
+			stmt.setLong(1, f_id);
+			rs = stmt.executeQuery();
+			stmt = connect.prepareStatement("DELETE " + "" + "   SET F_SEATS_LEFT = F_SEATS_LEFT - 1 " + " WHERE F_ID = ? ");
+			stmt.setLong(1, f_id);
+			rs = stmt.executeQuery();
+			stmt = connect.prepareStatement("UPDATE " + "" + "   SET F_SEATS_LEFT = F_SEATS_LEFT - 1 " + " WHERE F_ID = ? ");
 			stmt.setLong(1, f_id);
 			rs = stmt.executeQuery();
 			

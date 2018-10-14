@@ -5,7 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.microsoft.z3.Context;
@@ -15,6 +17,7 @@ import com.microsoft.z3.FuncInterp;
 import com.microsoft.z3.FuncInterp.Entry;
 import com.sun.org.apache.bcel.internal.generic.RETURN;
 import com.microsoft.z3.Model;
+import com.microsoft.z3.Sort;
 
 import z3.DeclaredObjects;
 
@@ -31,7 +34,10 @@ public class Anomaly {
 	Map<Expr, Expr> cycle;
 	Map<Expr, Expr> otypes;
 	Map<Expr, Expr> ttypes;
+	List<Expr> isUpdate;
 
+
+	
 	public Anomaly(Model model, Context ctx, DeclaredObjects objs) {
 		this.model = model;
 		this.ctx = ctx;
@@ -39,8 +45,7 @@ public class Anomaly {
 	}
 
 	public void announce() {
-		System.out.println("I'm an anomaly!");
-		System.out.println("-----------\nModel: ");
+		System.out.println("-----------\n-- Model -- ");
 		Map<String, FuncDecl> functions = getFunctions();
 		parentChildPairs = getParentChild(functions.get("parent"));
 		WWPairs = getWWPairs(functions.get("WW_O"));
@@ -50,20 +55,47 @@ public class Anomaly {
 		cycle = getCycle(functions.get("D"));
 		otypes = getOType(functions.get("otype"));
 		ttypes = getTType(functions.get("ttype"));
-		System.out.println("Parent-Child: " + parentChildPairs);
-		System.out.println("OType: " + otypes);
-		System.out.println("TType: " + ttypes);
-		System.out.println("WW:  " + WWPairs);
-		System.out.println("RW:  " + RWPairs);
-		System.out.println("WR:  " + WRPairs);
-		System.out.println("vis: " + visPairs);
-		System.out.println("cyc: " + cycle);
+		isUpdate = getIsUpdate(functions.get("is_update"));
+
+		System.out.println("{T}:       " + Arrays.asList(model.getSortUniverse(objs.getSort("T"))));
+		drawLine();
+		System.out.println("ttype:     " + ttypes);
+		drawLine();
+		System.out.println("{O}:       " + Arrays.asList(model.getSortUniverse(objs.getSort("O"))));
+		drawLine();
+		System.out.println("Prnt-Chld: " + parentChildPairs);
+		drawLine();
+		System.out.println("otype:     " + otypes);
+		drawLine();
+		System.out.println("is_update: " + isUpdate);
+		drawLine();
+		System.out.println("WW:        " + WWPairs);
+		drawLine();
+		System.out.println("RW:        " + RWPairs);
+		drawLine();
+		System.out.println("WR:        " + WRPairs);
+		drawLine();
+		System.out.println("vis:       " + visPairs);
+		drawLine();
+		System.out.println("cyc:       " + cycle);
+		drawLine();
 		// System.out.println(model);
 		System.out.println("-----------\n");
 		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
 				parentChildPairs, otypes);
 		av.createGraph();
 		ctx.close();
+	}
+
+	private List<Expr> getIsUpdate(FuncDecl isUpdate) {
+		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
+		List<Expr> result = new ArrayList<>();
+
+		for (Expr o : Os) {
+			if (model.eval(isUpdate.apply(o), true).toString().equals("true"))
+				result.add(o);
+		}
+		return result;
 	}
 
 	private Map<Expr, Expr> getCycle(FuncDecl x) {
@@ -99,6 +131,8 @@ public class Anomaly {
 				result.put("X", f);
 			else if (f.getName().toString().contains("ttype"))
 				result.put("ttype", f);
+			else if (f.getName().toString().contains("is_update"))
+				result.put("is_update", f);
 			else if (f.getName().toString().contains("otype")) {
 				result.put("otype", f);
 			}
@@ -210,5 +244,10 @@ public class Anomaly {
 			result.put(t, child);
 		}
 		return result;
+	}
+	
+	
+	private void drawLine(){
+		//System.out.println("--------------------------------------");
 	}
 }

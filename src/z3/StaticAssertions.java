@@ -160,17 +160,18 @@ public class StaticAssertions {
 		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 
-		BoolExpr notEqExprs[] = new BoolExpr[length - 1];
+		BoolExpr notEqExprs[] = new BoolExpr[length];
 		for (int i = 0; i < length - 1; i++)
 			notEqExprs[i] = ctx.mkNot(ctx.mkEq(Os[i], Os[i + 1]));
+		notEqExprs[length - 1] = ctx.mkNot(ctx.mkEq(Os[length - 1], Os[0]));
 
 		BoolExpr depExprs[] = new BoolExpr[length];
 		for (int i = 1; i < length - 1; i++)
 			depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]);
-		depExprs[length-1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length-1], Os[0]);
+		depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);
 		depExprs[0] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[0], Os[1]);
 
-		BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs),ctx.mkAnd(depExprs));
+		BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
 		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
 		return x;
 	}

@@ -14,7 +14,20 @@ public class DeclaredObjects {
 	private Map<String, FuncDecl> funcs;
 	private Map<String, DatatypeSort> datatypes;
 	private Map<String, BoolExpr> assertions;
+	private Map<String, Map<String, FuncDecl>> constructors;
 	PrintWriter printer;
+
+	public void addConstructor(String type, String cnstrctrName, FuncDecl cnstrctr) {
+		if (this.constructors.get(type) == null)
+			this.constructors.put(type, new HashMap<String, FuncDecl>());
+		Map<String, FuncDecl> map = this.constructors.get(type);
+		map.put(cnstrctrName, cnstrctr);
+		this.constructors.put(type, map);
+	}
+
+	public FuncDecl getConstructor(String type, String cnstrctrName) {
+		return this.constructors.get(type).get(cnstrctrName);
+	}
 
 	public void addSort(String key, Sort value) {
 		sorts.put(key, value);
@@ -32,9 +45,12 @@ public class DeclaredObjects {
 
 	public void addDataType(String key, DatatypeSort value) {
 		datatypes.put(key, value);
+		LogZ3(key);
 		String s = "";
-		for (FuncDecl x : value.getConstructors())
-			s += ("	" + x.getName() + "\n");
+		for (FuncDecl x : value.getConstructors()) {
+			this.addConstructor(key, x.getName().toString(), x);
+			s += ("	" + x + "\n");
+		}
 		LogZ3(s);
 	}
 
@@ -74,6 +90,7 @@ public class DeclaredObjects {
 		funcs = new HashMap<String, FuncDecl>();
 		datatypes = new HashMap<String, DatatypeSort>();
 		assertions = new HashMap<String, BoolExpr>();
+		this.constructors = new HashMap<String, Map<String, FuncDecl>>();
 		this.printer = printer;
 	}
 

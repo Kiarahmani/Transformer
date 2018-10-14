@@ -17,6 +17,7 @@ import anomaly.Anomaly;
 import ir.Application;
 import ir.Transaction;
 import ir.schema.Table;
+import sun.net.www.content.audio.x_aiff;
 
 public class Z3Driver {
 	Application app;
@@ -117,9 +118,11 @@ public class Z3Driver {
 		addAssertion("is_update_to_oType", dynamicAssertions.mk_is_update_to_oType(app.getAllUpdateStmtTypes()));
 		for (Transaction txn : app.getTxns()) {
 			String name = txn.getName();
-			for (String stmtName : txn.getStmtNames())
+			for (String stmtName : txn.getStmtNames()) {
 				addAssertion("op_types_" + name + "_" + stmtName,
 						dynamicAssertions.op_types_to_parent_type(name, stmtName));
+			}
+
 		}
 
 		// dependency assertions
@@ -127,12 +130,6 @@ public class Z3Driver {
 		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
 		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 		addAssertion("cycle", staticAssrtions.mk_cycle());
-
-		BoolExpr thm = ctx.parseSMTLIB2String(
-				"(declare-fun (Int Int) Int) (assert (forall ((x Int) (y Int)) (=> (= x y) (= (gg x 0) (gg 0 y)))))",
-				null, null, new Symbol[] { ctx.mkSymbol("gg") }, null);
-		System.out.println("================");
-		System.out.println(ctx.getNumSMTLIBAssumptions());
 
 	}
 
@@ -152,7 +149,8 @@ public class Z3Driver {
 		for (int i = 0; i < consts.length; i++)
 			constructors[i] = ctx.mkConstructor(ctx.mkSymbol(consts[i]), ctx.mkSymbol("is_" + consts[i]), head_tail,
 					sorts, sort_refs);
-		return ctx.mkDatatypeSort(name, constructors);
+		DatatypeSort result = ctx.mkDatatypeSort(name, constructors);
+		return result;
 	}
 
 	/*

@@ -51,7 +51,7 @@ public class AnomalyVisualizer {
 		String edge_style = "\nedge[fontsize=12, fontname=\"Helvetica\"]";
 		String graph_style = "\nrankdir=RL\n" + "style=filled\n" + "fontname=\"Helvetica\"\n"
 				+ "fontcolor=darkgoldenrod4\n" + "color=cornsilk1\n style=\"rounded,filled\"\n" + "fontsize=10\n";
-		String bold_style = "concentrate=true, penwidth=2.0,weight=0.3, style=bold, arrowhead=normal, arrowtail=inv, arrowsize=0.9, color=red3, fontsize=11, fontcolor=red3";
+		String bold_style = "concentrate=true, penwidth=2.0,weight=2, style=bold, arrowhead=normal, arrowtail=inv, arrowsize=0.9, color=red3, fontsize=11, fontcolor=red3";
 		String normal_style = "concentrate=true, style=solid,weight=0.2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray60, fontsize=10, fontcolor=gray60";
 		String rw_edge_setting = "[label = \"rw\", " + normal_style + "]";
 		String wr_edge_setting = "[label = \"wr\", " + normal_style + "]";
@@ -72,7 +72,7 @@ public class AnomalyVisualizer {
 		String ttype = "";
 		int iter = 0;
 		for (Expr t : Ts) {
-			ttype = model.eval(objs.getfuncs("ttype").apply(Ts[1]), true).toString();
+			ttype = model.eval(objs.getfuncs("ttype").apply(t), true).toString();
 			printer.append("\nsubgraph cluster_" + iter + " {\n");
 			printer.append("label=\" " + t.toString().replaceAll("!val!", "") + "\n(" + ttype + ")" + "\";\n");
 			for (Expr o : parentChildPairs.get(t)) {
