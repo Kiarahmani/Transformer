@@ -128,6 +128,12 @@ public class Z3Driver {
 		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 		addAssertion("cycle", staticAssrtions.mk_cycle());
 
+		BoolExpr thm = ctx.parseSMTLIB2String(
+				"(declare-fun (Int Int) Int) (assert (forall ((x Int) (y Int)) (=> (= x y) (= (gg x 0) (gg 0 y)))))",
+				null, null, new Symbol[] { ctx.mkSymbol("gg") }, null);
+		System.out.println("================");
+		System.out.println(ctx.getNumSMTLIBAssumptions());
+
 	}
 
 	private void addAssertion(String name, BoolExpr ass) {
@@ -139,17 +145,13 @@ public class Z3Driver {
 	/*
 	 */
 	private DatatypeSort mkDataType(String name, String[] consts) {
-		Symbol sname = ctx.mkSymbol("fruit");
-		EnumSort fruit = ctx.mkEnumSort(name, consts);
-		System.out.println(fruit);
-		
-		
-		String[] head_tail = new String[] {};
+		Symbol[] head_tail = new Symbol[] {};
 		Sort[] sorts = new Sort[] {};
 		int[] sort_refs = new int[] {};
 		Constructor[] constructors = new Constructor[consts.length];
 		for (int i = 0; i < consts.length; i++)
-			constructors[i] = ctx.mkConstructor(consts[i], "is_cons", head_tail, sorts, sort_refs);
+			constructors[i] = ctx.mkConstructor(ctx.mkSymbol(consts[i]), ctx.mkSymbol("is_" + consts[i]), head_tail,
+					sorts, sort_refs);
 		return ctx.mkDatatypeSort(name, constructors);
 	}
 

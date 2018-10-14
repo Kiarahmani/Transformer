@@ -32,10 +32,9 @@ public class DeclaredObjects {
 
 	public void addDataType(String key, DatatypeSort value) {
 		datatypes.put(key, value);
-		LogZ3(value.toString());
 		String s = "";
-		for (FuncDecl x:value.getConstructors())
-			s+=("	"+x.getName()+"\n");
+		for (FuncDecl x : value.getConstructors())
+			s += ("	" + x.getName() + "\n");
 		LogZ3(s);
 	}
 
