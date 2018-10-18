@@ -34,10 +34,10 @@ public class Anomaly {
 	Map<Expr, Expr> cycle;
 	Map<Expr, Expr> otypes;
 	Map<Expr, Expr> ttypes;
+	Map<Expr, Expr> otimes;
+	Map<Expr, Expr> opart;
 	List<Expr> isUpdate;
 
-
-	
 	public Anomaly(Model model, Context ctx, DeclaredObjects objs) {
 		this.model = model;
 		this.ctx = ctx;
@@ -54,6 +54,8 @@ public class Anomaly {
 		visPairs = getVisPairs(functions.get("vis"));
 		cycle = getCycle(functions.get("D"));
 		otypes = getOType(functions.get("otype"));
+		otimes = getOTime(functions.get("otime"));
+		opart = getOPart(functions.get("opart"));
 		ttypes = getTType(functions.get("ttype"));
 		isUpdate = getIsUpdate(functions.get("is_update"));
 
@@ -79,10 +81,14 @@ public class Anomaly {
 		drawLine();
 		System.out.println("cyc:       " + cycle);
 		drawLine();
+		System.out.println("otime:     " + otimes);
+		drawLine();
+		System.out.println("opart:     " + opart);
+		drawLine();
 		// System.out.println(model);
 		System.out.println("-----------\n");
 		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
-				parentChildPairs, otypes);
+				parentChildPairs, otypes, opart);
 		av.createGraph();
 		ctx.close();
 	}
@@ -133,6 +139,10 @@ public class Anomaly {
 				result.put("ttype", f);
 			else if (f.getName().toString().contains("is_update"))
 				result.put("is_update", f);
+			else if (f.getName().toString().contains("otime"))
+				result.put("otime", f);
+			else if (f.getName().toString().contains("opart"))
+				result.put("opart", f);
 			else if (f.getName().toString().contains("otype")) {
 				result.put("otype", f);
 			}
@@ -208,6 +218,30 @@ public class Anomaly {
 		return result;
 	}
 
+	private Map<Expr, Expr> getOTime(FuncDecl otimes) {
+		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
+		Map<Expr, Expr> result = new HashMap<>();
+		Expr t;
+		if (otimes != null)
+			for (Expr o : Os) {
+				t = model.eval(otimes.apply(o), true);
+				result.put(o, t);
+			}
+		return result;
+	}
+
+	private Map<Expr, Expr> getOPart(FuncDecl opart) {
+		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
+		Map<Expr, Expr> result = new HashMap<>();
+		Expr t;
+		if (opart != null)
+			for (Expr o : Os) {
+				t = model.eval(opart.apply(o), true);
+				result.put(o, t);
+			}
+		return result;
+	}
+
 	private Map<Expr, Expr> getOType(FuncDecl oType) {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		Map<Expr, Expr> result = new HashMap<>();
@@ -245,9 +279,8 @@ public class Anomaly {
 		}
 		return result;
 	}
-	
-	
-	private void drawLine(){
-		//System.out.println("--------------------------------------");
+
+	private void drawLine() {
+		// System.out.println("--------------------------------------");
 	}
 }

@@ -1,7 +1,9 @@
 package ir;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ir.statement.InvokeStmt;
 import ir.statement.SqlStmtType;
@@ -29,21 +31,35 @@ public class Transaction {
 		int insertCount = 0;
 		int deleteCount = 0;
 		int updateCount = 0;
+		int seq = 0;
 		for (Statement s : stmts)
 			try {
 				InvokeStmt is = (InvokeStmt) s;
 				if (is.getQuery().getText().toLowerCase().contains("select"))
-					is.setType(new SqlStmtType(name, "select", ++selectCount, false));
+					is.setType(new SqlStmtType(name, "select", ++selectCount, false, ++seq));
 				else if (is.getQuery().getText().toLowerCase().contains("insert"))
-					is.setType(new SqlStmtType(name, "insert", ++insertCount, true));
+					is.setType(new SqlStmtType(name, "insert", ++insertCount, true, ++seq));
 				else if (is.getQuery().getText().toLowerCase().contains("update"))
-					is.setType(new SqlStmtType(name, "update", ++updateCount, true));
+					is.setType(new SqlStmtType(name, "update", ++updateCount, true, ++seq));
 				else if (is.getQuery().getText().toLowerCase().contains("delete"))
-					is.setType(new SqlStmtType(name, "delete", ++deleteCount, true));
+					is.setType(new SqlStmtType(name, "delete", ++deleteCount, true, ++seq));
 
 			} catch (Exception e) {
 			}
 
+	}
+
+	// return mapping from program order to the stmt name
+	public Map<Integer, String> getStmtNamesMap() {
+		Map<Integer, String> result = new HashMap<Integer, String>();
+		int iter = -1;
+		for (Statement s : this.stmts)
+			try {
+				InvokeStmt is = (InvokeStmt) s;
+				result.put(is.getType().getSeq(), is.getType().toString());
+			} catch (Exception e) {
+			}
+		return result;
 	}
 
 	public String[] getStmtNames() {

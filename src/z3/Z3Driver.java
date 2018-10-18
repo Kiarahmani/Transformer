@@ -86,6 +86,8 @@ public class Z3Driver {
 		objs.addDataType("TType", mkDataType("TType", app.getAllTxnNames()));
 		objs.addDataType("OType", mkDataType("OType", app.getAllStmtTypes()));
 		LogZ3(";functions");
+		objs.addFunc("otime", ctx.mkFuncDecl("otime", objs.getSort("O"), objs.getSort("Int")));
+		objs.addFunc("opart", ctx.mkFuncDecl("opart", objs.getSort("O"), objs.getSort("Int")));
 		objs.addFunc("ttype", ctx.mkFuncDecl("ttype", objs.getSort("T"), objs.getDataTypes("TType")));
 		objs.addFunc("otype", ctx.mkFuncDecl("otype", objs.getSort("O"), objs.getDataTypes("OType")));
 		objs.addFunc("is_update", ctx.mkFuncDecl("is_update", objs.getSort("O"), objs.getSort("Bool")));
@@ -107,10 +109,20 @@ public class Z3Driver {
 				ctx.mkFuncDecl("D", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
 		objs.addFunc("X",
 				ctx.mkFuncDecl("X", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
+		// TEMOPORARY XXXXX
+		// change the shape of the anomaly
+		if (ConstantArgs._NO_WW)
+			addAssertion("no_ww", staticAssrtions.mk_no_ww());
+		if (ConstantArgs._NO_WR)
+			addAssertion("no_wr", staticAssrtions.mk_no_wr());
+		if (ConstantArgs._NO_RW)
+			addAssertion("no_rw", staticAssrtions.mk_no_rw());
+
 		// assertions
 		addAssertion("par_then_sib", staticAssrtions.mk_par_then_sib());
 		addAssertion("sib_then_par", staticAssrtions.mk_sib_then_par());
 		addAssertion("ar_on_writes", staticAssrtions.mk_ar_on_writes());
+		addAssertion("vis_on_writes", staticAssrtions.mk_vis_on_writes());
 		addAssertion("vis_then_ar", staticAssrtions.mk_vis_then_ar());
 		addAssertion("types_then_eq", staticAssrtions.mk_types_then_eq());
 		addAssertion("no_loops_o", staticAssrtions.mk_no_loops_o());
@@ -120,6 +132,8 @@ public class Z3Driver {
 		addAssertion("ww_then_ar", staticAssrtions.mk_ww_then_ar());
 		addAssertion("rw_then_not_vis", staticAssrtions.mk_rw_then_not_vis());
 		addAssertion("irreflx_ar", staticAssrtions.mk_irreflx_ar());
+		addAssertion("otime_props", staticAssrtions.mk_otime_props());
+		addAssertion("opart_props", staticAssrtions.mk_opart_props());
 		addAssertion("oType_to_is_update", dynamicAssertions.mk_oType_to_is_update(app.getAllUpdateStmtTypes()));
 		addAssertion("is_update_to_oType", dynamicAssertions.mk_is_update_to_oType(app.getAllUpdateStmtTypes()));
 		// relating operation otypes to parent ttypes
@@ -129,15 +143,23 @@ public class Z3Driver {
 				addAssertion("op_types_" + name + "_" + stmtName,
 						dynamicAssertions.op_types_to_parent_type(name, stmtName));
 		}
+		// make sure the otime assignment follows the program order
+		for (Transaction txn : app.getTxns()) {
+			Map<Integer, String> map = txn.getStmtNamesMap();
+			for (int po : map.keySet())
+				if (map.get(po + 1) != null) {
+					addAssertion("otime_follows_po_" + po + "_" + map.get(po),
+							dynamicAssertions.otime_follows_po(map.get(po), map.get(po + 1)));
+				}
+		}
+
 		// RULES
-		LogZ3("\n\n;==========");
 		thenWW();
 		thenWR();
 		thenRW();
 		WWthen();
 		WRthen();
 		RWthen();
-		LogZ3(";==========\n\n");
 
 		// dependency assertions
 		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
@@ -175,6 +197,9 @@ public class Z3Driver {
 			return new Anomaly(model, ctx, objs);
 		} else {
 			System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
+			System.out.println("-------------\n--UNSAT core:");
+			for (Expr e : slv.getUnsatCore())
+				System.out.println(e);
 			ctx.close();
 			return null;
 		}

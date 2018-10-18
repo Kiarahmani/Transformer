@@ -3,9 +3,11 @@ package z3;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
+import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Quantifier;
 
 public class DynamicAssertsions {
@@ -56,6 +58,25 @@ public class DynamicAssertsions {
 				ctx.mkApp(objs.getConstructor("OType", stmtName)));
 		BoolExpr body = ctx.mkImplies(lhs, rhs);
 		Quantifier x = ctx.mkForall(new Expr[] { o1 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr otime_follows_po(String stmt, String stmt2) {
+		FuncDecl otime = objs.getfuncs("otime");
+		FuncDecl ar = objs.getfuncs("ar");
+		FuncDecl parent = objs.getfuncs("parent");
+		FuncDecl otype = objs.getfuncs("otype");
+		BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(parent, o1), ctx.mkApp(parent, o2));
+		BoolExpr lhs2 = ctx.mkEq(ctx.mkApp(otype, o1), ctx.mkApp(objs.getConstructor("OType", stmt)));
+		BoolExpr lhs3 = ctx.mkEq(ctx.mkApp(otype, o2), ctx.mkApp(objs.getConstructor("OType", stmt2)));
+		BoolExpr lhs = ctx.mkAnd(lhs1, lhs2, lhs3);
+		BoolExpr rhs = ctx.mkGt((ArithExpr) ctx.mkApp(otime, o2), (ArithExpr) ctx.mkApp(otime, o1));
+		BoolExpr body1 = ctx.mkImplies(lhs, rhs);
+		BoolExpr body2 = ctx.mkImplies(ctx.mkAnd((BoolExpr) ctx.mkApp(ar, o1, o2), ctx.mkNot(ctx.mkEq(o1, o2))),
+				ctx.mkGe((ArithExpr) ctx.mkApp(otime, o2), (ArithExpr) ctx.mkApp(otime, o1)));
+
+		BoolExpr body = ctx.mkAnd(body1, body2);
+		Quantifier x = ctx.mkForall(new Expr[] { o1, o2 }, body, 1, null, null, null, null);
 		return x;
 	}
 

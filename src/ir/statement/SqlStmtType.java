@@ -6,15 +6,21 @@ public class SqlStmtType {
 	String txnName;
 	String kind;
 	int number;
+	int seq;
 
-	public SqlStmtType(String txnName, String kind, int number, boolean isUpdate) {
+	public SqlStmtType(String txnName, String kind, int number, boolean isUpdate, int seq) {
 		this.kind = kind;
 		this.number = number;
 		this.isUpdate = isUpdate;
 		this.txnName = txnName;
+		this.seq = seq;
+	}
+
+	public int getSeq() {
+		return this.seq;
 	}
 
 	public String toString() {
-		return txnName + "-" + kind + "#" + String.valueOf(number);
+		return txnName + "-" + kind + "#" + String.valueOf(number) + "#" + String.valueOf(seq) ;
 	}
 }

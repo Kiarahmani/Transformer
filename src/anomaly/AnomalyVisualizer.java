@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.Model;
@@ -25,13 +26,15 @@ public class AnomalyVisualizer {
 	Map<Expr, ArrayList<Expr>> visPairs;
 	Map<Expr, Expr> cycle;
 	Map<Expr, Expr> otype;
+	Map<Expr, Expr> opart;
 	Model model;
 	DeclaredObjects objs;
 	Map<Expr, ArrayList<Expr>> parentChildPairs;
 
 	public AnomalyVisualizer(Map<Expr, ArrayList<Expr>> wWPairs, Map<Expr, ArrayList<Expr>> wRPairs,
 			Map<Expr, ArrayList<Expr>> rWPairs, Map<Expr, ArrayList<Expr>> visPairs, Map<Expr, Expr> cycle, Model model,
-			DeclaredObjects objs, Map<Expr, ArrayList<Expr>> parentChildPairs, Map<Expr, Expr> otype) {
+			DeclaredObjects objs, Map<Expr, ArrayList<Expr>> parentChildPairs, Map<Expr, Expr> otype,
+			Map<Expr, Expr> opart) {
 		this.WRPairs = wRPairs;
 		this.WWPairs = wWPairs;
 		this.visPairs = visPairs;
@@ -41,16 +44,20 @@ public class AnomalyVisualizer {
 		this.objs = objs;
 		this.parentChildPairs = parentChildPairs;
 		this.otype = otype;
+		this.opart = opart;
 	}
 
 	public void createGraph() {
+		String[] colors = new String[] { "lightyellow", "darkkhaki", "cornsilk1", "rosybrown1", "thistle", "lavender",
+				"ivory3", "mintcream" };
 		File file = new File("anomalies/anomaly.dot");
 		FileWriter writer = null;
 		PrintWriter printer;
 		String node_style = "node[ color=darkgoldenrod4, fontcolor=darkgoldenrod4, fontsize=10, fontname=\"Helvetica\"]";
 		String edge_style = "\nedge[fontsize=12, fontname=\"Helvetica\"]";
-		String graph_style = "\nrankdir=RL\n" + "style=filled\n" + "fontname=\"Helvetica\"\n"
-				+ "fontcolor=darkgoldenrod4\n" + "color=cornsilk1\n style=\"rounded,filled\"\n" + "fontsize=10\n";
+		String graph_style1 = "\nrankdir=RL\n" + "style=filled\n" + "fontname=\"Helvetica\"\n"
+				+ "fontcolor=darkgoldenrod4\n" + "color=";
+		String graph_style2 = "\n style=\"rounded,filled\"\n" + "fontsize=10\n";
 		String bold_style = " penwidth=2.0,weight=2, style=bold, arrowhead=normal, arrowtail=inv, arrowsize=0.9, color=red3, fontsize=11, fontcolor=red3";
 		String normal_style = " style=solid,weight=0.2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray70, fontsize=10, fontcolor=gray60";
 		String rw_edge_setting = "[label = \"rw\", " + normal_style + "]";
@@ -59,7 +66,7 @@ public class AnomalyVisualizer {
 		String rwB_edge_setting = "[label = \"RW\"," + bold_style + "]";
 		String wrB_edge_setting = "[label = \"WR\"," + bold_style + "]";
 		String wwB_edge_setting = "[label = \"WW\"," + bold_style + "]";
-		String vis_edge_setting = "[label = \"vis\",concentrate=true, style=dotted,weight=0.2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray70, fontsize=10, fontcolor=gray60]";
+		String vis_edge_setting = "[label = \"vis\",concentrate=true, style=dotted,weight=2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray70, fontsize=10, fontcolor=gray60]";
 		try {
 			writer = new FileWriter(file, false);
 		} catch (IOException e) {
@@ -68,17 +75,24 @@ public class AnomalyVisualizer {
 		printer = new PrintWriter(writer);
 		Expr[] Ts = model.getSortUniverse(objs.getSort("T"));
 
-		printer.append("digraph {" + graph_style + node_style + edge_style);
+		printer.append("digraph {" + node_style + edge_style);
 		String ttype = "";
+		String opart = "";
 		int iter = 0;
+		int randomColor = ThreadLocalRandom.current().nextInt(0, 10);
 		for (Expr t : Ts) {
 			ttype = model.eval(objs.getfuncs("ttype").apply(t), true).toString();
-			printer.append("\nsubgraph cluster_" + iter + " {\n");
+			// TODO -> The below coloring is based on the first child - what if childs are
+			// at different partitions?
+			opart = model.eval(objs.getfuncs("opart").apply(parentChildPairs.get(t).get(0)), true).toString();
+			printer.append("\nsubgraph cluster_" + iter + "{" + (graph_style1
+					+ colors[(Integer.valueOf(opart) + randomColor) % (colors.length - 1)] + graph_style2) + " \n");
 			printer.append("label=\" " + t.toString().replaceAll("!val!", "") + "\n(" + ttype + ")" + "\";\n");
 			for (Expr o : parentChildPairs.get(t)) {
+				String otime = model.eval(objs.getfuncs("otime").apply(o), true).toString();
 				String name = o.toString().replaceAll("!val!", "");
-				String title = "[ label=\"" + otype.get(o).toString().replace('|', ' ').replace('-', ' ').split(" ")[2]
-						+ "\"]";
+				String title = "[ label=\"" + otime + ": "
+						+ otype.get(o).toString().replace('|', ' ').replace('-', ' ').split(" ")[2] + "\"]";
 				printer.append(name + title + ";\n ");
 			}
 			printer.append("}");
