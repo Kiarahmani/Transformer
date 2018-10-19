@@ -8,6 +8,10 @@ public class Table {
 	private String name;
 	private ArrayList<Column> columns;
 
+	public String getName() {
+		return this.name;
+	}
+
 	public Table(String name) {
 		this.name = name;
 		columns = new ArrayList<Column>();
@@ -15,6 +19,10 @@ public class Table {
 
 	public void addColumn(Column c) {
 		this.columns.add(c);
+	}
+
+	public ArrayList<Column> getColumns() {
+		return this.columns;
 	}
 
 	public Column getColumn(int i) {
@@ -38,7 +46,7 @@ public class Table {
 		System.out.println("Table <<" + name + ">>");
 		for (Column c : this.columns)
 			c.printColumn();
-		
+
 	}
 
 }

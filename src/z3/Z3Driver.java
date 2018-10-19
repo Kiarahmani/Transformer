@@ -16,6 +16,7 @@ import com.microsoft.z3.*;
 import anomaly.Anomaly;
 import ir.Application;
 import ir.Transaction;
+import ir.schema.Column;
 import ir.schema.Table;
 
 public class Z3Driver {
@@ -79,6 +80,10 @@ public class Z3Driver {
 		objs.addSort("Int", ctx.mkIntSort());
 		objs.addSort("String", ctx.mkStringSort());
 		objs.addSort("Real", ctx.mkRealSort());
+		// create table sorts and constraints
+		for (Table t : tables) {
+			objs.addSort(t.getName(), ctx.mkUninterpretedSort(t.getName()));
+		}
 	}
 
 	private void ctxInitialize() {
@@ -157,7 +162,32 @@ public class Z3Driver {
 				}
 		}
 
-		// RULES
+		LogZ3("\n;TABLES");
+		// create table sorts and constraints
+		for (Table t : tables) {
+			Sort tSort = objs.getSort(t.getName());
+			Sort oSort = objs.getSort("O");
+			for (Column c : t.getColumns())
+				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
+						new Sort[] { tSort }, objs.getSort(c.getType().toString())));
+			addAssertion("pk_" + t.getName(), dynamicAssertions.mk_pk_tables(t));
+			objs.addFunc("RW_O_" + t.getName(),
+					ctx.mkFuncDecl("RW_O_" + t.getName(), new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
+			objs.addFunc("WR_O_" + t.getName(),
+					ctx.mkFuncDecl("WR_O_" + t.getName(), new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
+			objs.addFunc("WW_O_" + t.getName(),
+					ctx.mkFuncDecl("WW_O_" + t.getName(), new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
+			objs.addFunc("RW_Alive_" + t.getName(), ctx.mkFuncDecl("RW_Alive_" + t.getName(),
+					new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
+			objs.addFunc("WR_Alive_" + t.getName(), ctx.mkFuncDecl("WR_Alive_" + t.getName(),
+					new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
+			objs.addFunc("WW_Alive_" + t.getName(), ctx.mkFuncDecl("WW_Alive_" + t.getName(),
+					new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
+
+		}
+
+		// rules
+		LogZ3(";\n;\n;");
 		thenWW();
 		thenWR();
 		thenRW();

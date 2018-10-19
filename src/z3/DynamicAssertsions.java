@@ -10,6 +10,9 @@ import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Quantifier;
 
+import ir.schema.Column;
+import ir.schema.Table;
+
 public class DynamicAssertsions {
 	Context ctx;
 	DeclaredObjects objs;
@@ -81,11 +84,27 @@ public class DynamicAssertsions {
 	}
 
 	public BoolExpr mk_limit_txn_instances(int limit) {
-		Expr[] Ts = new Expr[limit+1];
-		for (int i = 0; i < limit+1; i++)
+		Expr[] Ts = new Expr[limit + 1];
+		for (int i = 0; i < limit + 1; i++)
 			Ts[i] = ctx.mkFreshConst("t", objs.getSort("T"));
 		Expr body = ctx.mkNot(ctx.mkDistinct(Ts));
 		Quantifier x = ctx.mkForall(Ts, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr mk_pk_tables(Table t) {
+		Expr r1 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
+		Expr r2 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
+		BoolExpr lhs = ctx.mkTrue();
+		for (Column c : t.getColumns())
+			if (c.isPK()) {
+				Expr proj1 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r1);
+				Expr proj2 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r2);
+				lhs = ctx.mkAnd(lhs, ctx.mkEq(proj1, proj2));
+			}
+		BoolExpr rhs = ctx.mkEq(r1, r2);
+		BoolExpr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { r1, r2 }, body, 1, null, null, null, null);
 		return x;
 	}
 
