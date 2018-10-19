@@ -117,6 +117,10 @@ public class Z3Driver {
 			addAssertion("no_wr", staticAssrtions.mk_no_wr());
 		if (ConstantArgs._NO_RW)
 			addAssertion("no_rw", staticAssrtions.mk_no_rw());
+		if (ConstantArgs._MAX_TXN_INSTANCES != -1)
+			addAssertion("limit_txn_instances",
+					dynamicAssertions.mk_limit_txn_instances(ConstantArgs._MAX_TXN_INSTANCES));
+		;
 
 		// assertions
 		addAssertion("par_then_sib", staticAssrtions.mk_par_then_sib());

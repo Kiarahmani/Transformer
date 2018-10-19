@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -83,7 +85,7 @@ public class Transformer extends BodyTransformer {
 			System.err.println("ERROR: Unknown abstraction level requested");
 			break;
 		}
-		//app.printApp();
+		// app.printApp();
 
 		/*
 		 * generate the anomaly given the IR
@@ -93,7 +95,8 @@ public class Transformer extends BodyTransformer {
 		// now we can visualize the anomaly or
 		// generate concrete execution plans, etc.
 		if (anml != null)
-		 anml.announce();
+			anml.announce();
+
 	}
 
 }

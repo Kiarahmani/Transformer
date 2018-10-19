@@ -80,6 +80,15 @@ public class DynamicAssertsions {
 		return x;
 	}
 
+	public BoolExpr mk_limit_txn_instances(int limit) {
+		Expr[] Ts = new Expr[limit+1];
+		for (int i = 0; i < limit+1; i++)
+			Ts[i] = ctx.mkFreshConst("t", objs.getSort("T"));
+		Expr body = ctx.mkNot(ctx.mkDistinct(Ts));
+		Quantifier x = ctx.mkForall(Ts, body, 1, null, null, null, null);
+		return x;
+	}
+
 	/*
 	 * 
 	 * 
