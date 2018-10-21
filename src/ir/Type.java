@@ -3,7 +3,7 @@ package ir;
 public enum Type {
 	INT, REAL, STRING, BOOLEAN;
 
-	public String toString() {
+	public String toZ3String() {
 		switch (this) {
 		case INT:
 			return "Int";

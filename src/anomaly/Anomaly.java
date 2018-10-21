@@ -45,7 +45,7 @@ public class Anomaly {
 	}
 
 	public void announce() {
-		System.out.println("-----------\n-- Model -- ");
+		System.out.println("\n\n=============\n=== Model === ");
 		Map<String, FuncDecl> functions = getFunctions();
 		parentChildPairs = getParentChild(functions.get("parent"));
 		WWPairs = getWWPairs(functions.get("WW_O"));
@@ -86,7 +86,7 @@ public class Anomaly {
 		System.out.println("opart:     " + opart);
 		drawLine();
 		// System.out.println(model);
-		System.out.println("-----------\n");
+		System.out.println("=============\n");
 		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
 				parentChildPairs, otypes, opart);
 		av.createGraph();
@@ -107,6 +107,7 @@ public class Anomaly {
 	private Map<Expr, Expr> getCycle(FuncDecl x) {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		Map<Expr, Expr> result = new HashMap<>();
+
 		for (Expr o : Os)
 			for (Expr o1 : Os) {
 				if (model.eval(x.apply(o, o1), true).toString().equals("true")) {
@@ -123,27 +124,27 @@ public class Anomaly {
 		for (FuncDecl f : model.getFuncDecls()) {
 			if (f.getName().toString().contains("parent"))
 				result.put("parent", f);
-			else if (f.getName().toString().contains("vis"))
+			else if (f.getName().toString().equals("vis"))
 				result.put("vis", f);
-			else if (f.getName().toString().contains("WW_O"))
+			else if (f.getName().toString().equals("WW_O"))
 				result.put("WW_O", f);
-			else if (f.getName().toString().contains("WR_O"))
+			else if (f.getName().toString().equals("WR_O"))
 				result.put("WR_O", f);
-			else if (f.getName().toString().contains("RW_O"))
+			else if (f.getName().toString().equals("RW_O"))
 				result.put("RW_O", f);
-			else if (f.getName().toString().contains("D"))
+			else if (f.getName().toString().equals("D"))
 				result.put("D", f);
-			else if (f.getName().toString().contains("X"))
+			else if (f.getName().toString().equals("X"))
 				result.put("X", f);
-			else if (f.getName().toString().contains("ttype"))
+			else if (f.getName().toString().equals("ttype"))
 				result.put("ttype", f);
-			else if (f.getName().toString().contains("is_update"))
+			else if (f.getName().toString().equals("is_update"))
 				result.put("is_update", f);
-			else if (f.getName().toString().contains("otime"))
+			else if (f.getName().toString().equals("otime"))
 				result.put("otime", f);
-			else if (f.getName().toString().contains("opart"))
+			else if (f.getName().toString().equals("opart"))
 				result.put("opart", f);
-			else if (f.getName().toString().contains("otype")) {
+			else if (f.getName().toString().equals("otype")) {
 				result.put("otype", f);
 			}
 		}

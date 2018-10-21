@@ -59,33 +59,22 @@ public class Transformer extends BodyTransformer {
 		 */
 		DDLParser ddlp = new DDLParser();
 		ArrayList<Table> tables = ddlp.parse();
-		// System.out.print("\nSchema Extracted:");
-		// for (Table t : tables)
-		// t.printTable();
+		System.out.print("------------\n-- Schema --");
+		for (Table t : tables)
+			t.printTable();
+		System.out.println();
 
 		/*
 		 * generate the intermediate representation
 		 */
-		int absLvl = 1;
-		switch (absLvl) {
-		case 1:
-			// most abstract version (no data value or flow is extracted)
-			gta = new GimpToAppOne(Scene.v(), bodies, tables);
-			try {
-				app = ((GimpToAppOne) gta).transform();
-			} catch (UnknownUnitException e) {
-				e.printStackTrace();
-			}
-			break;
-		case 2:
-			gta = new GimpToAppTwo(Scene.v(), bodies, tables);
-			app = ((GimpToAppTwo) gta).transform();
-			break;
-		default:
-			System.err.println("ERROR: Unknown abstraction level requested");
-			break;
+		gta = new GimpToAppOne(Scene.v(), bodies, tables);
+		try {
+			app = ((GimpToAppOne) gta).transform();
+		} catch (UnknownUnitException e) {
+			e.printStackTrace();
 		}
-		// app.printApp();
+
+		app.printApp();
 
 		/*
 		 * generate the anomaly given the IR

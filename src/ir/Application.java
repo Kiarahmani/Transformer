@@ -20,9 +20,10 @@ public class Application {
 	}
 
 	public void printApp() {
-		System.out.println("\n\n=====\nExtracted Application: ");
+		System.out.println("\n\n-----------------\n-- Application --");
 		for (Transaction t : txns)
 			t.printTxn();
+		System.out.println();
 	}
 
 	public String[] getAllStmtTypes() {

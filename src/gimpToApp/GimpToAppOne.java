@@ -43,7 +43,6 @@ public class GimpToAppOne extends GimpToApp {
 		for (Statement s : unitHandler.data.getStmts())
 			txn.addStmt(s);
 		txn.setTypes();
-		txn.printTxn();
 		return txn;
 	}
 

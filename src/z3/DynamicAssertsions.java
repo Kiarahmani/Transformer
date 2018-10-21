@@ -132,4 +132,52 @@ public class DynamicAssertsions {
 		return result;
 	}
 
+	public BoolExpr mk_rw_then_deps(String tName) {
+		Expr r1 = ctx.mkFreshConst("r", objs.getSort(tName));
+		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), o1, o2);
+		BoolExpr body1 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + tName), r1, o1, o2), rhs);
+		BoolExpr body2 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("RW_Alive_" + tName), r1, o1, o2), rhs);
+		Expr body = ctx.mkAnd(body1, body2);
+		Quantifier x = ctx.mkForall(new Expr[] { r1, o1, o2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr mk_wr_then_deps(String tName) {
+		Expr r1 = ctx.mkFreshConst("r", objs.getSort(tName));
+		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), o1, o2);
+		BoolExpr body1 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" + tName), r1, o1, o2), rhs);
+		// BoolExpr body2 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("WR_Alive_"
+		// + tName), r1, o1, o2), rhs);
+		Expr body = ctx.mkAnd(body1);
+		Quantifier x = ctx.mkForall(new Expr[] { r1, o1, o2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr mk_ww_then_deps(String tName) {
+		Expr r1 = ctx.mkFreshConst("r", objs.getSort(tName));
+		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), o1, o2);
+		BoolExpr body1 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + tName), r1, o1, o2), rhs);
+		BoolExpr body2 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("WW_Alive_" + tName), r1, o1, o2), rhs);
+		Expr body = ctx.mkAnd(body1, body2);
+		Quantifier x = ctx.mkForall(new Expr[] { r1, o1, o2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr mk_lww(String tName) {
+		Expr r1 = ctx.mkFreshConst("r", objs.getSort(tName));
+		BoolExpr rhs1 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + tName), r1, o2, o3);
+		BoolExpr lhs1 = ctx.mkAnd(ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), o2, o3)),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" + tName), r1, o2, o1),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + tName), r1, o1, o3));
+		BoolExpr body1 = ctx.mkImplies(lhs1, rhs1);
+
+		BoolExpr rhs2 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_Alive_" + tName), r1, o2, o3);
+		BoolExpr lhs2 = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("WR_Alive_" + tName), r1, o2, o1),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("RW_Alive_" + tName), r1, o1, o3));
+		BoolExpr body2 = ctx.mkImplies(lhs2, rhs2);
+		Expr body = ctx.mkAnd(body1, body2);
+		Quantifier x = ctx.mkForall(new Expr[] { r1, o1, o2, o3 }, body, 1, null, null, null, null);
+		return x;
+	}
+
 }

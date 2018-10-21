@@ -169,8 +169,11 @@ public class Z3Driver {
 			Sort oSort = objs.getSort("O");
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
-						new Sort[] { tSort }, objs.getSort(c.getType().toString())));
+						new Sort[] { tSort }, objs.getSort(c.getType().toZ3String())));
 			addAssertion("pk_" + t.getName(), dynamicAssertions.mk_pk_tables(t));
+			// dependecy relations on operations
+			objs.addFunc("IsAlive_" + t.getName(),
+					ctx.mkFuncDecl("IsAlive_" + t.getName(), new Sort[] { tSort, oSort }, objs.getSort("Bool")));
 			objs.addFunc("RW_O_" + t.getName(),
 					ctx.mkFuncDecl("RW_O_" + t.getName(), new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
 			objs.addFunc("WR_O_" + t.getName(),
@@ -183,7 +186,10 @@ public class Z3Driver {
 					new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
 			objs.addFunc("WW_Alive_" + t.getName(), ctx.mkFuncDecl("WW_Alive_" + t.getName(),
 					new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
-
+			addAssertion(t.getName() + "_RW_TABLE_then_RW", dynamicAssertions.mk_rw_then_deps(t.getName()));
+			addAssertion(t.getName() + "_WR_TABLE_then_WR", dynamicAssertions.mk_wr_then_deps(t.getName()));
+			addAssertion(t.getName() + "_WW_TABLE_then_WW", dynamicAssertions.mk_ww_then_deps(t.getName()));
+			addAssertion(t.getName() + "_LWW", dynamicAssertions.mk_lww(t.getName()));
 		}
 
 		// rules
