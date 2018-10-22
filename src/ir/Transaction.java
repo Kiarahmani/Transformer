@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ir.expression.ParamValExp;
+import ir.expression.VarExp;
+import ir.statement.AssignmentStmt;
 import ir.statement.InvokeStmt;
 import ir.statement.SqlStmtType;
 import ir.statement.Statement;
@@ -12,6 +15,7 @@ import ir.statement.Statement;
 public class Transaction {
 	private String name;
 	private ArrayList<Statement> stmts;
+	private Map<String, ParamValExp> params;
 
 	public String getName() {
 		return this.name;
@@ -20,6 +24,11 @@ public class Transaction {
 	public Transaction(String name) {
 		this.name = name;
 		this.stmts = new ArrayList<Statement>();
+		this.params = new HashMap<String, ParamValExp>();
+	}
+
+	public void addParam(String l, ParamValExp p) {
+		this.params.put(l, p);
 	}
 
 	public void addStmt(Statement stmt) {
@@ -49,6 +58,10 @@ public class Transaction {
 
 	}
 
+	public Map<String, ParamValExp> getParams() {
+		return this.params;
+	}
+
 	// return mapping from program order to the stmt name
 	public Map<Integer, String> getStmtNamesMap() {
 		Map<Integer, String> result = new HashMap<Integer, String>();
@@ -63,14 +76,15 @@ public class Transaction {
 	}
 
 	public String[] getStmtNames() {
-		String[] result = new String[this.stmts.size()];
-		int iter = -1;
+		List<String> invokations = new ArrayList<String>();
 		for (Statement s : this.stmts)
 			try {
 				InvokeStmt is = (InvokeStmt) s;
-				result[++iter] = is.getType().toString();
+				invokations.add(is.getType().toString());
 			} catch (Exception e) {
+
 			}
+		String[] result = invokations.toArray(new String[invokations.size()]);
 		return result;
 	}
 
@@ -86,10 +100,35 @@ public class Transaction {
 		return result;
 	}
 
+	public List<VarExp> getAllLhsVars() {
+		List<VarExp> result = new ArrayList<VarExp>();
+		for (Statement s : this.stmts)
+			try {
+				AssignmentStmt as = (AssignmentStmt) s;
+				result.add(as.getLhs());
+			} catch (Exception e) {
+			}
+		return result;
+
+	}
+
 	public void printTxn() {
-		System.out.println("TXN (" + name + ")");
+		String paramList = " (";
+		int iter = 0;
+		for (String s : params.keySet()) {
+			paramList += (s + ":" + params.get(s).getType());
+			if (iter++ < params.size() - 1)
+				paramList += ",";
+		}
+
+		paramList += ")";
+		System.out.println("TXN_" + name + paramList);
 		for (Statement stmt : stmts)
-			System.out.println(" ++ " + ((InvokeStmt) stmt).getType());
+			try {
+				System.out.println(" ++ " + ((InvokeStmt) stmt).getType());
+			} catch (Exception e) {
+				System.out.println(" ++ assignment...");
+			}
 	}
 
 }

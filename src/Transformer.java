@@ -7,7 +7,6 @@ import anomaly.Anomaly;
 import exceptions.UnknownUnitException;
 import gimpToApp.GimpToApp;
 import gimpToApp.GimpToAppOne;
-import gimpToApp.GimpToAppTwo;
 import ir.*;
 import ir.schema.Table;
 import soot.Body;

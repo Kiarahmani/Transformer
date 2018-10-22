@@ -1,6 +1,7 @@
 package z3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.microsoft.z3.ArithExpr;
@@ -9,7 +10,12 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Quantifier;
+import com.microsoft.z3.Sort;
 
+import ir.expression.PrimitiveVarExp;
+import ir.expression.RowSetVarExp;
+import ir.expression.RowVarExp;
+import ir.expression.VarExp;
 import ir.schema.Column;
 import ir.schema.Table;
 
@@ -178,6 +184,75 @@ public class DynamicAssertsions {
 		Expr body = ctx.mkAnd(body1, body2);
 		Quantifier x = ctx.mkForall(new Expr[] { r1, o1, o2, o3 }, body, 1, null, null, null, null);
 		return x;
+	}
+
+	public List<FuncDecl> mk_declare_lhs(String label, VarExp ve) {
+		// PrimitiveVarExp
+		try {
+			PrimitiveVarExp pve = (PrimitiveVarExp) ve;
+			return Arrays.asList(
+					ctx.mkFuncDecl(label, new Sort[] { objs.getSort("T") }, objs.getSort(pve.getType().toZ3String())));
+		} catch (ClassCastException e1) {
+			// RowVarExp
+			try {
+				RowVarExp rve = (RowVarExp) ve;
+				return Arrays.asList(ctx.mkFuncDecl(label, new Sort[] { objs.getSort("T") },
+						objs.getSort(rve.getTable().getName())));
+			} catch (ClassCastException e2) {
+				// RowSetVarExp
+				try {
+					RowSetVarExp rsve = (RowSetVarExp) ve;
+					FuncDecl varFunc = ctx.mkFuncDecl(label,
+							new Sort[] { objs.getSort("T"), objs.getSort(rsve.getTable().getName()) },
+							objs.getSort("Bool"));
+					FuncDecl isNullFunc = ctx.mkFuncDecl(label + "_isNull", new Sort[] { objs.getSort("T") },
+							objs.getSort("Bool"));
+
+					return Arrays.asList(varFunc, isNullFunc);
+
+				} catch (ClassCastException e3) {
+					e3.printStackTrace();
+				}
+
+			}
+
+		}
+		return null;
+	}
+
+	public BoolExpr mk_assert_is_null(String label, VarExp ve) {
+		// PrimitiveVarExp (no isNull prop)
+		try {
+			PrimitiveVarExp pve = (PrimitiveVarExp) ve;
+			return null;
+		} catch (ClassCastException e1) {
+			// RowVarExp (no isNull prop)
+			try {
+				RowVarExp rve = (RowVarExp) ve;
+				return null;
+			} catch (ClassCastException e2) {
+				// RowSetVarExp
+				try {
+					RowSetVarExp rsve = (RowSetVarExp) ve;
+					Expr t1 = ctx.mkFreshConst("t", objs.getSort("T"));
+					Expr r1 = ctx.mkFreshConst("r", objs.getSort(rsve.getTable().getName()));
+					BoolExpr prop1 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs(label + "_isNull"), t1));
+					BoolExpr prop2 = ctx.mkExists(new Expr[] { r1 }, ctx.mkApp(objs.getfuncs(label), t1, r1), 1, null,
+							null, null, null);
+					BoolExpr body1 = ctx.mkImplies(prop1, prop2);
+					BoolExpr body2 = ctx.mkImplies(prop2, prop1);
+					Expr body = ctx.mkAnd(body1, body2);
+					Quantifier x = ctx.mkForall(new Expr[] { t1 }, body, 1, null, null, null, null);
+					return x;
+
+				} catch (ClassCastException e3) {
+					e3.printStackTrace();
+				}
+
+			}
+
+		}
+		return null;
 	}
 
 }

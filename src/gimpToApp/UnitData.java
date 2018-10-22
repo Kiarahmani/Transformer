@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import soot.Local;
 import soot.Unit;
 import soot.Value;
+import ir.expression.ParamValExp;
 import ir.statement.*;
 
 public class UnitData {
@@ -16,11 +18,18 @@ public class UnitData {
 	private Map<Unit, Value> executeUnits;
 	// initially crafted
 	private Map<Value, Unit> definedAt;
+	// initially extracted and used in analysis and eventually returned
+	private Map<Local, Value> params;
 
 	public UnitData() {
 		stmts = new ArrayList<Statement>();
 		executeUnits = new HashMap<Unit, Value>();
 		definedAt = new HashMap<Value, Unit>();
+		params = new HashMap<Local, Value>();
+	}
+
+	public void addParam(Local l, Value v) {
+		this.params.put(l, v);
 	}
 
 	public boolean isDefinedAtExists(Value v) {
@@ -31,13 +40,17 @@ public class UnitData {
 		this.definedAt.put(v, u);
 	}
 
+	public Map<Local, Value> getParams() {
+		return this.params;
+	}
+
 	public Unit getDefinedAt(Value v) {
 		return this.definedAt.get(v);
 	}
 
 	public void printDefinedAt() {
-		for (Value v:this.definedAt.keySet())
-			System.out.println(v+" := "+this.definedAt.get(v));
+		for (Value v : this.definedAt.keySet())
+			System.out.println(v + " := " + this.definedAt.get(v));
 	}
 
 	public List<Statement> getStmts() {

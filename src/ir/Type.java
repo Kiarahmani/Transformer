@@ -1,5 +1,8 @@
 package ir;
 
+import exceptions.SqlTypeNotFoundException;
+import soot.Value;
+
 public enum Type {
 	INT, REAL, STRING, BOOLEAN;
 
@@ -18,4 +21,19 @@ public enum Type {
 		}
 	}
 
+	public Type fromJavaTypes(Value v) throws SqlTypeNotFoundException {
+		switch (v.getType().toString()) {
+		case "int":
+			return INT;
+		case "java.lang.String":
+			return Type.STRING;
+		case "boolean":
+			return BOOLEAN;
+		case "double":
+			return REAL;
+		default:
+			throw new SqlTypeNotFoundException(
+					"Type.java.fromJavaTypes : --- unhandled java type (" + v.toString() + ")");
+		}
+	}
 }

@@ -6,6 +6,7 @@ import ir.statement.Query;
 import ir.statement.SqlStmtType;
 import ir.statement.Statement;
 import soot.Body;
+import soot.Local;
 import soot.Unit;
 import soot.UnitBox;
 import soot.Value;
@@ -26,6 +27,13 @@ public class UnitHandler {
 	public UnitHandler(Body body) {
 		data = new UnitData();
 		this.body = body;
+	}
+
+	public void extractParams() {
+		int iter = 0;
+		for (Local l : body.getParameterLocals()) {
+			this.data.addParam(l, body.getParameterRefs().get(iter++));
+		}
 	}
 
 	// initial iteration over all units to extract useful information for later
@@ -65,8 +73,6 @@ public class UnitHandler {
 		}
 
 	}
-
-
 
 	// given a unit (which contains an executeQuery/executeUpdate statement) it
 	// searches backward for the its statement;

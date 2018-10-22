@@ -84,62 +84,68 @@ public class AnomalyVisualizer {
 			ttype = model.eval(objs.getfuncs("ttype").apply(t), true).toString();
 			// TODO -> The below coloring is based on the first child - what if childs are
 			// at different partitions?
-			opart = model.eval(objs.getfuncs("opart").apply(parentChildPairs.get(t).get(0)), true).toString();
-			printer.append("\nsubgraph cluster_" + iter + "{" + (graph_style1
-					+ colors[(Integer.valueOf(opart) + randomColor) % (colors.length - 1)] + graph_style2) + " \n");
-			printer.append("label=\" " + t.toString().replaceAll("!val!", "") + "\n(" + ttype + ")" + "\";\n");
-			for (Expr o : parentChildPairs.get(t)) {
-				String otime = model.eval(objs.getfuncs("otime").apply(o), true).toString();
-				String name = o.toString().replaceAll("!val!", "");
-				String title = "[ label=\"" + otime + ": "
-						+ otype.get(o).toString().replace('|', ' ').replace('-', ' ').split(" ")[2] + "\"]";
-				printer.append(name + title + ";\n ");
+			if (parentChildPairs.get(t) != null) {
+				opart = model.eval(objs.getfuncs("opart").apply(parentChildPairs.get(t).get(0)), true).toString();
+				printer.append("\nsubgraph cluster_"
+						+ iter + "{" + (graph_style1
+								+ colors[(Integer.valueOf(opart) + randomColor) % (colors.length - 1)] + graph_style2)
+						+ " \n");
+				printer.append("label=\" " + t.toString().replaceAll("!val!", "") + "\n(" + ttype + ")" + "\";\n");
+				for (Expr o : parentChildPairs.get(t)) {
+					String otime = model.eval(objs.getfuncs("otime").apply(o), true).toString();
+					String name = o.toString().replaceAll("!val!", "");
+					String title = "[ label=\"" + otime + ": "
+							+ otype.get(o).toString().replace('|', ' ').replace('-', ' ').split(" ")[2] + "\"]";
+					printer.append(name + title + ";\n ");
+				}
+				printer.append("}");
+				iter++;
 			}
-			printer.append("}");
-			iter++;
 		}
 		printer.append("\n\n");
 		for (Expr t : Ts) {
-			for (Expr o : parentChildPairs.get(t)) {
+			if (parentChildPairs.get(t) != null) {
+				for (Expr o : parentChildPairs.get(t)) {
 
-				// vis
-				if (visPairs.get(o) != null)
-					for (Expr o1 : visPairs.get(o))
-						if (o1 != null)
-							printer.append(o.toString().replaceAll("!val!", "") + " -> "
-									+ o1.toString().replaceAll("!val!", "") + vis_edge_setting + ";\n");
+					// vis
+					if (visPairs.get(o) != null)
+						for (Expr o1 : visPairs.get(o))
+							if (o1 != null)
+								printer.append(o.toString().replaceAll("!val!", "") + " -> "
+										+ o1.toString().replaceAll("!val!", "") + vis_edge_setting + ";\n");
 
-				// WW
-				if (WWPairs.get(o) != null)
-					for (Expr o1 : WWPairs.get(o))
-						if (o1 != null) {
-							if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
-								printer.append(o.toString().replaceAll("!val!", "") + " -> "
-										+ o1.toString().replaceAll("!val!", "") + wwB_edge_setting + ";\n");
-							else
-								printer.append(o.toString().replaceAll("!val!", "") + " -> "
-										+ o1.toString().replaceAll("!val!", "") + ww_edge_setting + ";\n");
-						}
-				// WR
-				if (WRPairs.get(o) != null)
-					for (Expr o1 : WRPairs.get(o))
-						if (o1 != null)
-							if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
-								printer.append(o.toString().replaceAll("!val!", "") + " -> "
-										+ o1.toString().replaceAll("!val!", "") + wrB_edge_setting + ";\n");
-							else
-								printer.append(o.toString().replaceAll("!val!", "") + " -> "
-										+ o1.toString().replaceAll("!val!", "") + wr_edge_setting + ";\n");
-				// RW
-				if (RWPairs.get(o) != null)
-					for (Expr o1 : RWPairs.get(o))
-						if (o1 != null)
-							if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
-								printer.append(o.toString().replaceAll("!val!", "") + " -> "
-										+ o1.toString().replaceAll("!val!", "") + rwB_edge_setting + ";\n");
-							else
-								printer.append(o.toString().replaceAll("!val!", "") + " -> "
-										+ o1.toString().replaceAll("!val!", "") + rw_edge_setting + ";\n");
+					// WW
+					if (WWPairs.get(o) != null)
+						for (Expr o1 : WWPairs.get(o))
+							if (o1 != null) {
+								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
+									printer.append(o.toString().replaceAll("!val!", "") + " -> "
+											+ o1.toString().replaceAll("!val!", "") + wwB_edge_setting + ";\n");
+								else
+									printer.append(o.toString().replaceAll("!val!", "") + " -> "
+											+ o1.toString().replaceAll("!val!", "") + ww_edge_setting + ";\n");
+							}
+					// WR
+					if (WRPairs.get(o) != null)
+						for (Expr o1 : WRPairs.get(o))
+							if (o1 != null)
+								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
+									printer.append(o.toString().replaceAll("!val!", "") + " -> "
+											+ o1.toString().replaceAll("!val!", "") + wrB_edge_setting + ";\n");
+								else
+									printer.append(o.toString().replaceAll("!val!", "") + " -> "
+											+ o1.toString().replaceAll("!val!", "") + wr_edge_setting + ";\n");
+					// RW
+					if (RWPairs.get(o) != null)
+						for (Expr o1 : RWPairs.get(o))
+							if (o1 != null)
+								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
+									printer.append(o.toString().replaceAll("!val!", "") + " -> "
+											+ o1.toString().replaceAll("!val!", "") + rwB_edge_setting + ";\n");
+								else
+									printer.append(o.toString().replaceAll("!val!", "") + " -> "
+											+ o1.toString().replaceAll("!val!", "") + rw_edge_setting + ";\n");
+				}
 			}
 
 		}

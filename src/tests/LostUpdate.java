@@ -23,7 +23,7 @@ public class LostUpdate {
 		p.setProperty("ID", String.valueOf(insID));
 	}
 
-	public void updateBalance(int key) throws Exception {
+	public void updateBalance(int key, String name, boolean shouldPrint, double anotherDouble) throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");

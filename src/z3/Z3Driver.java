@@ -16,6 +16,8 @@ import com.microsoft.z3.*;
 import anomaly.Anomaly;
 import ir.Application;
 import ir.Transaction;
+import ir.expression.ParamValExp;
+import ir.expression.VarExp;
 import ir.schema.Column;
 import ir.schema.Table;
 
@@ -63,6 +65,22 @@ public class Z3Driver {
 
 	}
 
+	private void HeaderZ3(String s) {
+		int line_length = 110;
+		int white_space_length = (line_length - s.length()) / 2;
+		String line = ";" + String.format("%0" + line_length + "d", 0).replace("0", "-");
+		String white_space = String.format("%0" + white_space_length + "d", 0).replace("0", " ");
+		LogZ3("\n" + line);
+		LogZ3(";" + white_space + s);
+		LogZ3(line);
+		printer.flush();
+	}
+
+	private void SubHeaderZ3(String s) {
+		LogZ3("\n;" + s.toUpperCase());
+		printer.flush();
+	}
+
 	private void LogZ3(String s) {
 		printer.append(s + "\n");
 		printer.flush();
@@ -73,7 +91,7 @@ public class Z3Driver {
 	 * adds the constant assertions and defs to the context
 	 */
 	private void ctxInitializeSorts() {
-		LogZ3(";sorts");
+		HeaderZ3("SORTS & DATATYPES");
 		objs.addSort("T", ctx.mkUninterpretedSort("T"));
 		objs.addSort("O", ctx.mkUninterpretedSort("O"));
 		objs.addSort("Bool", ctx.mkBoolSort());
@@ -86,11 +104,15 @@ public class Z3Driver {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void ctxInitialize() {
 		LogZ3(";data types");
 		objs.addDataType("TType", mkDataType("TType", app.getAllTxnNames()));
 		objs.addDataType("OType", mkDataType("OType", app.getAllStmtTypes()));
-		LogZ3(";functions");
+
+		// =====================================================================================================================================================
+		HeaderZ3("STATIC FUNCTIONS & PROPS");
+		SubHeaderZ3(";declarations");
 		objs.addFunc("otime", ctx.mkFuncDecl("otime", objs.getSort("O"), objs.getSort("Int")));
 		objs.addFunc("opart", ctx.mkFuncDecl("opart", objs.getSort("O"), objs.getSort("Int")));
 		objs.addFunc("ttype", ctx.mkFuncDecl("ttype", objs.getSort("T"), objs.getDataTypes("TType")));
@@ -114,19 +136,8 @@ public class Z3Driver {
 				ctx.mkFuncDecl("D", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
 		objs.addFunc("X",
 				ctx.mkFuncDecl("X", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
-		// TEMOPORARY XXXXX
-		// change the shape of the anomaly
-		if (ConstantArgs._NO_WW)
-			addAssertion("no_ww", staticAssrtions.mk_no_ww());
-		if (ConstantArgs._NO_WR)
-			addAssertion("no_wr", staticAssrtions.mk_no_wr());
-		if (ConstantArgs._NO_RW)
-			addAssertion("no_rw", staticAssrtions.mk_no_rw());
-		if (ConstantArgs._MAX_TXN_INSTANCES != -1)
-			addAssertion("limit_txn_instances",
-					dynamicAssertions.mk_limit_txn_instances(ConstantArgs._MAX_TXN_INSTANCES));
-		;
 
+		SubHeaderZ3("properties");
 		// assertions
 		addAssertion("par_then_sib", staticAssrtions.mk_par_then_sib());
 		addAssertion("sib_then_par", staticAssrtions.mk_sib_then_par());
@@ -143,8 +154,23 @@ public class Z3Driver {
 		addAssertion("irreflx_ar", staticAssrtions.mk_irreflx_ar());
 		addAssertion("otime_props", staticAssrtions.mk_otime_props());
 		addAssertion("opart_props", staticAssrtions.mk_opart_props());
+		SubHeaderZ3("anomaly shaping");
+		// change the shape of the anomaly according to the user-given configuration
+		if (ConstantArgs._NO_WW)
+			addAssertion("no_ww", staticAssrtions.mk_no_ww());
+		if (ConstantArgs._NO_WR)
+			addAssertion("no_wr", staticAssrtions.mk_no_wr());
+		if (ConstantArgs._NO_RW)
+			addAssertion("no_rw", staticAssrtions.mk_no_rw());
+		if (ConstantArgs._MAX_TXN_INSTANCES != -1)
+			addAssertion("limit_txn_instances",
+					dynamicAssertions.mk_limit_txn_instances(ConstantArgs._MAX_TXN_INSTANCES));
+
+		// =====================================================================================================================================================
+		HeaderZ3("DYNAMIC FUNCTIONS & PROPS");
 		addAssertion("oType_to_is_update", dynamicAssertions.mk_oType_to_is_update(app.getAllUpdateStmtTypes()));
 		addAssertion("is_update_to_oType", dynamicAssertions.mk_is_update_to_oType(app.getAllUpdateStmtTypes()));
+
 		// relating operation otypes to parent ttypes
 		for (Transaction txn : app.getTxns()) {
 			String name = txn.getName();
@@ -162,9 +188,11 @@ public class Z3Driver {
 				}
 		}
 
-		LogZ3("\n;TABLES");
+		HeaderZ3("TABLE FUNCTIONS & PROPS");
 		// create table sorts and constraints
 		for (Table t : tables) {
+			SubHeaderZ3(t.getName());
+			LogZ3(";");
 			Sort tSort = objs.getSort(t.getName());
 			Sort oSort = objs.getSort("O");
 			for (Column c : t.getColumns())
@@ -192,15 +220,32 @@ public class Z3Driver {
 			addAssertion(t.getName() + "_LWW", dynamicAssertions.mk_lww(t.getName()));
 		}
 
-		// rules
-		LogZ3(";\n;\n;");
-		thenWW();
-		thenWR();
-		thenRW();
-		WWthen();
-		WRthen();
-		RWthen();
+		HeaderZ3("TRANSACTIONS");
+		for (Transaction txn : app.getTxns()) {
+			SubHeaderZ3(txn.getName());
+			// declare functions for txn's input parameters
+			for (ParamValExp p : txn.getParams().values()) {
+				String label = txn.getName() + "_PARAM_" + p.getName();
+				objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { objs.getSort("T") },
+						objs.getSort(p.getType().toZ3String())));
+			}
+			// define lhs assignees
+			for (VarExp ve : txn.getAllLhsVars()) {
+				String label = txn.getName() + "_" + ve.getName();
+				for (AST f : dynamicAssertions.mk_declare_lhs(label, ve)) {
+					objs.addFunc(label, (FuncDecl) f);
+					// if there is more than one, the second function is isNull
+					label += "_isNull";
+				}
+				// assertion on existence of a record when not Null
+				label = txn.getName() + "_" + ve.getName();
+				BoolExpr isNullProp = dynamicAssertions.mk_assert_is_null(label, ve);
+				if (isNullProp != null)
+					addAssertion(label + "_isNull_prop", isNullProp);
+			}
+		}
 
+		HeaderZ3("CYCLE ASSERTIONS");
 		// dependency assertions
 		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
 		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
@@ -307,11 +352,6 @@ public class Z3Driver {
 
 	}
 
-	private void thenRW() {
-		// TODO Auto-generated method stub
-
-	}
-
 	private void thenWR() {
 		// TODO Auto-generated method stub
 
@@ -325,9 +365,19 @@ public class Z3Driver {
 	/*
 	 * public function called from main
 	 */
-	@SuppressWarnings("resource")
 	public Anomaly analyze() {
 		ctxInitialize();
+		// rules
+		HeaderZ3(" ->WW ");
+		thenWW();
+		HeaderZ3(" ->WR ");
+		thenWR();
+		HeaderZ3(" WW-> ");
+		WWthen();
+		HeaderZ3(" WR-> ");
+		WRthen();
+		HeaderZ3(" RW-> ");
+		RWthen();
 		return checkSAT();
 	}
 
