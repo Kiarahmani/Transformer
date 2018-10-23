@@ -5,8 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.plaf.synth.SynthScrollBarUI;
+
+import exceptions.ColumnDoesNotExist;
+import exceptions.UnexpectedSQLStatement;
 import exceptions.WhereClauseNotKnownException;
 import gimpToApp.UnitData;
+import ir.Type;
 import ir.expression.BinOpExp;
 import ir.expression.BinOpExp.BinOp;
 import ir.expression.UnOpExp.UnOp;
@@ -25,6 +30,7 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 import net.sf.jsqlparser.expression.LongValue;
@@ -66,25 +72,108 @@ public class Query {
 			e.printStackTrace();
 		}
 
-		System.out.println("===" + this.whereClause);
 		this.s_columns = extractSCols();
 		this.i_values = extractIVals();
 		this.u_updates = extractUfuncs();
 	}
 
 	private Map<Column, Expression> extractUfuncs() {
-		// TODO Auto-generated method stub
-		return null;
+		Map<Column, Expression> result = new HashMap<Column, Expression>();
+		switch (this.kind) {
+		case UPDATE:
+			Update updateStatement = (Update) statements;
+			int iter = 0;
+			for (net.sf.jsqlparser.schema.Column c : updateStatement.getColumns()) {
+				Column myCol = null;
+				try {
+					myCol = table.getColumn(c.toString());
+				} catch (ColumnDoesNotExist e) {
+					e.printStackTrace();
+				}
+				net.sf.jsqlparser.expression.Expression exp = updateStatement.getExpressions().get(iter++);
+				if (exp.toString().equals("?")) {
+					result.put(myCol, new UnknownExp("?"));
+					iter++;
+				} else
+					switch (myCol.getType()) {
+					case INT:
+						result.put(myCol, new ConstValExp(Integer.parseInt(exp.toString())));
+						break;
+					case STRING:
+						result.put(myCol, new ConstValExp(exp.toString()));
+						break;
+					case REAL:
+						result.put(myCol, new ConstValExp(Double.parseDouble(exp.toString())));
+						break;
+					case BOOLEAN:
+						result.put(myCol, new ConstValExp(Boolean.parseBoolean(exp.toString())));
+						break;
+					default:
+						break;
+					}
+			}
+			return result;
+		default:
+			return null;
+		}
 	}
 
 	private List<Expression> extractIVals() {
-		// TODO Auto-generated method stub
-		return null;
+		List<Expression> result = new ArrayList<Expression>();
+		switch (this.kind) {
+		case INSERT:
+			Insert insertStatement = (Insert) statements;
+			ExpressionList itemsList = (ExpressionList) insertStatement.getItemsList();
+			int iter = 0;
+			// because I can't currently extract literals/types from SQL (due to some
+			// horrible JSQLParser lib error) I'm gonna use information from the known table
+			// for now
+			for (net.sf.jsqlparser.expression.Expression i : itemsList.getExpressions()) {
+				if (i.toString().equals("?")) {
+					result.add(new UnknownExp("?"));
+					iter++;
+				} else
+					switch (this.table.getColumns().get(iter++).getType()) {
+					case INT:
+						result.add(new ConstValExp(Integer.parseInt(i.toString())));
+						break;
+					case STRING:
+						result.add(new ConstValExp(i.toString()));
+						break;
+					case REAL:
+						result.add(new ConstValExp(Double.parseDouble(i.toString())));
+						break;
+					case BOOLEAN:
+						result.add(new ConstValExp(Boolean.parseBoolean(i.toString())));
+						break;
+					default:
+						break;
+					}
+			}
+			return result;
+		default:
+			return null;
+		}
 	}
 
 	private List<Column> extractSCols() {
-		// TODO Auto-generated method stub
-		return null;
+		List<Column> result = new ArrayList<Column>();
+		switch (this.kind) {
+		case SELECT:
+			Select select = (Select) statements;
+			PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+			// TODO: this is stupid (should be fine for now since tables are not big)
+			for (SelectItem si : plainSelect.getSelectItems())
+				if (si.toString().equals("*"))
+					return table.getColumns();
+				else
+					for (Column c : table.getColumns())
+						if (si.toString().equals(c.getName()))
+							result.add(c);
+			return result;
+		default:
+			return null;
+		}
 	}
 
 	private Expression extractWC() throws WhereClauseNotKnownException {
@@ -100,7 +189,6 @@ public class Query {
 			Delete deleteStatement = (Delete) statements;
 			return recExtractWC(deleteStatement.getWhere());
 		case INSERT:
-			Insert insertStatement = (Insert) statements;
 			return new UnknownExp("?");
 		default:
 			break;
@@ -137,12 +225,12 @@ public class Query {
 					recExtractWC(neq.getRightExpression())));
 		case "Column":
 			Column c = null;
-			for (Column tc : table.getColumns())
-				if (tc.getName().equals(clause.toString())) {
-					c = tc;
-					break;
-				}
-			return new ProjValExp(c, table);
+			try {
+				c = table.getColumn(clause.toString());
+			} catch (ColumnDoesNotExist e) {
+				e.printStackTrace();
+			}
+			return new ProjValExp(c, this.table);
 		case "JdbcParameter":
 			return new UnknownExp("?");
 		case "LongValue":
@@ -183,17 +271,17 @@ public class Query {
 		String k = this.kind.toString();
 		String t = this.table.getName();
 		String wc = this.whereClause.toString();
-		String v = this.i_values.toString();
-		String u = this.u_updates.toString();
-		String c = this.s_columns.toString();
 		switch (this.kind) {
 		case SELECT:
+			String c = this.s_columns.toString();
 			return k + "[" + t + ":" + c + "] " + " <<" + wc + ">>";
 		case INSERT:
+			String v = this.i_values.toString();
 			return k + "[" + t + "] " + v;
 		case DELETE:
 			return k + "[" + t + "] " + "<<" + wc + ">>";
 		case UPDATE:
+			String u = this.u_updates.toString();
 			return k + "[" + t + "] " + u + " <<" + wc + ">>";
 
 		default:

@@ -32,4 +32,8 @@ public class Column {
 			System.out.print(" |" + this.name + "(" + this.type + ")|");
 	}
 
+	public String toString() {
+		return this.name;
+	}
+
 }

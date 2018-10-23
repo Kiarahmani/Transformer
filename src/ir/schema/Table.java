@@ -32,7 +32,7 @@ public class Table {
 	public Column getColumn(String n) throws ColumnDoesNotExist {
 		Column result = null;
 		for (Column c : this.columns)
-			if (c.getName().equals(n)) {
+			if (c.getName().equalsIgnoreCase(n)) {
 				result = c;
 				break;
 			}

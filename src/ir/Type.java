@@ -31,6 +31,8 @@ public enum Type {
 			return BOOLEAN;
 		case "double":
 			return REAL;
+		case "long":
+			return INT;
 		default:
 			throw new SqlTypeNotFoundException(
 					"Type.java.fromJavaTypes : --- unhandled java type (" + v.toString() + ")");

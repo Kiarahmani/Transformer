@@ -21,3 +21,12 @@ Oct23 11:51AM
 --- UnOp and BinOp expressions structurized  
 + whereClause successfully translated to my expressions
 --------------------------------------------------------------------------------
+Oct23 3:18PM
+! Stable
++ Query extraction finished and some initial tests passed
++ Some parts of the extraction are not ideal but hopefully should be fine for now
+--- e.g. for some reason, I was not able to use string literals in the queries and kept getting an exception from
+    JSQLParser. Thus, the extractor treats JSQLParser's column identifiers as Strings and types are also matched with
+    already extracted table (basically not receiving any type information from JSQLParser)
++ next I should move to assignments
+--------------------------------------------------------------------------------

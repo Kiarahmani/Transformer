@@ -24,7 +24,7 @@ public class LostUpdate {
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			PreparedStatement ps = connect.prepareStatement("select * from CUSTOMER where C_ID = ?");
+			PreparedStatement ps = connect.prepareStatement("select C_ID_STR,C_BALANCE from CUSTOMER where C_ID = ?");
 			ps.setInt(1, key);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
@@ -36,7 +36,8 @@ public class LostUpdate {
 			System.out.println(salam);
 			PreparedStatement ps2;
 			if (rs.next()) {
-				ps2 = connect.prepareStatement("update DEPARTMENT set D_FUNDS = ? where D_ID = 1 and D_FUNDS > = 10000");
+				ps2 = connect.prepareStatement(
+						"update DEPARTMENT set D_Name = Broke,D_FUNDS = ? where D_ID = 1 and D_FUNDS > = 10000");
 				ps2.setInt(1, rs.getInt(1));
 				ps2.executeUpdate();
 				ps2.close();
@@ -44,6 +45,9 @@ public class LostUpdate {
 				ps2 = connect.prepareStatement("delete from DEPARTMENT  where D_FUNDS < 100");
 				ps2.executeUpdate();
 			}
+			PreparedStatement ps3 = connect.prepareStatement(
+					"INSERT INTO DEPARTMENT (D_ID, D_ADDR, D_FUNDS, D_NAME) VALUES (5,Yeager2550, ?,Sales)");
+			ps3.executeUpdate();
 			ps.close();
 		} catch (Exception e) {
 			throw e;
