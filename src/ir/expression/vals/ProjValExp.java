@@ -1,4 +1,4 @@
-package ir.expression;
+package ir.expression.vals;
 
 public class ProjValExp extends ValExp {
 

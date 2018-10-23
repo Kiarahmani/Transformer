@@ -5,4 +5,12 @@ Oct22 2:05PM
 + z3-encoding file made pretty and more readable
 + parameters declared
 --------------------------------------------------------------------------------
+Oct22 7:59PM
+! state is unstable (in the middle of writing extractWhClause in the query compiling part) -> NPE occurs because many of the datastructures
+  at the query are still null and need to be extracted (or trivially intialized)
++ new understanding that loops can be trivially handled
++ more advancement on the structure of the compiler (basically must start from some special assignments and create appropriate statements)
++ some progress made in extracting queries from String to query data structure 
++ next commit must include some advancement in the structure of the ir.expressions and completion of the query extraction
+--------------------------------------------------------------------------------
 

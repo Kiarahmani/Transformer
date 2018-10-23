@@ -9,11 +9,11 @@ import ir.Application;
 import ir.Transaction;
 import ir.Type;
 import ir.expression.Expression;
-import ir.expression.ParamValExp;
-import ir.expression.PrimitiveVarExp;
-import ir.expression.RowSetVarExp;
-import ir.expression.RowVarExp;
-import ir.expression.VarExp;
+import ir.expression.vals.ParamValExp;
+import ir.expression.vars.PrimitiveVarExp;
+import ir.expression.vars.RowSetVarExp;
+import ir.expression.vars.RowVarExp;
+import ir.expression.vars.VarExp;
 import ir.schema.Table;
 import ir.statement.AssignmentStmt;
 import ir.statement.Statement;
@@ -23,6 +23,7 @@ import soot.Scene;
 import soot.Unit;
 import soot.UnitPatchingChain;
 import soot.Value;
+import soot.ValueBox;
 
 public class GimpToAppOne extends GimpToApp {
 
@@ -41,10 +42,11 @@ public class GimpToAppOne extends GimpToApp {
 	}
 
 	private Transaction extractTxn(Body b) throws UnknownUnitException {
-		// super.printGimpBody(b);
+
+		super.printGimpBody(b);
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
-		UnitHandler unitHandler = new UnitHandler(b);
+		UnitHandler unitHandler = new UnitHandler(b, super.tables);
 
 		// INTERNAL ANALYSIS
 		// extraction jobs
@@ -72,12 +74,12 @@ public class GimpToAppOne extends GimpToApp {
 
 		// XXXXXXXXXX
 		// test an assignment statement
-		Statement testStmt = new AssignmentStmt(new RowSetVarExp("x", tables.get(0)), new Expression());
-		txn.addStmt(testStmt);
-		testStmt = new AssignmentStmt(new RowVarExp("y", tables.get(2)), new Expression());
-		txn.addStmt(testStmt);
-		testStmt = new AssignmentStmt(new PrimitiveVarExp("z", Type.REAL), new Expression());
-		txn.addStmt(testStmt);
+//		Statement testStmt = new AssignmentStmt(new RowSetVarExp("x", tables.get(0)), new Expression());
+//		txn.addStmt(testStmt);
+//		testStmt = new AssignmentStmt(new RowVarExp("y", tables.get(2)), new Expression());
+//		txn.addStmt(testStmt);
+//		testStmt = new AssignmentStmt(new PrimitiveVarExp("z", Type.REAL), new Expression());
+//		txn.addStmt(testStmt);
 		/*
 		 * XXXXXXXXXX
 		 */

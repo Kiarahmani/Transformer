@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ir.expression.ParamValExp;
-import ir.expression.VarExp;
+import ir.expression.vals.ParamValExp;
+import ir.expression.vars.VarExp;
 import ir.statement.AssignmentStmt;
 import ir.statement.InvokeStmt;
 import ir.statement.SqlStmtType;
@@ -125,8 +125,8 @@ public class Transaction {
 		System.out.println("TXN_" + name + paramList);
 		for (Statement stmt : stmts)
 			try {
-				System.out.println(" ++ " + ((InvokeStmt) stmt).getType());
-			} catch (Exception e) {
+				System.out.println(" ++ " + ((InvokeStmt) stmt).toString());
+			} catch (ClassCastException e) {
 				System.out.println(" ++ assignment...");
 			}
 	}

@@ -7,17 +7,17 @@ public class InvokeStmt extends Statement {
 	public InvokeStmt(Query query) {
 		this.query = query;
 	}
-	
+
 	public void setType(SqlStmtType type) {
-		this.type=type;
+		this.type = type;
 	}
-	
+
 	public Query getQuery() {
 		return this.query;
 	}
-	
+
 	public String toString() {
-		return this.query.text;
+		return this.type.toString() + " (" + this.query + ")";
 	}
 
 	public SqlStmtType getType() {

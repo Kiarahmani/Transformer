@@ -64,7 +64,6 @@ public class DDLParser {
 	}
 
 	private Table createTable(CreateTable ct) {
-		// TODO Auto-generated method stub
 		Table t = new Table(ct.getTable().getName());
 		List<String> pkList = new ArrayList<String>();
 		// filter out non interesting (for now) schema constraints

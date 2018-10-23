@@ -1,12 +1,12 @@
-package ir.expression;
+package ir.expression.vars;
 
 import ir.schema.Table;
 
-public class RowSetVarExp extends VarExp {
+public class RowVarExp extends VarExp {
 
 	private Table table;
 
-	public RowSetVarExp(String name, Table table) {
+	public RowVarExp(String name, Table table) {
 		super(name);
 		this.table = table;
 	}

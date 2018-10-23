@@ -16,8 +16,8 @@ import com.microsoft.z3.*;
 import anomaly.Anomaly;
 import ir.Application;
 import ir.Transaction;
-import ir.expression.ParamValExp;
-import ir.expression.VarExp;
+import ir.expression.vals.ParamValExp;
+import ir.expression.vars.VarExp;
 import ir.schema.Column;
 import ir.schema.Table;
 
@@ -220,15 +220,16 @@ public class Z3Driver {
 			addAssertion(t.getName() + "_LWW", dynamicAssertions.mk_lww(t.getName()));
 		}
 
-		HeaderZ3("TRANSACTIONS");
 		for (Transaction txn : app.getTxns()) {
-			SubHeaderZ3(txn.getName());
+			HeaderZ3("TXN: " + txn.getName().toUpperCase());
 			// declare functions for txn's input parameters
+			SubHeaderZ3("parameters");
 			for (ParamValExp p : txn.getParams().values()) {
 				String label = txn.getName() + "_PARAM_" + p.getName();
 				objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { objs.getSort("T") },
 						objs.getSort(p.getType().toZ3String())));
 			}
+			SubHeaderZ3("lhs declarations");
 			// define lhs assignees
 			for (VarExp ve : txn.getAllLhsVars()) {
 				String label = txn.getName() + "_" + ve.getName();
@@ -243,6 +244,7 @@ public class Z3Driver {
 				if (isNullProp != null)
 					addAssertion(label + "_isNull_prop", isNullProp);
 			}
+			SubHeaderZ3("assignment assertions");
 		}
 
 		HeaderZ3("CYCLE ASSERTIONS");

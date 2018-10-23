@@ -1,4 +1,4 @@
-package ir.expression;
+package ir.expression.vars;
 
 import ir.Type;
 

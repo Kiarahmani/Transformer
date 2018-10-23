@@ -1,4 +1,6 @@
-package ir.expression;
+package ir.expression.vars;
+
+import ir.expression.Expression;
 
 public class VarExp extends Expression {
 	private String name;

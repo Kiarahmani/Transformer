@@ -1,7 +1,7 @@
 package ir.statement;
 
 import ir.expression.Expression;
-import ir.expression.VarExp;
+import ir.expression.vars.VarExp;
 
 public class AssignmentStmt extends Statement {
 	public VarExp getLhs() {

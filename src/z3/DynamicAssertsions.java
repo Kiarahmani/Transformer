@@ -12,10 +12,10 @@ import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Quantifier;
 import com.microsoft.z3.Sort;
 
-import ir.expression.PrimitiveVarExp;
-import ir.expression.RowSetVarExp;
-import ir.expression.RowVarExp;
-import ir.expression.VarExp;
+import ir.expression.vars.PrimitiveVarExp;
+import ir.expression.vars.RowSetVarExp;
+import ir.expression.vars.RowVarExp;
+import ir.expression.vars.VarExp;
 import ir.schema.Column;
 import ir.schema.Table;
 

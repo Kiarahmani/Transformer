@@ -1,6 +1,9 @@
 package gimpToApp;
 
+import java.util.ArrayList;
+
 import exceptions.UnknownUnitException;
+import ir.schema.Table;
 import ir.statement.InvokeStmt;
 import ir.statement.Query;
 import ir.statement.SqlStmtType;
@@ -23,10 +26,12 @@ import soot.jimple.internal.AbstractInvokeExpr;
 public class UnitHandler {
 	UnitData data;
 	Body body;
+	ArrayList<Table> tables;
 
-	public UnitHandler(Body body) {
+	public UnitHandler(Body body, ArrayList<Table> tables) {
 		data = new UnitData();
 		this.body = body;
+		this.tables = tables;
 	}
 
 	public void extractParams() {
@@ -75,7 +80,7 @@ public class UnitHandler {
 	}
 
 	// given a unit (which contains an executeQuery/executeUpdate statement) it
-	// searches backward for the its statement;
+	// searches backward for its statement;
 	private Query extractQuery(Value v, Unit u) throws UnknownUnitException {
 		switch (v.getClass().getSimpleName()) {
 		case "GInterfaceInvokeExpr":
@@ -91,10 +96,10 @@ public class UnitHandler {
 			GAssignStmt expr1 = (GAssignStmt) this.data.getDefinedAt(v);
 			return extractQuery(expr1.getRightOp(), this.data.getDefinedAt(v));
 
+		// WHERE THE QUERY IS GENERATED
 		case "StringConstant":
 			StringConstant expr2 = (StringConstant) v;
-			Query query = new Query();
-			query.setText(expr2.toString());
+			Query query = new Query(expr2.toString(),data,tables);
 			return query;
 
 		case "GVirtualInvokeExpr":
@@ -102,18 +107,16 @@ public class UnitHandler {
 			Value nextVal = expr3.getBaseBox().getValue();
 			return extractQuery(nextVal, this.data.getDefinedAt(nextVal));
 
-		case "GNewInvokeExpr":
-			GNewInvokeExpr expr4 = (GNewInvokeExpr) v;
-			System.out.println("-- TODO" + expr4.getArg(0));
-			break;
-
 		case "GStaticInvokeExpr":
 			GStaticInvokeExpr expr5 = (GStaticInvokeExpr) v;
 			return extractQuery(expr5.getArg(0), u);
+		case "GNewInvokeExpr":
+			GNewInvokeExpr expr6 = (GNewInvokeExpr) v;
+			System.out.println("==="+expr6);
+			return extractQuery(expr6.getArg(0), u);
 		default:
 			throw new UnknownUnitException("Unknown Jimple/Grimp value class: " + v.getClass().getSimpleName());
 		}
-		return null;
 	}
 
 	/*

@@ -8,7 +8,6 @@ import java.util.Map;
 import soot.Local;
 import soot.Unit;
 import soot.Value;
-import ir.expression.ParamValExp;
 import ir.statement.*;
 
 public class UnitData {
@@ -20,6 +19,7 @@ public class UnitData {
 	private Map<Value, Unit> definedAt;
 	// initially extracted and used in analysis and eventually returned
 	private Map<Local, Value> params;
+	
 
 	public UnitData() {
 		stmts = new ArrayList<Statement>();
