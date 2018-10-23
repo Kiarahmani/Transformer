@@ -43,7 +43,7 @@ public class GimpToAppOne extends GimpToApp {
 
 	private Transaction extractTxn(Body b) throws UnknownUnitException {
 
-		//super.printGimpBody(b);
+		super.printGimpBody(b);
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
 		UnitHandler unitHandler = new UnitHandler(b, super.tables);
@@ -57,10 +57,13 @@ public class GimpToAppOne extends GimpToApp {
 		for (Unit u : b.getUnits())
 			unitHandler.extractStatements(u);
 
+		//for (Unit u : b.getUnits())
+		//	unitHandler.extractAssignments(u);
+
 		// OUTPUT GENERATION
 		// add the parameters to the output transaction
 		for (Local l : unitHandler.data.getParams().keySet()) {
-			Type t = Type.INT;
+			Type t = Type.INT; // just to instanciate it, needed for calling the typing function
 			Value v = unitHandler.data.getParams().get(l);
 			try {
 				txn.addParam(l.toString(), new ParamValExp(l.toString(), t.fromJavaTypes(v)));

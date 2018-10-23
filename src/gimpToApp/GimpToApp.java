@@ -32,7 +32,7 @@ public class GimpToApp {
 		int iter = 1;
 		for (Unit u : b.getUnits()) {
 			System.out.print("(" + iter + ")\n");
-			System.out.println(" ╰──" + u.getClass());
+			System.out.println(" ╰──" + u.getClass().getSimpleName());
 			System.out.println(" ╰──" + u);
 			System.out.println(String.format("%0" + _line_length + "d", 0).replace("0", "-"));
 			iter++;

@@ -70,7 +70,6 @@ public class UnitHandler {
 	// updates the UnitData (adds a statement to its list if one is extracable from
 	// the given unit)
 	public void extractStatements(Unit u) throws UnknownUnitException {
-		// System.out.println(String.format("%0" + 120 + "d", 0).replace("0", "-"));
 		if (data.isExecute(u)) {
 			Query query = extractQuery(data.getExecuteValue(u), u);
 			Statement stmt = new InvokeStmt(query);
@@ -80,7 +79,7 @@ public class UnitHandler {
 	}
 
 	// given a unit (which contains an executeQuery/executeUpdate statement) it
-	// searches backward for its statement;
+	// searches backward for its String statement;
 	private Query extractQuery(Value v, Unit u) throws UnknownUnitException {
 		switch (v.getClass().getSimpleName()) {
 		case "GInterfaceInvokeExpr":
@@ -99,7 +98,7 @@ public class UnitHandler {
 		// WHERE THE QUERY IS GENERATED
 		case "StringConstant":
 			StringConstant expr2 = (StringConstant) v;
-			Query query = new Query(expr2.toString(),data,tables);
+			Query query = new Query(expr2.toString(), data, tables);
 			return query;
 
 		case "GVirtualInvokeExpr":
@@ -112,7 +111,7 @@ public class UnitHandler {
 			return extractQuery(expr5.getArg(0), u);
 		case "GNewInvokeExpr":
 			GNewInvokeExpr expr6 = (GNewInvokeExpr) v;
-			System.out.println("==="+expr6);
+			System.out.println("===" + expr6);
 			return extractQuery(expr6.getArg(0), u);
 		default:
 			throw new UnknownUnitException("Unknown Jimple/Grimp value class: " + v.getClass().getSimpleName());
@@ -173,9 +172,8 @@ public class UnitHandler {
 		case "JimpleLocal":
 			break;
 
-		// default:
-		// throw new UnknownUnitException("Unknown Jimple/Grimp unit class: " +
-		// v.getClass().getSimpleName());
+	//	default:
+	//		throw new UnknownUnitException("Unknown Jimple/Grimp unit class: " + v.getClass().getSimpleName());
 
 		}
 		return false;

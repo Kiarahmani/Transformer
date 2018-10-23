@@ -66,15 +66,18 @@ public class Query {
 		}
 		this.kind = extractKind();
 		this.table = extractTable();
+		this.s_columns = extractSCols();
+		this.i_values = extractIVals();
+		this.u_updates = extractUfuncs();
 		try {
 			this.whereClause = extractWC();
 		} catch (WhereClauseNotKnownException e) {
 			e.printStackTrace();
 		}
+	}
 
-		this.s_columns = extractSCols();
-		this.i_values = extractIVals();
-		this.u_updates = extractUfuncs();
+	private void path(int i, Expression exp) {
+		// must replace the i'th occurence of unknownExp with the given exp
 	}
 
 	private Map<Column, Expression> extractUfuncs() {

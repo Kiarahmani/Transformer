@@ -25,15 +25,15 @@ public class LostUpdate {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			PreparedStatement ps = connect.prepareStatement("select C_ID_STR,C_BALANCE from CUSTOMER where C_ID = ?");
-			ps.setInt(1, key);
+			int x = 230;
+			ps.setInt(1, key+x);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			int id = rs.getInt("id");
-			String s1 = "update DEPARTMENT set D_FUNDS";
-
 			int balance = rs.getInt("balance");
-			int salam = id + balance + 15;
-			System.out.println(salam);
+			int sum = id + balance + 15;
+			System.out.println("SUM: " + sum);
+			/*
 			PreparedStatement ps2;
 			if (rs.next()) {
 				ps2 = connect.prepareStatement(
@@ -49,6 +49,7 @@ public class LostUpdate {
 					"INSERT INTO DEPARTMENT (D_ID, D_ADDR, D_FUNDS, D_NAME) VALUES (5,Yeager2550, ?,Sales)");
 			ps3.executeUpdate();
 			ps.close();
+			*/
 		} catch (Exception e) {
 			throw e;
 		} finally {
