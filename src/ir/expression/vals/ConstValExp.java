@@ -31,22 +31,47 @@ public class ConstValExp extends ValExp {
 
 	public ConstValExp(int i) {
 		this.IVal = i;
+		this.type = Type.INT;
 	}
 
 	public ConstValExp(boolean b) {
 		this.BVal = b;
+		this.type = Type.BOOLEAN;
 	}
 
 	public ConstValExp(double d) {
 		this.DVal = d;
+		this.type = Type.REAL;
+	}
+
+	public ConstValExp(long l) {
+		this.IVal = (int) l;
+		this.type = Type.INT;
 	}
 
 	public ConstValExp(float d) {
 		this.DVal = d;
+		this.type = Type.REAL;
 	}
 
 	public ConstValExp(String s) {
 		this.SVal = s;
+		this.type = Type.STRING;
+	}
+
+	public String toString() {
+		switch (this.type) {
+		case STRING:
+			return SVal;
+		case INT:
+			return String.valueOf(IVal);
+		case REAL:
+			return String.valueOf(DVal);
+		case BOOLEAN:
+			return String.valueOf(BVal);
+
+		}
+		return "????";
 	}
 
 }

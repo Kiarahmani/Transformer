@@ -13,4 +13,11 @@ Oct22 7:59PM
 + some progress made in extracting queries from String to query data structure 
 + next commit must include some advancement in the structure of the ir.expressions and completion of the query extraction
 --------------------------------------------------------------------------------
-
+Oct23 11:51AM
+! stable
++ some progress made in the structure of the expressions
+--- my expressions toString done
+--- additional expressions defined 
+--- UnOp and BinOp expressions structurized  
++ whereClause successfully translated to my expressions
+--------------------------------------------------------------------------------

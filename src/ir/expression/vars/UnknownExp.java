@@ -7,4 +7,8 @@ public class UnknownExp extends VarExp {
 		// TODO Auto-generated constructor stub
 	}
 
+	public String toString() {
+		return "?";
+	}
+
 }

@@ -36,12 +36,12 @@ public class LostUpdate {
 			System.out.println(salam);
 			PreparedStatement ps2;
 			if (rs.next()) {
-				ps2 = connect.prepareStatement("update DEPARTMENT set D_FUNDS = ? where D_ID = 1");
+				ps2 = connect.prepareStatement("update DEPARTMENT set D_FUNDS = ? where D_ID = 1 and D_FUNDS > = 10000");
 				ps2.setInt(1, rs.getInt(1));
 				ps2.executeUpdate();
 				ps2.close();
 			} else {
-				ps2 = connect.prepareStatement("delete from DEPARTMENT  where D_ID = 1");
+				ps2 = connect.prepareStatement("delete from DEPARTMENT  where D_FUNDS < 100");
 				ps2.executeUpdate();
 			}
 			ps.close();
