@@ -32,6 +32,11 @@ public class UnitData {
 	// e.g. (V:r0)->(U:r0.function)
 	private Map<Value, List<Unit>> valueToInvokations;
 
+	// mapping from all units to a mapping from units to expression
+	// it is used to take care of multiple .next() calls (first unit represent's
+	// body units)
+	private Map<Unit, Map<Value, Expression>> unitToSetToExp;
+
 	public UnitData() {
 		stmts = new ArrayList<Statement>();
 		executeUnits = new HashMap<Unit, Value>();
@@ -41,7 +46,24 @@ public class UnitData {
 		queries = new LinkedHashMap<Unit, Query>();
 		prepareToExecute = new HashMap<Unit, Unit>();
 		valueToInvokations = new HashMap<>();
+		unitToSetToExp = new HashMap<>();
 
+	}
+
+	public void addMapUTSE(Unit u, Map<Value, Expression> map) {
+		this.unitToSetToExp.put(u, map);
+	}
+
+	public void printMapUTSE() {
+		for (Unit x : this.unitToSetToExp.keySet()) {
+			if (this.unitToSetToExp.get(x) != null)
+				System.out.println(" -> " + this.unitToSetToExp.get(x));
+		}
+		System.out.println("======");
+	}
+
+	public Map<Unit, Map<Value, Expression>> getUTSEs() {
+		return this.unitToSetToExp;
 	}
 
 	public void addValToInvoke(Value v, Unit u) {

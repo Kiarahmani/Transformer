@@ -1,4 +1,4 @@
-package ir.expression.vals;
+package ir.expression.vars;
 
 import ir.expression.Expression;
 import ir.expression.vars.RowVarExp;
@@ -6,17 +6,18 @@ import ir.schema.Column;
 import ir.schema.Table;
 
 // these nodes represent columns; e.g. in conditionals (as opposed to fieldAccess which represent values of columns in a given specific row)
-public class ProjValExp extends ValExp {
+public class ProjVarExp extends VarExp {
 	Column column;
-	Table table;
+	RowVarExp rVar;
 
-	public ProjValExp(Column column, Table table) {
-		this.table = table;
+	public ProjVarExp(String name, Column column, RowVarExp rVar) {
+		super(name);
 		this.column = column;
+		this.rVar = rVar;
 	}
 
 	public String toString() {
-		return this.table.getName() + "." + this.column.getName();
+		return "(" + rVar.toString() + ")." + this.column.getName();
 	}
 
 	@Override

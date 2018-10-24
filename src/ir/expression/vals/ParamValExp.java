@@ -20,6 +20,10 @@ public class ParamValExp extends ValExp {
 		return this.name;
 	}
 
+	public String toString() {
+		return this.name + "_param";
+	}
+
 	@Override
 	public Expression getUpdateExp(Expression newExp, int index) {
 		return this;

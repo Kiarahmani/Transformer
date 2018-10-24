@@ -37,7 +37,7 @@ public class Table {
 				break;
 			}
 		if (result == null)
-			throw new ColumnDoesNotExist(n);
+			throw new ColumnDoesNotExist(this.name+"."+n);
 		return result;
 	}
 

@@ -43,7 +43,7 @@ public class GimpToAppOne extends GimpToApp {
 
 	private Transaction extractTxn(Body b) throws UnknownUnitException {
 
-		super.printGimpBody(b);
+		 super.printGimpBody(b);
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
 		UnitHandler unitHandler = new UnitHandler(b, super.tables);
@@ -77,10 +77,7 @@ public class GimpToAppOne extends GimpToApp {
 		txn.setTypes();
 
 		System.out.println("====================================");
-		// System.out.println(unitHandler.data.getdefinedAts());
-		// System.out.println(unitHandler.data.getQueries());
-		// System.out.println(unitHandler.data.getPrepToExecMap());
-		//System.out.println(unitHandler.data.getValueToInvokeMap());
+		System.out.println("===	ALL EXPRESSIONS");
 		for (Value x : unitHandler.data.getExps().keySet()) {
 			System.out.println(x + " := " + unitHandler.data.getExps().get(x));
 		}
