@@ -1,0 +1,12 @@
+Description of the datastructures used in unitHandler for internal analysis:
+1- data.exps: Value->Expression (and incrementally populated map, relating a Grimp value to an Expression that is already crafted to represent it)
+	+ holds the intially extracted paramExps
+
+2- data.valueToInvokations:  Value->List<Unit> (a mapping, populuated at the initial anlysis phase (at both invoke and assign cases) which relates values to
+		units inside which a function is called on them. Trivially only function calls on local values are considered no intra-procedure or internal calls for now)
+
+3- data.executeUnits: Unit->Value (a rather stupid datastructure relating a unit to either its value (if it's an invokation) or to its RHS (if it's an assignment)
+	+ Only holds executeQuery and executeUpdate calls so can also help to check if unit has a query execution or not
+	+ functions: getExecuteValue - 
+
+4- data.definedAt: Value->Unit (trivial.)

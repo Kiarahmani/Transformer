@@ -43,7 +43,7 @@ public class GimpToAppOne extends GimpToApp {
 
 	private Transaction extractTxn(Body b) throws UnknownUnitException {
 
-		 super.printGimpBody(b);
+		super.printGimpBody(b);
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
 		UnitHandler unitHandler = new UnitHandler(b, super.tables);
@@ -57,9 +57,8 @@ public class GimpToAppOne extends GimpToApp {
 			try {
 				ParamValExp exp = (ParamValExp) new ParamValExp(l.toString(), t.fromJavaTypes(v));
 				txn.addParam(l.toString(), exp);
-				// Also add it the unit data for future reference
+				// Also add it the unit data
 				unitHandler.data.addExp(l, exp);
-
 			} catch (SqlTypeNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -67,55 +66,23 @@ public class GimpToAppOne extends GimpToApp {
 
 		unitHandler.InitialAnalysis();
 		unitHandler.extractStatements();
-		// at this point the unitHandler.data must include all the extracted statements,
-		// some of which are actually vars and vals (wrapped in trivial
-		// assignmentStatments)
-
 		// craft the output transaction from the extracted data
 		for (Statement s : unitHandler.data.getStmts())
 			txn.addStmt(s);
 		txn.setTypes();
-
-		System.out.println("====================================");
-		System.out.println("===	ALL EXPRESSIONS");
-		for (Value x : unitHandler.data.getExps().keySet()) {
-			System.out.println(x + " := " + unitHandler.data.getExps().get(x));
-		}
-		System.out.println("====================================");
+		printExpressions(unitHandler);
 		return txn;
 
 	}
 
-	private void printUnit(Unit u, int iter) {
-		System.out.print("(" + iter + ")\n");
-		System.out.println(" ╰──" + u.getClass());
-		System.out.println(" ╰──" + u);
-		System.out.println(String.format("%0" + 120 + "d", 0).replace("0", "-"));
+	// just a helping function for dev phase
+	private void printExpressions(UnitHandler unitHandler) {
+		System.out.println("========================================================================");
+		System.out.println("===	ALL EXPRESSIONS");
+		for (Value x : unitHandler.data.getExps().keySet()) {
+			System.out.println(x + " := " + unitHandler.data.getExps().get(x));
+		}
+		System.out.println("========================================================================");
 	}
 
 }
-
-/*
- * 
- * 
- * 
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- * 
- */

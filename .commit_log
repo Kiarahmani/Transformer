@@ -39,3 +39,12 @@ Oct23 10:19PM
   and how they should be bookkept.)
 + Next step is to complete the conversion for all GrimpValues (including GetInt/GetString/etc from previous rows)
 --------------------------------------------------------------------------------
+Oct24 7:05PM
+! Stable
++ Basic version of extraction is done
++ Very basic tests passed
++ still some constraints on the format of the input program has to be satisfied
++ must perform extensive tests now and fixed above constraints if possible
++ Specifically, right now all getInt from resultSets should come immediately after their executeQuery and not later.
+  This seems to be easy to fix
+--------------------------------------------------------------------------------

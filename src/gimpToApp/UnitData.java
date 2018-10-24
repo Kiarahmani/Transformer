@@ -10,6 +10,8 @@ import java.util.TreeMap;
 import soot.Local;
 import soot.Unit;
 import soot.Value;
+import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GInvokeStmt;
 import ir.expression.Expression;
 import ir.statement.*;
 
@@ -66,10 +68,29 @@ public class UnitData {
 		return this.unitToSetToExp;
 	}
 
-	public void addValToInvoke(Value v, Unit u) {
-		if (valueToInvokations.get(v) == null)
-			valueToInvokations.put(v, new ArrayList<Unit>());
-		this.valueToInvokations.get(v).add(u);
+	// extract the value contained in the given unit and if it is an invokation
+	// add it to valueToInvokations
+	public void addValToInvoke(Unit u) {
+		try {
+			GInvokeStmt expr = (GInvokeStmt) u;
+			if (expr.getUseBoxes().get(expr.getUseBoxes().size() - 1).getValue().getClass().getSimpleName()
+					.equals("GInterfaceInvokeExpr")) {
+				Value v1 = expr.getUseBoxes().get(expr.getUseBoxes().size() - 1).getValue();
+				Value value = v1.getUseBoxes().get(v1.getUseBoxes().size() - 1).getValue();
+				if (valueToInvokations.get(value) == null)
+					valueToInvokations.put(value, new ArrayList<Unit>());
+				this.valueToInvokations.get(value).add(u);
+			}
+		} catch (ClassCastException e) {
+			GAssignStmt stmt = (GAssignStmt) u;
+			Value rOP = stmt.getRightOp();
+			if (rOP.getClass().getSimpleName().equals("GInterfaceInvokeExpr")) {
+				Value value = rOP.getUseBoxes().get(rOP.getUseBoxes().size() - 1).getValue();
+				if (valueToInvokations.get(value) == null)
+					valueToInvokations.put(value, new ArrayList<Unit>());
+				this.valueToInvokations.get(value).add(u);
+			}
+		}
 	}
 
 	public List<Unit> getInvokeListFromVal(Value v) {

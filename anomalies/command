@@ -1,0 +1,1 @@
+dot -Tpng anomaly.dot -o anomaly.png && open anomaly.png

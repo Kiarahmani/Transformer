@@ -20,10 +20,10 @@ public class Application {
 	}
 
 	public void printApp() {
-		System.out.println("\n\n-----------------\n-- Application --");
+		System.out.println("===	Application");
 		for (Transaction t : txns)
 			t.printTxn();
-		System.out.println();
+		System.out.println("========================================================================\n\n");
 	}
 
 	public String[] getAllStmtTypes() {
