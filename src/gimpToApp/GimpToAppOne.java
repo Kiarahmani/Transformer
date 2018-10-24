@@ -49,44 +49,42 @@ public class GimpToAppOne extends GimpToApp {
 		UnitHandler unitHandler = new UnitHandler(b, super.tables);
 
 		// INTERNAL ANALYSIS
-		// extraction jobs
+		// Parameter extraction
 		unitHandler.extractParams();
-		for (Unit u : b.getUnits())
-			unitHandler.InitialAnalysis(u); // does nothing so far
-
-		for (Unit u : b.getUnits())
-			unitHandler.extractStatements(u);
-
-		//for (Unit u : b.getUnits())
-		//	unitHandler.extractAssignments(u);
-
-		// OUTPUT GENERATION
-		// add the parameters to the output transaction
 		for (Local l : unitHandler.data.getParams().keySet()) {
 			Type t = Type.INT; // just to instanciate it, needed for calling the typing function
 			Value v = unitHandler.data.getParams().get(l);
 			try {
-				txn.addParam(l.toString(), new ParamValExp(l.toString(), t.fromJavaTypes(v)));
+				ParamValExp exp = (ParamValExp) new ParamValExp(l.toString(), t.fromJavaTypes(v));
+				txn.addParam(l.toString(), exp);
+				// Also add it the unit data for future reference
+				unitHandler.data.addExp(l, exp);
+
 			} catch (SqlTypeNotFoundException e) {
 				e.printStackTrace();
 			}
 		}
+
+		unitHandler.InitialAnalysis();
+		unitHandler.extractStatements();
+		// at this point the unitHandler.data must include all the extracted statements,
+		// some of which are actually vars and vals (wrapped in trivial
+		// assignmentStatments)
+
 		// craft the output transaction from the extracted data
 		for (Statement s : unitHandler.data.getStmts())
 			txn.addStmt(s);
-
-		// XXXXXXXXXX
-		// test an assignment statement
-//		Statement testStmt = new AssignmentStmt(new RowSetVarExp("x", tables.get(0)), new Expression());
-//		txn.addStmt(testStmt);
-//		testStmt = new AssignmentStmt(new RowVarExp("y", tables.get(2)), new Expression());
-//		txn.addStmt(testStmt);
-//		testStmt = new AssignmentStmt(new PrimitiveVarExp("z", Type.REAL), new Expression());
-//		txn.addStmt(testStmt);
-		/*
-		 * XXXXXXXXXX
-		 */
 		txn.setTypes();
+
+		System.out.println("====================================");
+		// System.out.println(unitHandler.data.getdefinedAts());
+		// System.out.println(unitHandler.data.getQueries());
+		// System.out.println(unitHandler.data.getPrepToExecMap());
+		//System.out.println(unitHandler.data.getValueToInvokeMap());
+		for (Value x : unitHandler.data.getExps().keySet()) {
+			System.out.println(x + " := " + unitHandler.data.getExps().get(x));
+		}
+		System.out.println("====================================");
 		return txn;
 
 	}

@@ -26,14 +26,14 @@ public class LostUpdate {
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			PreparedStatement ps = connect.prepareStatement("select C_ID_STR,C_BALANCE from CUSTOMER where C_ID = ?");
 			int x = 230;
-			ps.setInt(1, key+x);
+			ps.setInt(1, key + x);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			int id = rs.getInt("id");
 			int balance = rs.getInt("balance");
 			int sum = id + balance + 15;
 			System.out.println("SUM: " + sum);
-			/*
+			ResultSet rs2 = null;
 			PreparedStatement ps2;
 			if (rs.next()) {
 				ps2 = connect.prepareStatement(
@@ -42,14 +42,17 @@ public class LostUpdate {
 				ps2.executeUpdate();
 				ps2.close();
 			} else {
-				ps2 = connect.prepareStatement("delete from DEPARTMENT  where D_FUNDS < 100");
-				ps2.executeUpdate();
+				ps2 = connect.prepareStatement("select * from CUSTOMER where C_ID_STR = ?");
+				ps2.setString(1, "Kiarash");
+				rs2 = ps2.executeQuery();
+				System.out.println(rs2);
 			}
 			PreparedStatement ps3 = connect.prepareStatement(
 					"INSERT INTO DEPARTMENT (D_ID, D_ADDR, D_FUNDS, D_NAME) VALUES (5,Yeager2550, ?,Sales)");
+			ps3.setLong(1, rs2.getLong("C_BALANCE"));
 			ps3.executeUpdate();
 			ps.close();
-			*/
+
 		} catch (Exception e) {
 			throw e;
 		} finally {

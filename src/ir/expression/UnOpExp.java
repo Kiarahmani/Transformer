@@ -17,4 +17,9 @@ public class UnOpExp extends Expression {
 	public String toString() {
 		return "(" + op + " " + e.toString() + ")";
 	}
+
+	@Override
+	public Expression getUpdateExp(Expression newExp, int index) {
+		return new UnOpExp(this.op, this.e.getUpdateExp(newExp, index));
+	}
 }

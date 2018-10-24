@@ -2,7 +2,7 @@ package ir.expression.vars;
 
 import ir.expression.Expression;
 
-public class VarExp extends Expression {
+public abstract class VarExp extends Expression {
 	private String name;
 
 	public String getName() {
@@ -12,4 +12,6 @@ public class VarExp extends Expression {
 	public VarExp(String name) {
 		this.name = name;
 	}
+
+
 }

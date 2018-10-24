@@ -33,6 +33,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.TablesNamesFinder;
+import net.sf.jsqlparser.expression.JdbcParameter;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
@@ -76,9 +77,32 @@ public class Query {
 		}
 	}
 
-	private void path(int i, Expression exp) {
-		// must replace the i'th occurence of unknownExp with the given exp
+	public void patch(int index, Expression newExp) {
+
+		// must replace the i'th (oroginal placement of course) occurence of unknownExp
+		// with the given exp
+		this.whereClause = this.whereClause.getUpdateExp(newExp, index);
+		switch (this.kind) {
+		case SELECT:
+			break;
+		case UPDATE:
+			for (Column c : this.u_updates.keySet())
+				this.u_updates.put(c, this.u_updates.get(c).getUpdateExp(newExp, index));
+			break;
+		case DELETE:
+			break;
+		case INSERT:
+			List<Expression> newIValues = new ArrayList<Expression>();
+			for (Expression e : this.i_values)
+				newIValues.add(e.getUpdateExp(newExp, index));
+			this.i_values = newIValues;
+			break;
+		default:
+			break;
+		}
 	}
+
+	// private Exp
 
 	private Map<Column, Expression> extractUfuncs() {
 		Map<Column, Expression> result = new HashMap<Column, Expression>();
@@ -95,7 +119,8 @@ public class Query {
 				}
 				net.sf.jsqlparser.expression.Expression exp = updateStatement.getExpressions().get(iter++);
 				if (exp.toString().equals("?")) {
-					result.put(myCol, new UnknownExp("?"));
+					JdbcParameter jp = (JdbcParameter) exp;
+					result.put(myCol, new UnknownExp("?", jp.getIndex()));
 					iter++;
 				} else
 					switch (myCol.getType()) {
@@ -133,7 +158,8 @@ public class Query {
 			// for now
 			for (net.sf.jsqlparser.expression.Expression i : itemsList.getExpressions()) {
 				if (i.toString().equals("?")) {
-					result.add(new UnknownExp("?"));
+					JdbcParameter jp = (JdbcParameter) i;
+					result.add(new UnknownExp("?", jp.getIndex()));
 					iter++;
 				} else
 					switch (this.table.getColumns().get(iter++).getType()) {
@@ -192,7 +218,7 @@ public class Query {
 			Delete deleteStatement = (Delete) statements;
 			return recExtractWC(deleteStatement.getWhere());
 		case INSERT:
-			return new UnknownExp("?");
+			return new UnknownExp("?", -1);
 		default:
 			break;
 		}
@@ -235,7 +261,8 @@ public class Query {
 			}
 			return new ProjValExp(c, this.table);
 		case "JdbcParameter":
-			return new UnknownExp("?");
+			JdbcParameter jp = (JdbcParameter) clause;
+			return new UnknownExp("?", jp.getIndex());
 		case "LongValue":
 			long lv = ((LongValue) clause).getValue();
 			return new ConstValExp(lv);
@@ -268,6 +295,18 @@ public class Query {
 		default:
 			return null;
 		}
+	}
+
+	public Kind getKind() {
+		return this.kind;
+	}
+
+	public Table getTable() {
+		return this.table;
+	}
+
+	public Expression getWhClause() {
+		return this.whereClause;
 	}
 
 	public String toString() {

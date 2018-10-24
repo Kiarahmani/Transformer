@@ -1,5 +1,6 @@
 package ir.expression.vals;
 
+import ir.expression.Expression;
 import ir.schema.Column;
 import ir.schema.Table;
 
@@ -15,6 +16,11 @@ public class ProjValExp extends ValExp {
 
 	public String toString() {
 		return this.table.getName() + "." + this.column.getName();
+	}
+
+	@Override
+	public Expression getUpdateExp(Expression newExp, int index) {
+		return this;
 	}
 
 }

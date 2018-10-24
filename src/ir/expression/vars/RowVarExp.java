@@ -1,5 +1,6 @@
 package ir.expression.vars;
 
+import ir.expression.Expression;
 import ir.schema.Table;
 
 public class RowVarExp extends VarExp {
@@ -13,6 +14,11 @@ public class RowVarExp extends VarExp {
 
 	public Table getTable() {
 		return this.table;
+	}
+
+	@Override
+	public Expression getUpdateExp(Expression newExp, int index) {
+		return this;
 	}
 
 }

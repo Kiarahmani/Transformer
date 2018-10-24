@@ -30,3 +30,12 @@ Oct23 3:18PM
     already extracted table (basically not receiving any type information from JSQLParser)
 + next I should move to assignments
 --------------------------------------------------------------------------------
+Oct23 10:19PM
+! Stable (in the middle of a task)
++ Lots of progress made at the fronend
++ Query (to patch and replace an unknown expression) and unitHandler (to traverse the GrimpBody) restructured
++ Now traversal in the body starts from query statements and recursively collects VarExps and other necessary info
++ In the middle of converting Grimp values to my expressions (must understand how RowSetVars should create new RowVars
+  and how they should be bookkept.)
++ Next step is to complete the conversion for all GrimpValues (including GetInt/GetString/etc from previous rows)
+--------------------------------------------------------------------------------

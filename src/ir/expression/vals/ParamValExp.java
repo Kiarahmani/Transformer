@@ -1,6 +1,7 @@
 package ir.expression.vals;
 
 import ir.Type;
+import ir.expression.Expression;
 
 public class ParamValExp extends ValExp {
 	Type type;
@@ -17,5 +18,10 @@ public class ParamValExp extends ValExp {
 
 	public String getName() {
 		return this.name;
+	}
+
+	@Override
+	public Expression getUpdateExp(Expression newExp, int index) {
+		return this;
 	}
 }

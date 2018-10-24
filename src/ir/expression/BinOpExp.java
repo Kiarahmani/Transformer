@@ -18,4 +18,9 @@ public class BinOpExp extends Expression {
 		return "(" + op + " " + e1.toString() + "," + e2.toString() + ")";
 	}
 
+	@Override
+	public Expression getUpdateExp(Expression newExp, int index) {
+		return new BinOpExp(this.op, this.e1.getUpdateExp(newExp, index), this.e2.getUpdateExp(newExp, index));
+	}
+
 }

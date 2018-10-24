@@ -1,6 +1,7 @@
 package ir.expression.vals;
 
 import ir.Type;
+import ir.expression.Expression;
 
 public class ConstValExp extends ValExp {
 	private Type type;
@@ -72,6 +73,11 @@ public class ConstValExp extends ValExp {
 
 		}
 		return "????";
+	}
+
+	@Override
+	public Expression getUpdateExp(Expression newExp, int index) {
+		return this;
 	}
 
 }

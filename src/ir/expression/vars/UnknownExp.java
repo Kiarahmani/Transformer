@@ -1,14 +1,26 @@
 package ir.expression.vars;
 
+import ir.expression.Expression;
+
 public class UnknownExp extends VarExp {
 
-	public UnknownExp(String name) {
+	int index;
+
+	public UnknownExp(String name, int index) {
 		super(name);
-		// TODO Auto-generated constructor stub
+		this.index = index;
 	}
 
 	public String toString() {
-		return "?";
+		return super.getName();
+	}
+
+	@Override
+	public Expression getUpdateExp(Expression newExp, int index) {
+		if (this.index == index)
+			return newExp;
+		else
+			return this;
 	}
 
 }
