@@ -55,6 +55,7 @@ public class AnomalyVisualizer {
 		PrintWriter printer;
 		String node_style = "node[ color=darkgoldenrod4, fontcolor=darkgoldenrod4, fontsize=10, fontname=\"Helvetica\"]";
 		String edge_style = "\nedge[fontsize=12, fontname=\"Helvetica\"]";
+		String invis_edge_style = "\n[style=invis,weight=4]";
 		String graph_style1 = "\nrankdir=RL\n" + "style=filled\n" + "fontname=\"Helvetica\"\n"
 				+ "fontcolor=darkgoldenrod4\n" + "color=";
 		String graph_style2 = "\n style=\"rounded,filled\"\n" + "fontsize=10\n";
@@ -74,7 +75,7 @@ public class AnomalyVisualizer {
 		}
 		printer = new PrintWriter(writer);
 		Expr[] Ts = model.getSortUniverse(objs.getSort("T"));
-
+		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		printer.append("digraph {" + node_style + edge_style);
 		String ttype = "";
 		String opart = "";
@@ -102,6 +103,21 @@ public class AnomalyVisualizer {
 				iter++;
 			}
 		}
+		// print invisible edges to put clusters close to each other
+		printer.append("\n\n");
+		String[] invisEdges = new String[10];
+		String opart1, opart2;
+		for (Expr o1 : Os) {
+			for (Expr o2 : Os) {
+				opart1 = model.eval(objs.getfuncs("opart").apply(o1), true).toString();
+				opart2 = model.eval(objs.getfuncs("opart").apply(o2), true).toString();
+				String name1 = o1.toString().replaceAll("!val!", "");
+				String name2 = o2.toString().replaceAll("!val!", "");
+				if (opart1.equals(opart2))
+					printer.append(name1 + " -> " + name2 + invis_edge_style + "\n");
+			}
+		}
+
 		printer.append("\n\n");
 		for (Expr t : Ts) {
 			if (parentChildPairs.get(t) != null) {
