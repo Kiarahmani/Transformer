@@ -30,9 +30,8 @@ public class SimpleApp {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
-			PreparedStatement ps = connect.prepareStatement("update B set name='Kia' where id=1");
-			ps.executeUpdate();
-		
+			PreparedStatement ps = connect.prepareStatement("update B set name=Kia where id=1");
+			int i = ps.executeUpdate();
 
 		} catch (Exception e) {
 			throw e;
