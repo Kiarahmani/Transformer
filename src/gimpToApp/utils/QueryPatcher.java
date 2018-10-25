@@ -22,10 +22,10 @@ public class QueryPatcher {
 		if (executeUnits != null)
 			for (Unit eu : executeUnits) {
 				try {
+					// if it is an invoke, e.g. setInt
 					InvokeExpr ieu = ((GInvokeStmt) eu).getInvokeExpr();
 					if (ieu.getArgCount() != 0) {
 						try {
-
 							q.patch(Integer.parseInt(ieu.getArg(0).toString()),
 									veTranslator.valueToExpression(u, ieu.getArg(1)));
 						} catch (NumberFormatException | UnknownUnitException | ColumnDoesNotExist e) {

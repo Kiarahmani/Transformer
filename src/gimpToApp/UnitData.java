@@ -19,7 +19,7 @@ public class UnitData {
 	// eventual data to be returned
 	private List<Statement> stmts;
 	// holds the units which contain an execution of queries
-	private Map<Unit, Value> executeUnits;
+	Map<Unit, Value> executeUnits;
 	// initially crafted
 	private Map<Value, Unit> definedAt;
 	// initially extracted and used in analysis and eventually returned

@@ -124,21 +124,44 @@ public class UnitHandler {
 				try {
 					LastRowSet = ((GAssignStmt) u).getLeftOp();
 					// a list of units which call .next() on this rowSerVar
-					unitsWithNextCall = data.getInvokeListFromVal(LastRowSet);
+					for (Unit x : data.getInvokeListFromVal(LastRowSet))
+						if (this.isValueMethodCall(unitToValue(x), "next"))
+							unitsWithNextCall.add(x);
 				} catch (ClassCastException e) {
 				}
 				iter = 0;
 			}
-			if (unitsWithNextCall.contains(u)) {
+			int index = unitsWithNextCall.indexOf(u);
+			if (index != -1) {
+				// if you are one of the .next() calls
 				RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
 				String newRVarName = LastRowSet.toString() + "-next" + String.valueOf(++iter);
 				RowVarExp newRVar = new RowVarExp(newRVarName, oldRSVar.getTable(), oldRSVar);
 				data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRVar);
 				map = new HashMap<Value, Expression>();
 				map.put(LastRowSet, newRVar);
+				//
+				Unit nextU = body.getUnits().getSuccOf(u);
+				innerloop: for (int i = 0; i < body.getUnits().size(); i++) {
+					// System.out.println(unitsWithNextCall);
+					nextU = body.getUnits().getSuccOf(nextU);
+					if (nextU == null)
+						break innerloop;
+					if (unitsWithNextCall.indexOf(nextU) < index + 1) {
+						data.addMapUTSE(nextU, map);
+					} else
+						break innerloop;
+				}
+				// data.addMapUTSE(u, map);
 
+				// System.out.println(nextU);
+				// else
+				// break innerloop;
+				// if (unitsWithNextCall.indexOf(nextU) < index + 1)
+				//
+				// else
+				// break innerloop;
 			}
-			data.addMapUTSE(u, map);
 
 		}
 		// loop #3
@@ -227,6 +250,23 @@ public class UnitHandler {
 			this.data.addExecuteUnit(u, rOP);
 			Unit valueIsExecuteLastPrepStmt = data.getDefinedAt(((GInterfaceInvokeExpr) rOP).getBase());
 			data.addPrepToExec(valueIsExecuteLastPrepStmt, u);
+		}
+	}
+
+	private Value unitToValue(Unit u) {
+		try {
+			// if it's an invokation
+			GInvokeStmt expr = (GInvokeStmt) u;
+			Value value = expr.getUseBoxes().get(expr.getUseBoxes().size() - 1).getValue();
+			return value;
+		} catch (ClassCastException e) {
+			// if it's an assignment
+			try {
+				GAssignStmt stmt = (GAssignStmt) u;
+				return stmt.getRightOp();
+			} catch (ClassCastException e1) {
+				return null;
+			}
 		}
 	}
 

@@ -24,26 +24,25 @@ public class LostUpdate {
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			PreparedStatement ps = connect.prepareStatement("select C_ID_STR,C_BALANCE from CUSTOMER where C_ID = ?");
+			PreparedStatement ps = connect.prepareStatement("select C_ID_STR,C_BALANCE from CUSTOMER where C_ID = 2");
 			int x = 230;
-			ps.setInt(1, key + x);
+			//ps.setInt(1, key + x);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
-			int kir =  rs.getInt(1);   // TODO : this should be able to moved around without error
+			   // TODO : this should be able to moved around without error
 			int id = rs.getInt("id");
 			int balance = rs.getInt("balance");
 			int sum = id + balance + 15;
 			System.out.println("SUM: " + sum);
-
-			ResultSet rs2 = null;
+			
 			PreparedStatement ps2;
 			// if (rs.next()) {
 			ps2 = connect.prepareStatement(
 					"update DEPARTMENT set D_Name = Broke,D_FUNDS = ? where D_ID = 1 and D_FUNDS > = 10000");
-			
+			//rs.next();
+			int kir =  rs.getInt(1);
 			ps2.setInt(1,kir);
 			ps2.executeUpdate();
-			ps2.close();
 			// } else {
 			/*
 			 * ps2 = connect.prepareStatement("select * from CUSTOMER where C_ID_STR = ?");

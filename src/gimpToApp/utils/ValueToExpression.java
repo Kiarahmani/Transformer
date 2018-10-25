@@ -54,7 +54,7 @@ public class ValueToExpression {
 			GInterfaceInvokeExpr iie = (GInterfaceInvokeExpr) v;
 			String mName = iie.getMethod().getName();
 			if (mName.equals("getInt")) {
-				System.out.println("===" + data.getUTSEs().get(callerU));
+				// System.out.println("===" + data.getUTSEs().get(callerU));
 				RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
 				return projectRow(rSet, iie.getArgs());
 			} else if (mName.equals("getString"))
