@@ -31,17 +31,20 @@ public class LostUpdate {
 			// rs.next();
 			PreparedStatement ps2;
 			// rs.next();
-
-			// while (rs.next()) {
 			rs.next();
-			while (true) {
-		
-				ps2 = connect.prepareStatement("update DEPARTMENT set D_Name = Broke,D_FUNDS = 50 where D_FUNDS > = ?");
+			if (shouldPrint)
+				rs.next();
+			while (rs.next()) {
+				
+				ps2 = connect.prepareStatement("select C_BALANCE from CUSTOMER where C_ID = ?");
+			
 				ps2.setInt(1, rs.getInt("C_BALANCE"));
-				ps2.executeUpdate();
-				if (rs.next())
-					break;
-			}
+			
+				ps2.executeQuery();
+				
+
+			} 
+
 			/*
 			 * for (int i = 0; i < 100; i++) { ps2.setInt(1, i); ps2.executeUpdate(); }
 			 * System.out.println("zahre  amar");

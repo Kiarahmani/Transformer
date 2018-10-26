@@ -42,10 +42,10 @@ public class Table {
 	}
 
 	public void printTable() {
-		System.out.println("\n--");
-		System.out.println("Table <<" + name + ">>");
+		System.out.print("Table<<" + name + ">>");
 		for (Column c : this.columns)
 			c.printColumn();
+		System.out.println();
 
 	}
 

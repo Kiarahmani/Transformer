@@ -107,13 +107,13 @@ public class UnitHandler {
 	}
 
 	// The outermost function wrapping anlysis
-	// Has 3 main loops iterating over all units in the given body
+	// Has 4 main loops iterating over all units in the given body
 	public void extractStatements() throws UnknownUnitException {
 		// TEMP
-		//System.out.println("----------------");
-		//for (Unit x : body.getUnits())
-		//	System.out.println(data.getLoopNo(x) + " (" + data.units.indexOf(x) + ")");
-		//System.out.println("----------------");
+		// System.out.println("----------------");
+		// for (Unit x : body.getUnits())
+		// System.out.println(data.getLoopNo(x) + " (" + data.units.indexOf(x) + ")");
+		// System.out.println("----------------");
 
 		// TEMP
 
@@ -130,13 +130,11 @@ public class UnitHandler {
 		Map<Value, List<Unit>> unitsWithNextCall = new HashMap<>();
 		Map<Value, Expression> map = null;
 		int iter = 0;
-		// add some expressions and patch the queries
+		// add LHS expressions with patchy queries
 		for (Unit u : body.getUnits()) {
 			// the program logic not affecting queries is abstracted
-			if (data.getQueries().containsKey(u)) {
-				queryPatcher.patchQuery(u, veTranslator, data);
+			if (data.getQueries().containsKey(u))
 				updateExpressions(u);
-			}
 
 			// find all .next() invokations on LHS of this (if exists)
 			if (data.getExecuteValue(u) != null) { // if u is executeQ/U update the map
@@ -195,10 +193,16 @@ public class UnitHandler {
 
 		}
 		// loop #3
+		// patch the queries
+		for (Unit u : body.getUnits()) {
+			// the program logic not affecting queries is abstracted
+			if (data.getQueries().containsKey(u)) {
+				queryPatcher.patchQuery(u, veTranslator, data);
+			}
+		}
+		// loop #4
 		// now add invoke statements containing patched queries
-		for (
-
-		Unit u : data.getQueries().keySet())
+		for (Unit u : data.getQueries().keySet())
 			this.data.addStmt(new InvokeStmt(data.getQueryFromUnit(u)));
 	}
 
