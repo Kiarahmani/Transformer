@@ -7,6 +7,7 @@ import soot.Body;
 import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.Stmt;
 
 public class GimpToApp {
 	private Scene v;
@@ -32,6 +33,9 @@ public class GimpToApp {
 		int iter = 1;
 		for (Unit u : b.getUnits()) {
 			System.out.print("(" + iter + ")\n");
+			Stmt s = (Stmt) u;
+			if (s.branches())
+			System.out.println(" ╰──" + s.getUnitBoxes().get(0).getUnit());
 			System.out.println(" ╰──" + u.getClass().getSimpleName());
 			System.out.println(" ╰──" + u);
 			System.out.println(String.format("%0" + _line_length + "d", 0).replace("0", "-"));

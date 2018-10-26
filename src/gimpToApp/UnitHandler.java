@@ -31,6 +31,7 @@ import soot.Value;
 import soot.ValueBox;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GIfStmt;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
 import soot.grimp.internal.GNewInvokeExpr;
@@ -40,6 +41,7 @@ import soot.jimple.IntConstant;
 import soot.jimple.InvokeExpr;
 import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
+import soot.jimple.internal.JGotoStmt;
 import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
 import soot.util.Switch;
 
@@ -82,12 +84,21 @@ public class UnitHandler {
 				invokeInitHandler(u);
 				break;
 			case "JGotoStmt": // TODO
+				JGotoStmt gs = (JGotoStmt) u;
+				System.out.println("===>"+gs);
 				break;
 			case "GThrowStmt": // TODO
 				break;
 			case "JReturnVoidStmt": // TODO
 				break;
 			case "GIfStmt": // TODO
+				GIfStmt gis = (GIfStmt) u;
+				//try {
+				//	System.out.println("===>"+  veTranslator.valueToExpression(ir.Type.BOOLEAN, u, gis.getCondition()));
+				//} catch (ColumnDoesNotExist e) {
+					// TODO Auto-generated catch block
+				//	e.printStackTrace();
+			//	}
 				break;
 			default:
 				throw new UnknownUnitException("Unknown Jimple/Grimp unit class: " + u.getClass().getSimpleName());

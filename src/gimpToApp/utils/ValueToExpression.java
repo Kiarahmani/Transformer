@@ -18,6 +18,8 @@ import soot.Value;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
 import soot.grimp.internal.GInterfaceInvokeExpr;
+import soot.grimp.internal.GLeExpr;
+import soot.grimp.internal.GLtExpr;
 import soot.grimp.internal.GMulExpr;
 import soot.jimple.IntConstant;
 import soot.jimple.LongConstant;
@@ -44,6 +46,14 @@ public class ValueToExpression {
 			GMulExpr gme = (GMulExpr) v;
 			return new BinOpExp(BinOp.MULT, valueToExpression(tp, callerU, gme.getOp1()),
 					valueToExpression(tp, callerU, gme.getOp2()));
+		case "GLeExpr":
+			GLeExpr gle = (GLeExpr) v;
+			return new BinOpExp(BinOp.LEQ, valueToExpression(Type.REAL, callerU, gle.getOp1()),
+					valueToExpression(Type.REAL, callerU, gle.getOp2()));
+		case "GLtExpr":
+			GLtExpr glt = (GLtExpr) v;
+			return new BinOpExp(BinOp.LEQ, valueToExpression(Type.REAL, callerU, glt.getOp1()),
+					valueToExpression(Type.REAL, callerU, glt.getOp2()));
 		case "JimpleLocal":
 			if (data.getExp(v) != null)
 				return data.getExp(v);

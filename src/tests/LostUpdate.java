@@ -24,27 +24,28 @@ public class LostUpdate {
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			PreparedStatement ps = connect.prepareStatement("select C_ID_STR,C_BALANCE from CUSTOMER where C_ID = 2");
-			int x = 230;
-			//ps.setInt(1, key + x);
+			PreparedStatement ps = connect.prepareStatement("select C_BALANCE from CUSTOMER where C_ID = 1");
 			ResultSet rs = ps.executeQuery();
-			rs.next();
-			   // TODO : this should be able to moved around without error
-			int id = rs.getInt("id");
-			int balance = rs.getInt("balance");
-			int sum = id + balance + 15;
-			System.out.println("SUM: " + sum);
+			while(rs.next()) {
+			System.out.println(rs);
+			}
 			
-			PreparedStatement ps2;
-			// if (rs.next()) {
-			ps2 = connect.prepareStatement(
-					"update DEPARTMENT set D_Name = Broke,D_FUNDS = ? where D_ID = 1 and D_FUNDS > = 10000");
-			//rs.next();
-			int kir =  rs.getInt(1);
-			ps2.setInt(1,kir);
-			ps2.executeUpdate();
-			// } else {
+			
+			//for (int i = 0; i < 100; i++) {
+			//	System.out.println(i);
+			//}
+
 			/*
+			 * int x = 230; //ps.setInt(1, key + x); ResultSet rs = ps.executeQuery();
+			 * rs.next(); // TODO : this should be able to moved around without error int id
+			 * = rs.getInt("id"); int balance = rs.getInt("balance"); int sum = id + balance
+			 * + 15; System.out.println("SUM: " + sum);
+			 * 
+			 * PreparedStatement ps2; // if (rs.next()) { ps2 = connect.prepareStatement(
+			 * "update DEPARTMENT set D_Name = Broke,D_FUNDS = ? where D_ID = 1 and D_FUNDS > = 10000"
+			 * ); //rs.next(); int kir = rs.getInt(1); ps2.setInt(1,kir);
+			 * ps2.executeUpdate(); // } else {
+			 * 
 			 * ps2 = connect.prepareStatement("select * from CUSTOMER where C_ID_STR = ?");
 			 * ps2.setString(1, "Kiarash"); rs2 = ps2.executeQuery();
 			 * System.out.println(rs2); //} PreparedStatement ps3 =

@@ -43,7 +43,7 @@ public class GimpToAppOne extends GimpToApp {
 
 	private Transaction extractTxn(Body b) throws UnknownUnitException {
 
-		//super.printGimpBody(b);
+		super.printGimpBody(b);
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
 		UnitHandler unitHandler = new UnitHandler(b, super.tables);

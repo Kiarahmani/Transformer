@@ -30,8 +30,9 @@ public class DirtyRead {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			PreparedStatement ps = connect.prepareStatement("update A set balance= 1000 where id=1");
-			ps.executeUpdate("update A set balance= 500 where id=1");
-			ps.executeUpdate("update A set balance= 1000 where id=1");
+			ps.executeUpdate();
+			PreparedStatement ps2 = connect.prepareStatement("update A set balance= 1000 where id=1");
+			ps2.executeUpdate("update A set balance= 1000 where id=1");
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -48,10 +49,11 @@ public class DirtyRead {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			PreparedStatement ps = connect.prepareStatement("select * from A where id=1");
-			rs = ps.executeQuery("select * from A where id=1");
-			rs.next();
-			int id = rs.getInt("id");
-			int balance = rs.getInt("balance");
+			ResultSet rs2 = ps.executeQuery();
+			rs2.next();
+			int id = rs2.getInt("id");
+			int balance = rs2.getInt("balance");
+			System.out.println(id+balance);
 		} catch (Exception e) {
 			throw e;
 		} finally {
