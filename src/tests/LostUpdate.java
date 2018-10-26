@@ -25,16 +25,29 @@ public class LostUpdate {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			PreparedStatement ps = connect.prepareStatement("select C_BALANCE from CUSTOMER where C_ID = 1");
-			ResultSet rs = ps.executeQuery();
-			while(rs.next()) {
-			System.out.println(rs);
-			}
-			
-			
-			//for (int i = 0; i < 100; i++) {
-			//	System.out.println(i);
-			//}
 
+			ResultSet rs = null;
+			rs = ps.executeQuery();
+			// rs.next();
+			PreparedStatement ps2;
+			// rs.next();
+
+			// while (rs.next()) {
+			rs.next();
+			while (true) {
+		
+				ps2 = connect.prepareStatement("update DEPARTMENT set D_Name = Broke,D_FUNDS = 50 where D_FUNDS > = ?");
+				ps2.setInt(1, rs.getInt("C_BALANCE"));
+				ps2.executeUpdate();
+				if (rs.next())
+					break;
+			}
+			/*
+			 * for (int i = 0; i < 100; i++) { ps2.setInt(1, i); ps2.executeUpdate(); }
+			 * System.out.println("zahre  amar");
+			 * 
+			 * do { rs = ps.executeQuery(); } while (shouldPrint!=(anotherDouble==29));
+			 */
 			/*
 			 * int x = 230; //ps.setInt(1, key + x); ResultSet rs = ps.executeQuery();
 			 * rs.next(); // TODO : this should be able to moved around without error int id

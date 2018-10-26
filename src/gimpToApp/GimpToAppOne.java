@@ -24,6 +24,7 @@ import soot.Unit;
 import soot.UnitPatchingChain;
 import soot.Value;
 import soot.ValueBox;
+import z3.ConstantArgs;
 
 public class GimpToAppOne extends GimpToApp {
 
@@ -43,7 +44,8 @@ public class GimpToAppOne extends GimpToApp {
 
 	private Transaction extractTxn(Body b) throws UnknownUnitException {
 
-		super.printGimpBody(b);
+		if (ConstantArgs.DEBUG_MODE)
+			super.printGimpBody(b);
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
 		UnitHandler unitHandler = new UnitHandler(b, super.tables);

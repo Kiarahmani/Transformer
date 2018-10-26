@@ -10,13 +10,25 @@ import java.util.TreeMap;
 import soot.Local;
 import soot.Unit;
 import soot.Value;
+import soot.grimp.internal.ExprBox;
 import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GEqExpr;
+import soot.grimp.internal.GIfStmt;
+import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
+import soot.grimp.internal.GNeExpr;
+import z3.ConstantArgs;
 import ir.expression.Expression;
 import ir.statement.*;
 
 public class UnitData {
+	// a mapping from units to the loops number they belong to
+	// -1 is reserved for units outside of all loops
+	private Map<Unit, Integer> unitToLoop;
+
 	public int absIter;
+	// just a list of units for internal analysis
+	public List<Unit> units;
 	// eventual data to be returned
 	private List<Statement> stmts;
 	// holds the units which contain an execution of queries
@@ -40,6 +52,8 @@ public class UnitData {
 	// body units)
 	private Map<Unit, Map<Value, Expression>> unitToSetToExp;
 
+	public int loopCount;
+
 	public UnitData() {
 		this.absIter = 0;
 		stmts = new ArrayList<Statement>();
@@ -51,6 +65,37 @@ public class UnitData {
 		prepareToExecute = new HashMap<Unit, Unit>();
 		valueToInvokations = new HashMap<>();
 		unitToSetToExp = new HashMap<>();
+		this.units = new ArrayList<>();
+		this.unitToLoop = new HashMap<>();
+		this.loopCount = 0;
+
+	}
+
+	public void addUnitNonLoop(Unit u) {
+		this.unitToLoop.put(u, -1);
+	}
+
+	public void addUnitToLoop(Unit u, int l) {
+		this.unitToLoop.put(u, l);
+	}
+
+	public int getLoopNo(Unit u) {
+		if (this.unitToLoop.get(u) == null)
+			return -1;
+		else
+			return this.unitToLoop.get(u);
+	}
+
+	public Map<Unit, Integer> getAllLoops() {
+		return this.unitToLoop;
+	}
+
+	public List<Unit> getAllUnitsFromLoop(int l) {
+		List<Unit> result = new ArrayList<>();
+		for (Unit x : this.unitToLoop.keySet())
+			if (this.unitToLoop.get(x) == l)
+				result.add(x);
+		return result;
 
 	}
 
@@ -63,7 +108,6 @@ public class UnitData {
 			if (this.unitToSetToExp.get(x) != null)
 				System.out.println(" -> " + this.unitToSetToExp.get(x));
 		}
-		System.out.println("======");
 	}
 
 	public Map<Unit, Map<Value, Expression>> getUTSEs() {
@@ -84,15 +128,63 @@ public class UnitData {
 				this.valueToInvokations.get(value).add(u);
 			}
 		} catch (ClassCastException e) {
-			GAssignStmt stmt = (GAssignStmt) u;
-			Value rOP = stmt.getRightOp();
-			if (rOP.getClass().getSimpleName().equals("GInterfaceInvokeExpr")) {
-				Value value = rOP.getUseBoxes().get(rOP.getUseBoxes().size() - 1).getValue();
-				if (valueToInvokations.get(value) == null)
-					valueToInvokations.put(value, new ArrayList<Unit>());
-				this.valueToInvokations.get(value).add(u);
+			try {
+				GAssignStmt stmt = (GAssignStmt) u;
+				Value rOP = stmt.getRightOp();
+				if (rOP.getClass().getSimpleName().equals("GInterfaceInvokeExpr")) {
+					Value value = rOP.getUseBoxes().get(rOP.getUseBoxes().size() - 1).getValue();
+					if (valueToInvokations.get(value) == null)
+						valueToInvokations.put(value, new ArrayList<Unit>());
+					this.valueToInvokations.get(value).add(u);
+				}
+			} catch (ClassCastException e1) {
+				try {
+					GIfStmt gis = (GIfStmt) u;
+					for (Value value : extractInvokedValues(gis.getCondition())) {
+						if (valueToInvokations.get(value) == null)
+							valueToInvokations.put(value, new ArrayList<Unit>());
+						this.valueToInvokations.get(value).add(u);
+					}
+				} catch (ClassCastException e2) {
+					e2.printStackTrace();
+				}
 			}
 		}
+	}
+
+	// recursively anlyze the value and returns all values that are invoked inside
+	// e.g. r0.F1 + r2.F2 must return: [r0,r2]
+	public List<Value> extractInvokedValues(Value v) {
+		List<Value> result = new ArrayList<Value>();
+		switch (v.getClass().getSimpleName()) {
+		case "GNeExpr":
+			GNeExpr ne = (GNeExpr) v;
+			result.addAll(extractInvokedValues(ne.getOp1()));
+			result.addAll(extractInvokedValues(ne.getOp2()));
+			return result;
+			
+		case "GEqExpr":
+			GEqExpr ee = (GEqExpr) v;
+			result.addAll(extractInvokedValues(ee.getOp1()));
+			result.addAll(extractInvokedValues(ee.getOp2()));
+			return result;
+
+		case "GInterfaceInvokeExpr":
+			GInterfaceInvokeExpr iie = (GInterfaceInvokeExpr) v;
+			result.add(iie.getBase());
+			return result;
+
+		case "IntConstant":
+			return result;
+
+		case "JimpleLocal":
+			result.add(v);
+			return result;
+		}
+		if (ConstantArgs.DEBUG_MODE)
+			System.err.println("---- UnitDAta.java.extractInvokedValues: value extraction case not handled yet: "
+					+ v.getClass().getSimpleName());
+		return result;
 	}
 
 	public List<Unit> getInvokeListFromVal(Value v) {

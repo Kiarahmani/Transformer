@@ -30,12 +30,9 @@ public class GimpToApp {
 		System.out.println("\n\n" + String.format("%0" + _line_length + "d", 0).replace("0", "="));
 		System.out.println("Txn: " + b.getMethod());
 		System.out.println(String.format("%0" + _line_length + "d", 0).replace("0", "="));
-		int iter = 1;
+		int iter = 0;
 		for (Unit u : b.getUnits()) {
 			System.out.print("(" + iter + ")\n");
-			Stmt s = (Stmt) u;
-			if (s.branches())
-			System.out.println(" ╰──" + s.getUnitBoxes().get(0).getUnit());
 			System.out.println(" ╰──" + u.getClass().getSimpleName());
 			System.out.println(" ╰──" + u);
 			System.out.println(String.format("%0" + _line_length + "d", 0).replace("0", "-"));

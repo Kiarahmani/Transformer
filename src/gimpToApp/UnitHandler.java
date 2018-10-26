@@ -17,6 +17,7 @@ import ir.expression.BinOpExp.BinOp;
 import ir.expression.vars.ProjVarExp;
 import ir.expression.vars.RowSetVarExp;
 import ir.expression.vars.RowVarExp;
+import ir.expression.vars.RowVarLoopExp;
 import ir.expression.vars.UnknownExp;
 import ir.schema.Table;
 import ir.statement.InvokeStmt;
@@ -31,9 +32,12 @@ import soot.Value;
 import soot.ValueBox;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GEqExpr;
 import soot.grimp.internal.GIfStmt;
+import soot.grimp.internal.GInstanceFieldRef;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
+import soot.grimp.internal.GNeExpr;
 import soot.grimp.internal.GNewInvokeExpr;
 import soot.grimp.internal.GStaticInvokeExpr;
 import soot.grimp.internal.GVirtualInvokeExpr;
@@ -44,6 +48,7 @@ import soot.jimple.StringConstant;
 import soot.jimple.internal.JGotoStmt;
 import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
 import soot.util.Switch;
+import z3.ConstantArgs;
 
 public class UnitHandler {
 	UnitData data;
@@ -74,6 +79,7 @@ public class UnitHandler {
 	// stages
 	public void InitialAnalysis() throws UnknownUnitException {
 		for (Unit u : body.getUnits()) {
+			data.units.add(u);
 			switch (u.getClass().getSimpleName()) {
 			case "GIdentityStmt":
 				break;
@@ -83,22 +89,16 @@ public class UnitHandler {
 			case "GInvokeStmt":
 				invokeInitHandler(u);
 				break;
-			case "JGotoStmt": // TODO
+			case "JGotoStmt":
 				JGotoStmt gs = (JGotoStmt) u;
-				System.out.println("===>"+gs);
+				gotoInitHandler(u, gs.getUnitBoxes().get(0).getUnit());
 				break;
 			case "GThrowStmt": // TODO
 				break;
 			case "JReturnVoidStmt": // TODO
 				break;
 			case "GIfStmt": // TODO
-				GIfStmt gis = (GIfStmt) u;
-				//try {
-				//	System.out.println("===>"+  veTranslator.valueToExpression(ir.Type.BOOLEAN, u, gis.getCondition()));
-				//} catch (ColumnDoesNotExist e) {
-					// TODO Auto-generated catch block
-				//	e.printStackTrace();
-			//	}
+				ifInitHandler(u);
 				break;
 			default:
 				throw new UnknownUnitException("Unknown Jimple/Grimp unit class: " + u.getClass().getSimpleName());
@@ -109,6 +109,13 @@ public class UnitHandler {
 	// The outermost function wrapping anlysis
 	// Has 3 main loops iterating over all units in the given body
 	public void extractStatements() throws UnknownUnitException {
+		// TEMP
+		//System.out.println("----------------");
+		//for (Unit x : body.getUnits())
+		//	System.out.println(data.getLoopNo(x) + " (" + data.units.indexOf(x) + ")");
+		//System.out.println("----------------");
+
+		// TEMP
 
 		// loop #1
 		// extract and create queries with holes
@@ -119,8 +126,8 @@ public class UnitHandler {
 			}
 		// loop #2
 		// helping datastructures
-		Value LastRowSet = null;
-		List<Unit> unitsWithNextCall = new ArrayList<>();
+		List<Value> LastRowSets = new ArrayList<>();
+		Map<Value, List<Unit>> unitsWithNextCall = new HashMap<>();
 		Map<Value, Expression> map = null;
 		int iter = 0;
 		// add some expressions and patch the queries
@@ -130,54 +137,68 @@ public class UnitHandler {
 				queryPatcher.patchQuery(u, veTranslator, data);
 				updateExpressions(u);
 			}
-			if (data.getExecuteValue(u) != null) { // if u is executeQ/U
-				// update the map
+
+			// find all .next() invokations on LHS of this (if exists)
+			if (data.getExecuteValue(u) != null) { // if u is executeQ/U update the map
 				try {
-					LastRowSet = ((GAssignStmt) u).getLeftOp();
+					Value LastRowSet = ((GAssignStmt) u).getLeftOp();
+					LastRowSets.add(LastRowSet);
+					// if (data.getInvokeListFromVal(LastRowSet) != null)
 					// a list of units which call .next() on this rowSerVar
-					for (Unit x : data.getInvokeListFromVal(LastRowSet))
-						if (this.isValueMethodCall(unitToValue(x), "next"))
-							unitsWithNextCall.add(x);
+					for (Unit x : data.getInvokeListFromVal(LastRowSet)) {
+						if (this.isValueMethodCall(unitToValue(x), "next")) {
+							if (unitsWithNextCall.get(LastRowSet) == null)
+								unitsWithNextCall.put(LastRowSet, new ArrayList<Unit>());
+							unitsWithNextCall.get(LastRowSet).add(x);
+						}
+					}
 				} catch (ClassCastException e) {
 				}
 				iter = 0;
 			}
-			int index = unitsWithNextCall.indexOf(u);
-			if (index != -1) {
-				// if you are one of the .next() calls
-				RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
-				String newRVarName = LastRowSet.toString() + "-next" + String.valueOf(++iter);
-				RowVarExp newRVar = new RowVarExp(newRVarName, oldRSVar.getTable(), oldRSVar);
-				data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRVar);
-				map = new HashMap<Value, Expression>();
-				map.put(LastRowSet, newRVar);
-				//
-				Unit nextU = body.getUnits().getSuccOf(u);
-				innerloop: for (int i = 0; i < body.getUnits().size(); i++) {
-					// System.out.println(unitsWithNextCall);
-					nextU = body.getUnits().getSuccOf(nextU);
-					if (nextU == null)
-						break innerloop;
-					if (unitsWithNextCall.indexOf(nextU) < index + 1) {
-						data.addMapUTSE(nextU, map);
-					} else
-						break innerloop;
-				}
-				// data.addMapUTSE(u, map);
+			for (Value LastRowSet : LastRowSets) {
+				int index = unitsWithNextCall.get(LastRowSet).indexOf(u);
+				if (index != -1) {// if you are one of the .next() calls
+					if (data.getLoopNo(u) == -1) {// if you are outside of loops
+						RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
+						String newRVarName = LastRowSet.toString() + "-next" + String.valueOf(++iter);
+						RowVarExp newRVar = new RowVarExp(newRVarName, oldRSVar.getTable(), oldRSVar);
+						data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRVar);
+						map = new HashMap<Value, Expression>();
+						map.put(LastRowSet, newRVar);
+						//
+						Unit nextU = body.getUnits().getSuccOf(u);
+						innerloop: for (int i = 0; i < body.getUnits().size(); i++) {
+							// System.out.println(unitsWithNextCall);
+							nextU = body.getUnits().getSuccOf(nextU);
+							if (nextU == null)
+								break innerloop;
+							if (unitsWithNextCall.get(LastRowSet).indexOf(nextU) < index + 1) {
+								data.addMapUTSE(nextU, map);
+							} else
+								break innerloop;
+						}
+					} else {// if you are inside of a loop
+						RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
+						String newRVarName = LastRowSet.toString() + "-loopVar" + String.valueOf(++iter);
+						RowVarLoopExp newRLVar = new RowVarLoopExp(newRVarName, oldRSVar.getTable(), oldRSVar);
+						data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRLVar);
+						map = new HashMap<Value, Expression>();
+						map.put(LastRowSet, newRLVar);
+						for (Unit x : data.getAllUnitsFromLoop(data.getLoopNo(u))) {
+							data.addMapUTSE(x, map);
+						}
+					}
 
-				// System.out.println(nextU);
-				// else
-				// break innerloop;
-				// if (unitsWithNextCall.indexOf(nextU) < index + 1)
-				//
-				// else
-				// break innerloop;
+				}
 			}
 
 		}
 		// loop #3
 		// now add invoke statements containing patched queries
-		for (Unit u : data.getQueries().keySet())
+		for (
+
+		Unit u : data.getQueries().keySet())
 			this.data.addStmt(new InvokeStmt(data.getQueryFromUnit(u)));
 	}
 
@@ -237,8 +258,34 @@ public class UnitHandler {
 	}
 
 	/*
+	 * 
+	 * 
+	 * 
 	 * Initial Handlers
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
 	 */
+
+	private void ifInitHandler(Unit u) {
+		GIfStmt gis = (GIfStmt) u;
+		this.data.addValToInvoke(u);
+		gotoInitHandler(u, (gis.getUnitBoxes().get(0).getUnit()));
+	}
+
+	private void gotoInitHandler(Unit pointsFrom, Unit pointsTo) {
+		int thisUnitNo = data.units.indexOf(pointsFrom);
+		int pointsToUnitNo = data.units.indexOf(pointsTo);
+		// set the loop boundaries
+		if (pointsToUnitNo != -1 && pointsToUnitNo < thisUnitNo) {
+			for (int i = pointsToUnitNo; i <= thisUnitNo; i++)
+				data.addUnitToLoop(data.units.get(i), data.loopCount);
+			data.loopCount++;
+		}
+	}
+
 	private void invokeInitHandler(Unit u) throws UnknownUnitException {
 		GInvokeStmt expr = (GInvokeStmt) u;
 		this.data.addValToInvoke(u);
@@ -276,6 +323,12 @@ public class UnitHandler {
 				GAssignStmt stmt = (GAssignStmt) u;
 				return stmt.getRightOp();
 			} catch (ClassCastException e1) {
+				try {
+					GIfStmt is = (GIfStmt) u;
+					return is.getCondition();
+				} catch (ClassCastException e2) {
+					e2.printStackTrace();
+				}
 				return null;
 			}
 		}
@@ -287,6 +340,29 @@ public class UnitHandler {
 			String fName = expr.getMethod().getName();
 			return (fName.equals(s) || s.equals("ANY#FUNCTION"));
 		} catch (ClassCastException e) {
+			switch (v.getClass().getSimpleName()) {
+			case "GEqExpr":
+				GEqExpr ee = (GEqExpr) v;
+				return isValueMethodCall(ee.getOp1(), s) || isValueMethodCall(ee.getOp2(), s);
+			case "GNeExpr":
+				GNeExpr ne = (GNeExpr) v;
+				return isValueMethodCall(ne.getOp1(), s) || isValueMethodCall(ne.getOp2(), s);
+			case "GStaticInvokeExpr":
+				GStaticInvokeExpr sie = (GStaticInvokeExpr) v;
+				return (sie.getMethod().getName().equals(s));
+			case "GVirtualInvokeExpr":
+				GVirtualInvokeExpr vie = (GVirtualInvokeExpr) v;
+				return (vie.getMethod().getName().equals(s));
+			case "GInstanceFieldRef":
+				return false;
+			case "GNewInvokeExpr":
+				return false;
+			default:
+				if (ConstantArgs.DEBUG_MODE)
+					System.err.println("case not handled isValueMethodCall: " + v.getClass().getSimpleName());
+				break;
+			}
+
 			return false;
 		}
 	}
