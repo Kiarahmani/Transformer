@@ -45,7 +45,7 @@ public class Anomaly {
 	}
 
 	public void announce() {
-		System.out.println("\n\n=============\n=== Model === ");
+		System.out.println("\n\n-------------\n--- Model --- ");
 		Map<String, FuncDecl> functions = getFunctions();
 		parentChildPairs = getParentChild(functions.get("parent"));
 		WWPairs = getWWPairs(functions.get("WW_O"));
@@ -86,7 +86,7 @@ public class Anomaly {
 		System.out.println("opart:     " + opart);
 		drawLine();
 		// System.out.println(model);
-		System.out.println("=============\n");
+		System.out.println("-------------\n");
 		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
 				parentChildPairs, otypes, opart);
 		av.createGraph();

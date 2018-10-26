@@ -5,6 +5,7 @@ import java.util.List;
 import exceptions.ColumnDoesNotExist;
 import exceptions.UnknownUnitException;
 import gimpToApp.UnitData;
+import ir.Type;
 import ir.statement.Query;
 import soot.Unit;
 import soot.Value;
@@ -24,10 +25,34 @@ public class QueryPatcher {
 				try {
 					// if it is an invoke, e.g. setInt
 					InvokeExpr ieu = ((GInvokeStmt) eu).getInvokeExpr();
+					String mName = ieu.getMethod().getName();
 					if (ieu.getArgCount() != 0) {
 						try {
-							q.patch(Integer.parseInt(ieu.getArg(0).toString()),
-									veTranslator.valueToExpression(u, ieu.getArg(1)));
+							switch (mName) {
+							case "setInt":
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
+										veTranslator.valueToExpression(Type.INT, u, ieu.getArg(1)));
+								break;
+							case "setString":
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
+										veTranslator.valueToExpression(Type.STRING, u, ieu.getArg(1)));
+								break;
+							case "setLong":
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
+										veTranslator.valueToExpression(Type.INT, u, ieu.getArg(1)));
+								break;
+							case "setBool":
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
+										veTranslator.valueToExpression(Type.BOOLEAN, u, ieu.getArg(1)));
+								break;
+							case "setDouble":
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
+										veTranslator.valueToExpression(Type.REAL, u, ieu.getArg(1)));
+								break;
+							default:
+								break;
+							}
+
 						} catch (NumberFormatException | UnknownUnitException | ColumnDoesNotExist e) {
 							e.printStackTrace();
 						}

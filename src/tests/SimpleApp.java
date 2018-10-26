@@ -9,10 +9,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SimpleApp {
 	private Connection connect = null;
-	private ResultSet rs = null;
 	private int _ISOLATION = Connection.TRANSACTION_READ_COMMITTED;
 	private int insID;
 	Properties p;
@@ -47,8 +47,15 @@ public class SimpleApp {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
-			PreparedStatement ps = connect.prepareStatement("update A set balance= 5 where id=1");
-			ps.executeUpdate("update A set balance= 5 where id=1");
+			PreparedStatement ps = connect.prepareStatement("update A set balance= 5 where id=?");
+			ps.setInt(1, key--);
+			ps.executeUpdate();
+			int randomNum = ThreadLocalRandom.current().nextInt(100, 5000 + 1);
+			
+			PreparedStatement ps2 = connect.prepareStatement("update A set balance= 5 where id=?");
+			ps2.setInt(1, randomNum);
+			ps2.executeUpdate();
+
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -65,13 +72,19 @@ public class SimpleApp {
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
 			PreparedStatement ps = connect.prepareStatement("select * from A where id=1");
-			rs = ps.executeQuery("select * from A where id=1");
-			rs.next();
-			int id = rs.getInt("id");
-			int balance = rs.getInt("balance");
-			ps = connect.prepareStatement("select * from B where id=1");
-			rs = ps.executeQuery("select * from B where id=1");
-			String name = rs.getString("name");
+			ResultSet rs1 = ps.executeQuery("select * from A where id=1");
+			rs1.next();
+			//
+			rs1.next();
+			//
+			//
+			rs1.next();
+			int id = rs1.getInt("id");
+			int balance = rs1.getInt("balance");
+			ps = connect.prepareStatement("select * from B where id=?");
+			ps.setInt(1,balance+1200);
+			ResultSet rs2 = ps.executeQuery();
+			String name = rs2.getString("name");
 			System.out.println("(" + id + "," + name + "," + balance + ")");
 
 		} catch (Exception e) {

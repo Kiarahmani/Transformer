@@ -5,6 +5,7 @@ import java.util.List;
 import exceptions.ColumnDoesNotExist;
 import exceptions.UnknownUnitException;
 import gimpToApp.UnitData;
+import ir.Type;
 import ir.expression.BinOpExp;
 import ir.expression.Expression;
 import ir.expression.BinOpExp.BinOp;
@@ -17,9 +18,11 @@ import soot.Value;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
 import soot.grimp.internal.GInterfaceInvokeExpr;
+import soot.grimp.internal.GMulExpr;
 import soot.jimple.IntConstant;
 import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
+import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
 
 public class ValueToExpression {
 
@@ -30,17 +33,22 @@ public class ValueToExpression {
 	}
 
 	// Open Ended --- I'll add more handler upon occurence
-	public Expression valueToExpression(Unit callerU, Value v) throws UnknownUnitException, ColumnDoesNotExist {
+	public Expression valueToExpression(Type tp, Unit callerU, Value v)
+			throws UnknownUnitException, ColumnDoesNotExist {
 		switch (v.getClass().getSimpleName()) {
 		case "GAddExpr":
 			GAddExpr gae = (GAddExpr) v;
-			return new BinOpExp(BinOp.PLUS, valueToExpression(callerU, gae.getOp1()),
-					valueToExpression(callerU, gae.getOp2()));
+			return new BinOpExp(BinOp.PLUS, valueToExpression(tp, callerU, gae.getOp1()),
+					valueToExpression(tp, callerU, gae.getOp2()));
+		case "GMulExpr":
+			GMulExpr gme = (GMulExpr) v;
+			return new BinOpExp(BinOp.MULT, valueToExpression(tp, callerU, gme.getOp1()),
+					valueToExpression(tp, callerU, gme.getOp2()));
 		case "JimpleLocal":
 			if (data.getExp(v) != null)
 				return data.getExp(v);
 			else
-				return valueToExpression(data.getDefinedAt(v), ((GAssignStmt) data.getDefinedAt(v)).getRightOp());
+				return valueToExpression(tp, data.getDefinedAt(v), ((GAssignStmt) data.getDefinedAt(v)).getRightOp());
 		case "IntConstant":
 			IntConstant ic = (IntConstant) v;
 			return new ConstValExp(ic.value);
@@ -53,24 +61,35 @@ public class ValueToExpression {
 		case "GInterfaceInvokeExpr":
 			GInterfaceInvokeExpr iie = (GInterfaceInvokeExpr) v;
 			String mName = iie.getMethod().getName();
+			Expression result;
 			if (mName.equals("getInt")) {
-				// System.out.println("===" + data.getUTSEs().get(callerU));
 				RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
-				return projectRow(rSet, iie.getArgs());
-			} else if (mName.equals("getString"))
-				System.out.println("===TAKE CARE OF ME");
-			else if (mName.equals("getLong")) {
+				result = projectRow(rSet, iie.getArgs());
+				data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
+				return result;
+			} else if (mName.equals("getString")) {
 				RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
-				return projectRow(rSet, iie.getArgs());
+				result = projectRow(rSet, iie.getArgs());
+				data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
+				return result;
+			} else if (mName.equals("getLong")) {
+				RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
+				result = projectRow(rSet, iie.getArgs());
+				data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
+				return result;
 			}
-			return new UnknownExp(mName, -1);
+
 		default:
-			return new UnknownExp("??214", -1);
+			String resName = "Abs-" + tp + "#" + (data.absIter++);
+			System.err
+					.println(v.getClass().getSimpleName() + " - Unhandled case - will abstract to: " + resName + "\n");
+			Expression defResult = new UnknownExp(resName, -1);
+			data.addExp(new FakeJimpleLocal(resName, null, null), defResult);
+			return defResult;
 		}
 	}
 
 	/*
-	 * 
 	 * 
 	 * 
 	 *

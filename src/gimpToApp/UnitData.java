@@ -16,6 +16,7 @@ import ir.expression.Expression;
 import ir.statement.*;
 
 public class UnitData {
+	public int absIter;
 	// eventual data to be returned
 	private List<Statement> stmts;
 	// holds the units which contain an execution of queries
@@ -40,6 +41,7 @@ public class UnitData {
 	private Map<Unit, Map<Value, Expression>> unitToSetToExp;
 
 	public UnitData() {
+		this.absIter = 0;
 		stmts = new ArrayList<Statement>();
 		executeUnits = new HashMap<Unit, Value>();
 		definedAt = new HashMap<Value, Unit>();

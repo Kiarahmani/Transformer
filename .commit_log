@@ -48,3 +48,29 @@ Oct24 7:05PM
 + Specifically, right now all getInt from resultSets should come immediately after their executeQuery and not later.
   This seems to be easy to fix
 --------------------------------------------------------------------------------
+Oct25 6:05PM
+! Stable - Version Completed
++ Few bbugs fixed and tested on SimpleApp 
++ Abstraction is in place 
+--- function calls that are not recognized are abstracted with variables of the expected type
+--- all the application logic that does not affect the SQL statements is abstracted away
++ the only remaining bit is extraction of loops and conditionals
+--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
