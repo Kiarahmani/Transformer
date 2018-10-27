@@ -22,7 +22,7 @@ public class SimpleApp {
 		p = new Properties();
 		p.setProperty("ID", String.valueOf(insID));
 	}
-
+ 
 	public void updateName(int key) throws Exception {
 		try {
 
@@ -84,6 +84,7 @@ public class SimpleApp {
 			ps = connect.prepareStatement("select * from B where id=?");
 			ps.setInt(1,balance+1200);
 			ResultSet rs2 = ps.executeQuery();
+			rs2.next();
 			String name = rs2.getString("name");
 			System.out.println("(" + id + "," + name + "," + balance + ")");
 

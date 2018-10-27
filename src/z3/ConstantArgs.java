@@ -8,9 +8,7 @@ public class ConstantArgs {
 	public static final boolean _NO_WW = true;
 	public static final boolean _NO_WR = false;
 	public static final boolean _NO_RW = false;
-	
-	
-	
-	//---
+
+	// ---
 	public static final boolean DEBUG_MODE = false;
 }

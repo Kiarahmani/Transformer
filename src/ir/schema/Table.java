@@ -2,6 +2,7 @@ package ir.schema;
 
 import java.util.ArrayList;
 import ir.schema.Column;
+import z3.ConstantArgs;
 import exceptions.ColumnDoesNotExist;
 
 public class Table {
@@ -37,14 +38,15 @@ public class Table {
 				break;
 			}
 		if (result == null)
-			throw new ColumnDoesNotExist(this.name+"."+n);
+			throw new ColumnDoesNotExist(this.name + "." + n);
 		return result;
 	}
 
 	public void printTable() {
 		System.out.print("Table<<" + name + ">>");
-		for (Column c : this.columns)
-			c.printColumn();
+		if (ConstantArgs.DEBUG_MODE)
+			for (Column c : this.columns)
+				c.printColumn();
 		System.out.println();
 
 	}

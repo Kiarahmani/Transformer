@@ -66,7 +66,11 @@ public class Query {
 			e.printStackTrace();
 		}
 		this.kind = extractKind();
-		this.table = extractTable();
+		try {
+			this.table = extractTable();
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
 		this.s_columns = extractSCols();
 		this.i_values = extractIVals();
 		this.u_updates = extractUfuncs();
@@ -195,10 +199,11 @@ public class Query {
 			for (SelectItem si : plainSelect.getSelectItems())
 				if (si.toString().equals("*"))
 					return table.getColumns();
-				else
+				else {
 					for (Column c : table.getColumns())
 						if (si.toString().equals(c.getName()))
 							result.add(c);
+				}
 			return result;
 		default:
 			return null;
@@ -273,13 +278,13 @@ public class Query {
 
 	}
 
-	private Table extractTable() {
+	private Table extractTable() throws Exception {
 		TablesNamesFinder tablesNamesFinder = new TablesNamesFinder();
 		List<String> tableList = tablesNamesFinder.getTableList(statements);
 		for (Table t : tables)
 			if (t.getName().toLowerCase().equals(tableList.get(0).toLowerCase()))
 				return t;
-		return null;
+		throw new Exception("Query was not created -> table does not exist: " + this.text );
 	}
 
 	private Kind extractKind() {

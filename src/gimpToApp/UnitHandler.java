@@ -109,13 +109,6 @@ public class UnitHandler {
 	// The outermost function wrapping anlysis
 	// Has 4 main loops iterating over all units in the given body
 	public void extractStatements() throws UnknownUnitException {
-		// TEMP
-		// System.out.println("----------------");
-		// for (Unit x : body.getUnits())
-		// System.out.println(data.getLoopNo(x) + " (" + data.units.indexOf(x) + ")");
-		// System.out.println("----------------");
-
-		// TEMP
 
 		// loop #1
 		// extract and create queries with holes
@@ -129,13 +122,13 @@ public class UnitHandler {
 		List<Value> LastRowSets = new ArrayList<>();
 		Map<Value, List<Unit>> unitsWithNextCall = new HashMap<>();
 		Map<Value, Expression> map = null;
-		int iter = 0;
+		int iter = 0; 
 		// add LHS expressions with patchy queries
 		for (Unit u : body.getUnits()) {
 			// the program logic not affecting queries is abstracted
 			if (data.getQueries().containsKey(u))
 				updateExpressions(u);
-
+ 
 			// find all .next() invokations on LHS of this (if exists)
 			if (data.getExecuteValue(u) != null) { // if u is executeQ/U update the map
 				try {
