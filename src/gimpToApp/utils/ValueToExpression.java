@@ -23,6 +23,7 @@ import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
 import soot.grimp.internal.GEqExpr;
 import soot.grimp.internal.GGeExpr;
+import soot.grimp.internal.GGtExpr;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GLeExpr;
 import soot.grimp.internal.GLtExpr;
@@ -76,13 +77,21 @@ public class ValueToExpression {
 			GEqExpr ee = (GEqExpr) v;
 			return new BinOpExp(BinOp.EQ, valueToExpression(Type.REAL, callerU, ee.getOp1()),
 					valueToExpression(Type.REAL, callerU, ee.getOp2()));
+
+		case "GGtExpr":
+			GGtExpr gt = (GGtExpr) v;
+			return new BinOpExp(BinOp.GT, valueToExpression(Type.REAL, callerU, gt.getOp1()),
+					valueToExpression(Type.REAL, callerU, gt.getOp2()));
 		case "JimpleLocal":
-			if (data.getExp(v) != null)
+			
+			if (data.getExp(v) != null) {
 				return data.getExp(v);
-			else
+			} else
 				return valueToExpression(tp, data.getDefinedAt(v), ((GAssignStmt) data.getDefinedAt(v)).getRightOp());
+
 		case "IntConstant":
 			IntConstant ic = (IntConstant) v;
+			System.out.println("===========+>>>>>"+data.getLoopNo(callerU)+   "  "+callerU);
 			return new ConstValExp(ic.value);
 		case "LongConstant":
 			LongConstant lc = (LongConstant) v;
@@ -106,13 +115,13 @@ public class ValueToExpression {
 			}
 
 		default:
-			String resName = "Abs-" + tp + "#" + (data.absIter++);
-			System.err
-					.println(v.getClass().getSimpleName() + " - Unhandled case - will abstract to: " + resName + "\n");
-			Expression defResult = new UnknownExp(resName, -1);
-			data.addExp(new FakeJimpleLocal(resName, null, null), defResult);
-			return defResult;
+			break;
 		}
+		String resName = "Abs-" + tp + "#" + (data.absIter++);
+		System.err.println(v.getClass().getSimpleName() + " - Unhandled case - will abstract to: " + resName + "\n");
+		Expression defResult = new UnknownExp(resName, -1);
+		data.addExp(new FakeJimpleLocal(resName, null, null), defResult);
+		return defResult;
 	}
 
 	/*

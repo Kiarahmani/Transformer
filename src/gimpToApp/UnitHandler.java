@@ -154,6 +154,7 @@ public class UnitHandler {
 				}
 				iter = 0;
 			}
+			// for all rowSets calls found so far, map them to the appropriate expression
 			for (Value LastRowSet : LastRowSets) {
 				int index = unitsWithNextCall.get(LastRowSet).indexOf(u);
 				if (index != -1) {// if you are one of the .next() calls
@@ -180,7 +181,7 @@ public class UnitHandler {
 					} else {// if you are inside of a loop
 
 						RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
-						String newRVarName = LastRowSet.toString() + "-loopVar" + String.valueOf(++iter);
+						String newRVarName = LastRowSet.toString() + "-loopVar" + String.valueOf(data.getLoopNo(u));
 						RowVarLoopExp newRLVar = new RowVarLoopExp(newRVarName, oldRSVar.getTable(), oldRSVar);
 						data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRLVar);
 						map = new HashMap<Value, Expression>();
@@ -288,8 +289,22 @@ public class UnitHandler {
 		this.data.addValToInvoke(u);
 
 		try {
+			// handling the if path
 			Expression ifCond = veTranslator.valueToExpression(ir.Type.BOOLEAN, u, gis.getCondition());
-			gotoInitHandler(new UnOpExp(UnOp.NOT, ifCond), u, (gis.getUnitBoxes().get(0).getUnit()));
+			Unit pointsTo = (gis.getUnitBoxes().get(0).getUnit());
+			gotoInitHandler(new UnOpExp(UnOp.NOT, ifCond), u, pointsTo);
+			// handling the else path
+			Unit lastUnitInIf = body.getUnits().getPredOf(pointsTo);
+
+			//
+			// the second condition is to make sure if conditions used for loops are not
+			// accepted here
+			if (lastUnitInIf.getClass().getSimpleName().equals("JGotoStmt")) {
+				Unit lastUnitpointsTo = ((JGotoStmt) lastUnitInIf).getUnitBoxes().get(0).getUnit();
+				if (data.units.indexOf(lastUnitpointsTo) != data.units.indexOf(u)) // they are equal in loops
+					gotoInitHandler(ifCond, lastUnitInIf, lastUnitpointsTo);
+			}
+
 		} catch (UnknownUnitException | ColumnDoesNotExist e) {
 			e.printStackTrace();
 		}
@@ -302,8 +317,15 @@ public class UnitHandler {
 		// HANDLING LOOPS
 		// set the loop boundaries
 		if (pointsToUnitNo != -1 && pointsToUnitNo < thisUnitNo) {
-			for (int i = pointsToUnitNo; i <= thisUnitNo; i++)
+			for (int i = pointsToUnitNo; i <= thisUnitNo; i++) {
 				data.addUnitToLoop(data.units.get(i), data.loopCount);
+				// gather loop-locals and bookkeep them
+				Value loopLocal;
+				if (data.units.get(i).getClass().getSimpleName().equals("GAssignStmt")) {
+					loopLocal = ((GAssignStmt) data.units.get(i)).getLeftOp();
+					data.addLoopLocal(data.loopCount, loopLocal);
+				}
+			}
 			data.loopCount++;
 		}
 		// HANDLING CONDITIONALS
@@ -374,6 +396,13 @@ public class UnitHandler {
 			return (fName.equals(s) || s.equals("ANY#FUNCTION"));
 		} catch (ClassCastException e) {
 			switch (v.getClass().getSimpleName()) {
+			case "GAddExpr":
+				GAddExpr ae = (GAddExpr) v;
+				return isValueMethodCall(ae.getOp1(), s) || isValueMethodCall(ae.getOp2(), s);
+			case "IntConstant":
+				return false;
+			case "JimpleLocal":
+				return false;
 			case "GEqExpr":
 				GEqExpr ee = (GEqExpr) v;
 				return isValueMethodCall(ee.getOp1(), s) || isValueMethodCall(ee.getOp2(), s);

@@ -14,6 +14,7 @@ import soot.grimp.internal.ExprBox;
 import soot.grimp.internal.GAssignStmt;
 import soot.grimp.internal.GEqExpr;
 import soot.grimp.internal.GGeExpr;
+import soot.grimp.internal.GGtExpr;
 import soot.grimp.internal.GIfStmt;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
@@ -59,6 +60,12 @@ public class UnitData {
 	// initially contains true for all units
 	private Map<Unit, Expression> pathConds;
 
+	// a map from loop number to the list of values being updated in that loop, i.e.
+	// loop locals
+	// these values will be represented by abstract values when translating to
+	// Expressions
+	private Map<Integer, List<Value>> loopLocals;
+
 	public int loopCount;
 
 	public UnitData() {
@@ -76,7 +83,18 @@ public class UnitData {
 		this.unitToLoop = new HashMap<>();
 		this.loopCount = 0;
 		this.pathConds = new HashMap<>();
+		this.loopLocals = new HashMap<>();
 
+	}
+
+	public void addLoopLocal(int i, Value local) {
+		if (this.loopLocals.get(i) == null)
+			this.loopLocals.put(i, new ArrayList<Value>());
+		this.loopLocals.get(i).add(local);
+	}
+
+	public List<Value> getLoopLocals(int i) {
+		return this.loopLocals.get(i);
 	}
 
 	public void addCondToUnit(Unit u, Expression cond) {
@@ -193,6 +211,12 @@ public class UnitData {
 			GLeExpr le = (GLeExpr) v;
 			result.addAll(extractInvokedValues(le.getOp1()));
 			result.addAll(extractInvokedValues(le.getOp2()));
+			return result;
+
+		case "GGtExpr":
+			GGtExpr gt = (GGtExpr) v;
+			result.addAll(extractInvokedValues(gt.getOp1()));
+			result.addAll(extractInvokedValues(gt.getOp2()));
 			return result;
 
 		case "GGeExpr":

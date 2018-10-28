@@ -79,6 +79,16 @@ public class GimpToAppOne extends GimpToApp {
 
 	// just a helping function for dev phase
 	private void printExpressions(UnitHandler unitHandler) {
+		if (ConstantArgs.DEBUG_MODE) {
+			System.out.println("===== LOOPS");
+			for (Unit x : unitHandler.data.units)
+				if (unitHandler.data.getLoopNo(x) == -1)
+					System.out.println("" + unitHandler.data.units.indexOf(x));
+				else
+					System.out.println(
+							"__" + unitHandler.data.units.indexOf(x) + "(" + unitHandler.data.getLoopNo(x) + ")");
+		}
+
 		System.out.println("=============================");
 		System.out.println("===	VARIABLES");
 		for (Value x : unitHandler.data.getExps().keySet()) {
