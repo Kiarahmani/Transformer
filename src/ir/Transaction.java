@@ -39,7 +39,7 @@ public class Transaction {
 		int selectCount = 0;
 		int insertCount = 0;
 		int deleteCount = 0;
-		int updateCount = 0; 
+		int updateCount = 0;
 		int seq = 0;
 		for (Statement s : stmts)
 			try {

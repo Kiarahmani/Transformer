@@ -2,7 +2,7 @@ package ir.expression;
 
 public class UnOpExp extends Expression {
 	public enum UnOp {
-		NOT
+		NOT, IsNull
 	};
 
 	UnOp op;

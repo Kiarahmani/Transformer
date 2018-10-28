@@ -56,6 +56,15 @@ Oct25 6:05PM
 --- all the application logic that does not affect the SQL statements is abstracted away
 + the only remaining bit is extraction of loops and conditionals
 --------------------------------------------------------------------------------
+Oct27 8:16PM
+! Stable - Version Completed
++ Loops and conditionals are now handled -> some programming styles are still place which might not be fixable (they
+  don't seem to be limiting the input programs severly). For example, we have to require that all prepareStatement
+  declarations and definitions to be right before palces where .executeQuery or .executeUpdate are called on them
++ some basic tests are passed and no major issue is witnessed
++ Next step is to test the tool on larger programs and make sure that it works on a benchmark (also its results are
+  correct)
+--------------------------------------------------------------------------------
 
 
 

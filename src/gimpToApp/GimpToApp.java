@@ -40,42 +40,6 @@ public class GimpToApp {
 		}
 	}
 
-	/*
-	 * 
-	 * Auxiliary Functions used in all subclasses
-	 * 
-	 */
-	protected boolean isGInvokeStmt(Unit u) {
-		return u.getClass().getSimpleName().equals("GInvokeStmt");
-	}
-
-	protected boolean isGAssignStmt(Unit u) {
-		return u.getClass().getSimpleName().equals("GAssignStmt");
-	}
-
-	protected boolean isGIdentityStmt(Unit u) {
-		return u.getClass().getSimpleName().equals("GIdentityStmt");
-	}
-
-	protected boolean isJGotoStmt(Unit u) {
-		return u.getClass().getSimpleName().equals("JGotoStmt");
-	}
-
-	protected boolean isGThrowStmt(Unit u) {
-		return u.getClass().getSimpleName().equals("GThrowStmt");
-	}
-
-	protected boolean isJReturnVoidStmt(Unit u) {
-		return u.getClass().getSimpleName().equals("JReturnVoidStmt");
-	}
-
-	protected boolean isGIfStmt(Unit u) {
-		return u.getClass().getSimpleName().equals("GIdentityStmt");
-	}
-
-	protected boolean isSqlExecute(SootMethod method) {
-		return method.getName().equals("executeQuery") || method.getName().equals("executeUpdate")
-				|| method.getName().equals("execute");
-	}
+	
 
 }

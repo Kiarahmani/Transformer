@@ -8,19 +8,26 @@ import gimpToApp.UnitData;
 import ir.Type;
 import ir.expression.BinOpExp;
 import ir.expression.Expression;
+import ir.expression.UnOpExp;
+import ir.expression.UnOpExp.UnOp;
 import ir.expression.BinOpExp.BinOp;
 import ir.expression.vals.ConstValExp;
+import ir.expression.vals.NullExp;
 import ir.expression.vars.ProjVarExp;
 import ir.expression.vars.RowVarExp;
+import ir.expression.UnOpExp;
 import ir.expression.vars.UnknownExp;
 import soot.Unit;
 import soot.Value;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GEqExpr;
+import soot.grimp.internal.GGeExpr;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GLeExpr;
 import soot.grimp.internal.GLtExpr;
 import soot.grimp.internal.GMulExpr;
+import soot.grimp.internal.GNeExpr;
 import soot.jimple.IntConstant;
 import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
@@ -54,6 +61,21 @@ public class ValueToExpression {
 			GLtExpr glt = (GLtExpr) v;
 			return new BinOpExp(BinOp.LEQ, valueToExpression(Type.REAL, callerU, glt.getOp1()),
 					valueToExpression(Type.REAL, callerU, glt.getOp2()));
+
+		case "GNeExpr":
+			GNeExpr ne = (GNeExpr) v;
+			return new UnOpExp(UnOp.NOT, new BinOpExp(BinOp.EQ, valueToExpression(Type.REAL, callerU, ne.getOp1()),
+					valueToExpression(Type.REAL, callerU, ne.getOp2())));
+
+		case "GGeExpr":
+			GGeExpr ge = (GGeExpr) v;
+			return new BinOpExp(BinOp.GEQ, valueToExpression(Type.REAL, callerU, ge.getOp1()),
+					valueToExpression(Type.REAL, callerU, ge.getOp2()));
+
+		case "GEqExpr":
+			GEqExpr ee = (GEqExpr) v;
+			return new BinOpExp(BinOp.EQ, valueToExpression(Type.REAL, callerU, ee.getOp1()),
+					valueToExpression(Type.REAL, callerU, ee.getOp2()));
 		case "JimpleLocal":
 			if (data.getExp(v) != null)
 				return data.getExp(v);
@@ -77,6 +99,10 @@ public class ValueToExpression {
 				result = projectRow(rSet, iie.getArgs());
 				data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
 				return result;
+			} else if (mName.equals("next")) {
+				NullExp rSet = new NullExp(iie.getBase());
+				data.addExp(new FakeJimpleLocal(rSet.getName() + "_NotNull", null, null), rSet);
+				return rSet;
 			}
 
 		default:

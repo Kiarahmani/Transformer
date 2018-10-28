@@ -58,7 +58,7 @@ public class Transformer extends BodyTransformer {
 		 */
 		DDLParser ddlp = new DDLParser();
 		ArrayList<Table> tables = ddlp.parse();
-		System.out.print("------------\n-- Schema --");
+		System.out.print("=============================\n===	SCHEMA \n");
 		for (Table t : tables)
 			t.printTable();
 		System.out.println();

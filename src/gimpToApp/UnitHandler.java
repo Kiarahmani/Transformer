@@ -11,7 +11,10 @@ import gimpToApp.utils.QueryPatcher;
 import gimpToApp.utils.ValueToExpression;
 import ir.expression.BinOpExp;
 import ir.expression.Expression;
+import ir.expression.UnOpExp;
+import ir.expression.UnOpExp.UnOp;
 import ir.expression.vals.ConstValExp;
+import ir.expression.vals.NullExp;
 import ir.expression.vals.ProjValExp;
 import ir.expression.BinOpExp.BinOp;
 import ir.expression.vars.ProjVarExp;
@@ -46,6 +49,7 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
 import soot.jimple.internal.JGotoStmt;
+import soot.jimple.internal.JIfStmt;
 import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
 import soot.util.Switch;
 import z3.ConstantArgs;
@@ -80,6 +84,9 @@ public class UnitHandler {
 	public void InitialAnalysis() throws UnknownUnitException {
 		for (Unit u : body.getUnits()) {
 			data.units.add(u);
+			data.addCondToUnit(u, new ConstValExp(true));
+		}
+		for (Unit u : body.getUnits()) {
 			switch (u.getClass().getSimpleName()) {
 			case "GIdentityStmt":
 				break;
@@ -91,7 +98,7 @@ public class UnitHandler {
 				break;
 			case "JGotoStmt":
 				JGotoStmt gs = (JGotoStmt) u;
-				gotoInitHandler(u, gs.getUnitBoxes().get(0).getUnit());
+				gotoInitHandler(null, u, gs.getUnitBoxes().get(0).getUnit());
 				break;
 			case "GThrowStmt": // TODO
 				break;
@@ -122,13 +129,13 @@ public class UnitHandler {
 		List<Value> LastRowSets = new ArrayList<>();
 		Map<Value, List<Unit>> unitsWithNextCall = new HashMap<>();
 		Map<Value, Expression> map = null;
-		int iter = 0; 
+		int iter = 0;
 		// add LHS expressions with patchy queries
 		for (Unit u : body.getUnits()) {
 			// the program logic not affecting queries is abstracted
 			if (data.getQueries().containsKey(u))
 				updateExpressions(u);
- 
+
 			// find all .next() invokations on LHS of this (if exists)
 			if (data.getExecuteValue(u) != null) { // if u is executeQ/U update the map
 				try {
@@ -161,15 +168,17 @@ public class UnitHandler {
 						Unit nextU = body.getUnits().getSuccOf(u);
 						innerloop: for (int i = 0; i < body.getUnits().size(); i++) {
 							// System.out.println(unitsWithNextCall);
-							nextU = body.getUnits().getSuccOf(nextU);
+
 							if (nextU == null)
 								break innerloop;
 							if (unitsWithNextCall.get(LastRowSet).indexOf(nextU) < index + 1) {
 								data.addMapUTSE(nextU, map);
 							} else
 								break innerloop;
+							nextU = body.getUnits().getSuccOf(nextU);
 						}
 					} else {// if you are inside of a loop
+
 						RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
 						String newRVarName = LastRowSet.toString() + "-loopVar" + String.valueOf(++iter);
 						RowVarLoopExp newRLVar = new RowVarLoopExp(newRVarName, oldRSVar.getTable(), oldRSVar);
@@ -183,10 +192,9 @@ public class UnitHandler {
 
 				}
 			}
-
 		}
 		// loop #3
-		// patch the queries
+		// patch the queries and the rSets
 		for (Unit u : body.getUnits()) {
 			// the program logic not affecting queries is abstracted
 			if (data.getQueries().containsKey(u)) {
@@ -196,7 +204,16 @@ public class UnitHandler {
 		// loop #4
 		// now add invoke statements containing patched queries
 		for (Unit u : data.getQueries().keySet())
-			this.data.addStmt(new InvokeStmt(data.getQueryFromUnit(u)));
+			this.data.addStmt(new InvokeStmt(data.getCondFromUnit(u), data.getQueryFromUnit(u)));
+
+		// loop #5
+		// here we patch up the not_null expressions previously created
+		for (Value v : data.getExps().keySet())
+			if (v.toString().contains("NotNull")) {
+				NullExp notNullExp = (NullExp) data.getExp(v);
+				RowSetVarExp rSetExp = (RowSetVarExp) data.getExp(notNullExp.rSet);
+				notNullExp.updateRowSetExp(rSetExp);
+			}
 	}
 
 	// A new rowSetVar is added to the expressions
@@ -269,17 +286,36 @@ public class UnitHandler {
 	private void ifInitHandler(Unit u) {
 		GIfStmt gis = (GIfStmt) u;
 		this.data.addValToInvoke(u);
-		gotoInitHandler(u, (gis.getUnitBoxes().get(0).getUnit()));
+
+		try {
+			Expression ifCond = veTranslator.valueToExpression(ir.Type.BOOLEAN, u, gis.getCondition());
+			gotoInitHandler(new UnOpExp(UnOp.NOT, ifCond), u, (gis.getUnitBoxes().get(0).getUnit()));
+		} catch (UnknownUnitException | ColumnDoesNotExist e) {
+			e.printStackTrace();
+		}
 	}
 
-	private void gotoInitHandler(Unit pointsFrom, Unit pointsTo) {
+	private void gotoInitHandler(Expression pathCond, Unit pointsFrom, Unit pointsTo) {
+
 		int thisUnitNo = data.units.indexOf(pointsFrom);
 		int pointsToUnitNo = data.units.indexOf(pointsTo);
+		// HANDLING LOOPS
 		// set the loop boundaries
 		if (pointsToUnitNo != -1 && pointsToUnitNo < thisUnitNo) {
 			for (int i = pointsToUnitNo; i <= thisUnitNo; i++)
 				data.addUnitToLoop(data.units.get(i), data.loopCount);
 			data.loopCount++;
+		}
+		// HANDLING CONDITIONALS
+		if (pathCond != null && (pointsToUnitNo == -1 || pointsToUnitNo > thisUnitNo)) {
+			// if jumps to the end of the program
+			if (pointsToUnitNo == -1) {
+				for (int i = thisUnitNo; i < data.units.size(); i++) {
+					// data.addCondToUnit(data.units.get(i), pathCond);
+				}
+			} else
+				for (int i = thisUnitNo; i <= pointsToUnitNo; i++)
+					data.addCondToUnit(data.units.get(i), pathCond);
 		}
 	}
 

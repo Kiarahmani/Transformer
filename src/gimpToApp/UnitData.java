@@ -13,12 +13,16 @@ import soot.Value;
 import soot.grimp.internal.ExprBox;
 import soot.grimp.internal.GAssignStmt;
 import soot.grimp.internal.GEqExpr;
+import soot.grimp.internal.GGeExpr;
 import soot.grimp.internal.GIfStmt;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
+import soot.grimp.internal.GLeExpr;
 import soot.grimp.internal.GNeExpr;
 import z3.ConstantArgs;
+import ir.expression.BinOpExp;
 import ir.expression.Expression;
+import ir.expression.BinOpExp.BinOp;
 import ir.statement.*;
 
 public class UnitData {
@@ -46,11 +50,14 @@ public class UnitData {
 	// holds a mapping from values to all units where a function is called by them.
 	// e.g. (V:r0)->(U:r0.function)
 	private Map<Value, List<Unit>> valueToInvokations;
-
 	// mapping from all units to a mapping from units to expression
 	// it is used to take care of multiple .next() calls (first unit represent's
 	// body units)
 	private Map<Unit, Map<Value, Expression>> unitToSetToExp;
+	// mapping from all units to (BOOLEAN) expressions representing their path
+	// conditions
+	// initially contains true for all units
+	private Map<Unit, Expression> pathConds;
 
 	public int loopCount;
 
@@ -68,7 +75,20 @@ public class UnitData {
 		this.units = new ArrayList<>();
 		this.unitToLoop = new HashMap<>();
 		this.loopCount = 0;
+		this.pathConds = new HashMap<>();
 
+	}
+
+	public void addCondToUnit(Unit u, Expression cond) {
+		Expression oldCond = this.pathConds.get(u);
+		if (oldCond == null)
+			this.pathConds.put(u, cond);
+		else
+			this.pathConds.put(u, new BinOpExp(BinOp.AND, oldCond, cond));
+	}
+
+	public Expression getCondFromUnit(Unit u) {
+		return this.pathConds.get(u);
 	}
 
 	public void addUnitNonLoop(Unit u) {
@@ -162,11 +182,23 @@ public class UnitData {
 			result.addAll(extractInvokedValues(ne.getOp1()));
 			result.addAll(extractInvokedValues(ne.getOp2()));
 			return result;
-			
+
 		case "GEqExpr":
 			GEqExpr ee = (GEqExpr) v;
 			result.addAll(extractInvokedValues(ee.getOp1()));
 			result.addAll(extractInvokedValues(ee.getOp2()));
+			return result;
+
+		case "GLeExpr":
+			GLeExpr le = (GLeExpr) v;
+			result.addAll(extractInvokedValues(le.getOp1()));
+			result.addAll(extractInvokedValues(le.getOp2()));
+			return result;
+
+		case "GGeExpr":
+			GGeExpr ge = (GGeExpr) v;
+			result.addAll(extractInvokedValues(ge.getOp1()));
+			result.addAll(extractInvokedValues(ge.getOp2()));
 			return result;
 
 		case "GInterfaceInvokeExpr":
