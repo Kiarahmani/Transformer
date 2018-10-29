@@ -30,7 +30,7 @@ public class SampleApp {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
-			PreparedStatement preparedStatement = connect.prepareStatement("update B set name=Kia where id=1");
+			PreparedStatement preparedStatement = connect.prepareStatement("update B set name=Poor where id=1");
 			preparedStatement.executeUpdate();
 
 		} catch (Exception e) {
@@ -66,7 +66,7 @@ public class SampleApp {
 			PreparedStatement preparedStatement = connect.prepareStatement("update A set balance= 10000000 where id=1");
 			preparedStatement.executeUpdate();
 
-			preparedStatement = connect.prepareStatement("update B set name=Suresh where id=1");
+			preparedStatement = connect.prepareStatement("update B set name=Rich where id=1");
 			preparedStatement.executeUpdate();
 
 		} catch (Exception e) {
