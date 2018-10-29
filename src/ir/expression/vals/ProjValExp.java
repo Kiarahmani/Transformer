@@ -14,6 +14,10 @@ public class ProjValExp extends ValExp {
 		this.column = column;
 	}
 
+	public Column getColumn() {
+		return this.column;
+	}
+
 	public String toString() {
 		return this.table.getName() + "." + this.column.getName();
 	}

@@ -16,8 +16,16 @@ public class ProjVarExp extends VarExp {
 		this.rVar = rVar;
 	}
 
+	public RowVarExp getRVar() {
+		return this.rVar;
+	}
+
 	public String toString() {
 		return "(" + rVar.toString() + ")." + this.column.getName();
+	}
+
+	public Column getColumn() {
+		return this.column;
 	}
 
 	@Override

@@ -14,6 +14,10 @@ public class RowVarExp extends VarExp {
 		this.belongsTo = belongsTo;
 	}
 
+	public RowSetVarExp getSetVar() {
+		return this.belongsTo;
+	}
+
 	public Table getTable() {
 		return this.table;
 	}

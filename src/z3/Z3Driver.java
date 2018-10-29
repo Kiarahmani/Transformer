@@ -262,9 +262,18 @@ public class Z3Driver {
 					objs.addFunc(label,
 							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort(table) }, objs.getSort("Bool")));
 					// add props for SVar
-					addAssertion(label + "_props", dynamicAssertions.mk_svar_props(label, table, rsv.getWhClause()));
+					addAssertion(label + "_props",
+							dynamicAssertions.mk_svar_props(txn.getName(), val.toString(), table, rsv.getWhClause()));
 					break;
 				case "RowVarExp":
+					RowVarExp rv = (RowVarExp) exp;
+					String tableName = rv.getTable().getName();
+					RowSetVarExp setVar = rv.getSetVar();
+					// declare rowVar
+					objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { tSort }, objs.getSort(tableName)));
+					// add props for rowVar
+					addAssertion(label + "_props",
+							dynamicAssertions.mk_row_var_props(txn.getName(), val.toString(), setVar));
 					break;
 				case "RowVarLoopExp":
 					break;

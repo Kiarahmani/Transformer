@@ -18,6 +18,8 @@ public class RowSetVarExp extends VarExp {
 		return this.whereClause;
 	}
 
+
+
 	public Table getTable() {
 		return this.table;
 	}

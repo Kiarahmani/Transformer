@@ -118,18 +118,29 @@ public class DynamicAssertsions {
 		return x;
 	}
 
-	public BoolExpr mk_svar_props(String label, String table, Expression whClause) {
-		Expr r = ctx.mkFreshConst("r", objs.getSort(table));
-		Expr txn = ctx.mkFreshConst("t", objs.getSort("T"));
-		BoolExpr rowBelongsToSet = (BoolExpr) ctx.mkApp(objs.getfuncs(label), txn, r);
+	public BoolExpr mk_svar_props(String txnName, String ValueName, String table, Expression whClause) {
+		Expr rsort = ctx.mkFreshConst("r", objs.getSort(table));
+		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
+		BoolExpr rowBelongsToSet = (BoolExpr) ctx.mkApp(objs.getfuncs(txnName + "_" + ValueName), tsort, rsort);
 		Quantifier x = null;
 		try {
-			x = ctx.mkForall(new Expr[] { txn, r },
-					ctx.mkImplies(rowBelongsToSet, (BoolExpr) z3Util.irCondToZ3Expr(txn, r, whClause)), 1, null, null,
-					null, null);
+			x = ctx.mkForall(new Expr[] { tsort, rsort },
+					ctx.mkImplies(rowBelongsToSet, (BoolExpr) z3Util.irCondToZ3Expr(txnName, tsort, rsort, whClause)),
+					1, null, null, null, null);
 		} catch (UnexoectedOrUnhandledConditionalExpression e) {
 			e.printStackTrace();
 		}
+		return x;
+	}
+
+	public BoolExpr mk_row_var_props(String txnName, String valueName, RowSetVarExp setVar) {
+		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
+		Quantifier x = null;
+		String sVarName = txnName + "_" + setVar.getName();
+		String rowVarName = txnName + "_" + valueName;
+		x = ctx.mkForall(new Expr[] { tsort },
+				ctx.mkApp(objs.getfuncs(sVarName), tsort, (ctx.mkApp(objs.getfuncs(rowVarName), tsort))), 1, null, null,
+				null, null);
 		return x;
 	}
 
