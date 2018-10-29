@@ -5,17 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ir.expression.Expression;
 import ir.expression.vals.ParamValExp;
 import ir.expression.vars.VarExp;
 import ir.statement.AssignmentStmt;
 import ir.statement.InvokeStmt;
 import ir.statement.SqlStmtType;
 import ir.statement.Statement;
+import soot.Value;
 
 public class Transaction {
 	private String name;
 	private ArrayList<Statement> stmts;
 	private Map<String, ParamValExp> params;
+	private Map<Value, Expression> exps;
 
 	public String getName() {
 		return this.name;
@@ -25,6 +28,7 @@ public class Transaction {
 		this.name = name;
 		this.stmts = new ArrayList<Statement>();
 		this.params = new HashMap<String, ParamValExp>();
+		this.exps = new HashMap<Value, Expression>();
 	}
 
 	public void addParam(String l, ParamValExp p) {
@@ -110,6 +114,14 @@ public class Transaction {
 			}
 		return result;
 
+	}
+
+	public Map<Value, Expression> getAllExps() {
+		return this.exps;
+	}
+
+	public void setExps(Map<Value, Expression> exps) {
+		this.exps = exps;
 	}
 
 	public void printTxn() {

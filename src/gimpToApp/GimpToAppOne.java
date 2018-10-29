@@ -35,9 +35,11 @@ public class GimpToAppOne extends GimpToApp {
 	public Application transform() throws UnknownUnitException {
 		Application app = new Application();
 		for (Body b : bodies) {
-			Transaction txn = extractTxn(b);
-			if (txn != null && !txn.getName().contains("init"))
-				app.addTxn(txn);
+			if (!b.getMethod().getName().contains("init")) {
+				Transaction txn = extractTxn(b);
+				if (txn != null)
+					app.addTxn(txn);
+			}
 		}
 		return app;
 	}
@@ -69,8 +71,10 @@ public class GimpToAppOne extends GimpToApp {
 		unitHandler.InitialAnalysis();
 		unitHandler.extractStatements();
 		// craft the output transaction from the extracted data
-		for (Statement s : unitHandler.data.getStmts())
+		for (Statement s : unitHandler.data.getStmts()) {
 			txn.addStmt(s);
+		}
+		txn.setExps(unitHandler.data.getExps());
 		txn.setTypes();
 		printExpressions(unitHandler);
 		return txn;

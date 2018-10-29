@@ -16,10 +16,12 @@ import com.microsoft.z3.*;
 import anomaly.Anomaly;
 import ir.Application;
 import ir.Transaction;
-import ir.expression.vals.ParamValExp;
-import ir.expression.vars.VarExp;
+import ir.expression.Expression;
+import ir.expression.vals.*;
+import ir.expression.vars.*;
 import ir.schema.Column;
 import ir.schema.Table;
+import soot.Value;
 
 public class Z3Driver {
 	Application app;
@@ -229,8 +231,9 @@ public class Z3Driver {
 				objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { objs.getSort("T") },
 						objs.getSort(p.getType().toZ3String())));
 			}
-			SubHeaderZ3("lhs declarations");
-			// define lhs assignees
+			SubHeaderZ3("??????");
+			// define lhs assignees [[XXX not sure what this does -> might be a legacy
+			// feature]]
 			for (VarExp ve : txn.getAllLhsVars()) {
 				String label = txn.getName() + "_" + ve.getName();
 				for (AST f : dynamicAssertions.mk_declare_lhs(label, ve)) {
@@ -244,7 +247,30 @@ public class Z3Driver {
 				if (isNullProp != null)
 					addAssertion(label + "_isNull_prop", isNullProp);
 			}
-			SubHeaderZ3("assignment assertions");
+
+			SubHeaderZ3("Expressions");
+			// add expressions
+			for (Value val : txn.getAllExps().keySet()) {
+				Expression exp = txn.getAllExps().get(val);
+				String label = txn.getName() + "_" + val.toString();
+				Sort tSort = objs.getSort("T");
+				switch (exp.getClass().getSimpleName()) {
+				case "RowSetVarExp":
+					RowSetVarExp rsv = (RowSetVarExp) exp;
+					String table = rsv.getTable().getName();
+					objs.addFunc(label,
+							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort(table) }, objs.getSort("Bool")));
+					break;
+				case "RowVarExp":
+					break;
+				case "RowVarLoopExp":
+					break;
+
+				default:
+					break;
+				}
+
+			}
 		}
 
 		HeaderZ3("CYCLE ASSERTIONS");
