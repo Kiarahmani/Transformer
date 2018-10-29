@@ -30,24 +30,24 @@ public class QueryPatcher {
 						try {
 							switch (mName) {
 							case "setInt":
-								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
-										veTranslator.valueToExpression(Type.INT, u, ieu.getArg(1)));
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()), veTranslator
+										.valueToExpression(false, data.getLoopNo(u), Type.INT, u, ieu.getArg(1)));
 								break;
 							case "setString":
-								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
-										veTranslator.valueToExpression(Type.STRING, u, ieu.getArg(1)));
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()), veTranslator
+										.valueToExpression(false, data.getLoopNo(u), Type.STRING, u, ieu.getArg(1)));
 								break;
 							case "setLong":
-								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
-										veTranslator.valueToExpression(Type.INT, u, ieu.getArg(1)));
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()), veTranslator
+										.valueToExpression(false, data.getLoopNo(u), Type.INT, u, ieu.getArg(1)));
 								break;
 							case "setBool":
-								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
-										veTranslator.valueToExpression(Type.BOOLEAN, u, ieu.getArg(1)));
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()), veTranslator
+										.valueToExpression(false, data.getLoopNo(u), Type.BOOLEAN, u, ieu.getArg(1)));
 								break;
 							case "setDouble":
-								q.patch(Integer.parseInt(ieu.getArg(0).toString()),
-										veTranslator.valueToExpression(Type.REAL, u, ieu.getArg(1)));
+								q.patch(Integer.parseInt(ieu.getArg(0).toString()), veTranslator
+										.valueToExpression(false, data.getLoopNo(u), Type.REAL, u, ieu.getArg(1)));
 								break;
 							default:
 								break;

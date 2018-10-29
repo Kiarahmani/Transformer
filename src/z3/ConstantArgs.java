@@ -10,5 +10,5 @@ public class ConstantArgs {
 	public static final boolean _NO_RW = false;
 
 	// ---
-	public static final boolean DEBUG_MODE = true;
+	public static final boolean DEBUG_MODE = false;
 }

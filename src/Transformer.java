@@ -1,5 +1,3 @@
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -11,20 +9,11 @@ import ir.*;
 import ir.schema.Table;
 import soot.Body;
 import soot.BodyTransformer;
-import soot.Local;
 import soot.PhaseOptions;
 import soot.Scene;
-import soot.SootField;
-import soot.SootMethod;
-import soot.Unit;
-import soot.UnitBox;
-import soot.ValueBox;
 import soot.jimple.JimpleBody;
-import soot.jimple.internal.*;
-import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.util.cfgcmd.CFGIntermediateRep;
 import sql.DDLParser;
-import sun.net.www.content.audio.x_aiff;
 import z3.Z3Driver;
 
 public class Transformer extends BodyTransformer {

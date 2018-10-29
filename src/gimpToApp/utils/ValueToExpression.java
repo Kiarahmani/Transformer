@@ -43,56 +43,66 @@ public class ValueToExpression {
 	}
 
 	// Open Ended --- I'll add more handler upon occurence
-	public Expression valueToExpression(Type tp, Unit callerU, Value v)
+	/* loopNo signals that constants should be abstracted for locals */
+	/* shouldAbsConsts */
+	public Expression valueToExpression(boolean shouldAbsConsts, int loopNo, Type tp, Unit callerU, Value v)
 			throws UnknownUnitException, ColumnDoesNotExist {
 		switch (v.getClass().getSimpleName()) {
 		case "GAddExpr":
 			GAddExpr gae = (GAddExpr) v;
-			return new BinOpExp(BinOp.PLUS, valueToExpression(tp, callerU, gae.getOp1()),
-					valueToExpression(tp, callerU, gae.getOp2()));
+			return new BinOpExp(BinOp.PLUS, valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gae.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gae.getOp2()));
 		case "GMulExpr":
 			GMulExpr gme = (GMulExpr) v;
-			return new BinOpExp(BinOp.MULT, valueToExpression(tp, callerU, gme.getOp1()),
-					valueToExpression(tp, callerU, gme.getOp2()));
+			return new BinOpExp(BinOp.MULT, valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gme.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gme.getOp2()));
 		case "GLeExpr":
 			GLeExpr gle = (GLeExpr) v;
-			return new BinOpExp(BinOp.LEQ, valueToExpression(Type.REAL, callerU, gle.getOp1()),
-					valueToExpression(Type.REAL, callerU, gle.getOp2()));
+			return new BinOpExp(BinOp.LEQ, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, gle.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, gle.getOp2()));
 		case "GLtExpr":
 			GLtExpr glt = (GLtExpr) v;
-			return new BinOpExp(BinOp.LEQ, valueToExpression(Type.REAL, callerU, glt.getOp1()),
-					valueToExpression(Type.REAL, callerU, glt.getOp2()));
+			return new BinOpExp(BinOp.LEQ, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, glt.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, glt.getOp2()));
 
 		case "GNeExpr":
 			GNeExpr ne = (GNeExpr) v;
-			return new UnOpExp(UnOp.NOT, new BinOpExp(BinOp.EQ, valueToExpression(Type.REAL, callerU, ne.getOp1()),
-					valueToExpression(Type.REAL, callerU, ne.getOp2())));
+			return new UnOpExp(UnOp.NOT,
+					new BinOpExp(BinOp.EQ, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, ne.getOp1()),
+							valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, ne.getOp2())));
 
 		case "GGeExpr":
 			GGeExpr ge = (GGeExpr) v;
-			return new BinOpExp(BinOp.GEQ, valueToExpression(Type.REAL, callerU, ge.getOp1()),
-					valueToExpression(Type.REAL, callerU, ge.getOp2()));
+			return new BinOpExp(BinOp.GEQ, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, ge.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, ge.getOp2()));
 
 		case "GEqExpr":
 			GEqExpr ee = (GEqExpr) v;
-			return new BinOpExp(BinOp.EQ, valueToExpression(Type.REAL, callerU, ee.getOp1()),
-					valueToExpression(Type.REAL, callerU, ee.getOp2()));
+			return new BinOpExp(BinOp.EQ, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, ee.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, ee.getOp2()));
 
 		case "GGtExpr":
 			GGtExpr gt = (GGtExpr) v;
-			return new BinOpExp(BinOp.GT, valueToExpression(Type.REAL, callerU, gt.getOp1()),
-					valueToExpression(Type.REAL, callerU, gt.getOp2()));
+			return new BinOpExp(BinOp.GT, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, gt.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, gt.getOp2()));
 		case "JimpleLocal":
-			
 			if (data.getExp(v) != null) {
 				return data.getExp(v);
-			} else
-				return valueToExpression(tp, data.getDefinedAt(v), ((GAssignStmt) data.getDefinedAt(v)).getRightOp());
-
+			} else {
+				// after this call, if we reach constants, must abstract them if we are in loops
+				// and the value in hand was local to the loop
+				List<Value> locals = data.getLoopLocals(data.getLoopNo(callerU));
+				return valueToExpression((locals != null && locals.contains(v)), loopNo, tp, data.getDefinedAt(v),
+						((GAssignStmt) data.getDefinedAt(v)).getRightOp());
+			}
 		case "IntConstant":
 			IntConstant ic = (IntConstant) v;
-			System.out.println("===========+>>>>>"+data.getLoopNo(callerU)+   "  "+callerU);
-			return new ConstValExp(ic.value);
+			// if the value is going to be used outside of loops
+			if (loopNo == -1 || !shouldAbsConsts)
+				return new ConstValExp(ic.value);
+			else
+				break;
+
 		case "LongConstant":
 			LongConstant lc = (LongConstant) v;
 			return new ConstValExp(lc.value);

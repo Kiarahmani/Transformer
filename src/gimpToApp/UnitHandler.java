@@ -290,7 +290,7 @@ public class UnitHandler {
 
 		try {
 			// handling the if path
-			Expression ifCond = veTranslator.valueToExpression(ir.Type.BOOLEAN, u, gis.getCondition());
+			Expression ifCond = veTranslator.valueToExpression(false, -1, ir.Type.BOOLEAN, u, gis.getCondition());
 			Unit pointsTo = (gis.getUnitBoxes().get(0).getUnit());
 			gotoInitHandler(new UnOpExp(UnOp.NOT, ifCond), u, pointsTo);
 			// handling the else path
