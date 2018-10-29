@@ -89,7 +89,8 @@ public class SampleApp {
 			int id = rs.getInt("id");
 			int balance = rs.getInt("balance");
 
-			PreparedStatement preparedStatement1 = connect.prepareStatement("select * from B where id=1");
+			PreparedStatement preparedStatement1 = connect.prepareStatement("select * from B where id=?");
+			preparedStatement1.setInt(1, 1);
 			ResultSet rs1 = preparedStatement1.executeQuery();
 			rs1.next();
 			String name = rs1.getString("name");

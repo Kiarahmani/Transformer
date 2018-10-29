@@ -12,6 +12,8 @@ import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Quantifier;
 import com.microsoft.z3.Sort;
 
+import exceptions.UnexoectedOrUnhandledConditionalExpression;
+import ir.expression.Expression;
 import ir.expression.vars.PrimitiveVarExp;
 import ir.expression.vars.RowSetVarExp;
 import ir.expression.vars.RowVarExp;
@@ -23,10 +25,12 @@ public class DynamicAssertsions {
 	Context ctx;
 	DeclaredObjects objs;
 	Expr o1, o2, o3;
+	Z3Util z3Util;
 
 	public DynamicAssertsions(Context ctx, DeclaredObjects objs) {
 		this.ctx = ctx;
 		this.objs = objs;
+		this.z3Util = new Z3Util(ctx, objs);
 		o1 = ctx.mkFreshConst("o", objs.getSort("O"));
 		o2 = ctx.mkFreshConst("o", objs.getSort("O"));
 		o3 = ctx.mkFreshConst("o", objs.getSort("O"));
@@ -111,6 +115,21 @@ public class DynamicAssertsions {
 		BoolExpr rhs = ctx.mkEq(r1, r2);
 		BoolExpr body = ctx.mkImplies(lhs, rhs);
 		Quantifier x = ctx.mkForall(new Expr[] { r1, r2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr mk_svar_props(String label, String table, Expression whClause) {
+		Expr r = ctx.mkFreshConst("r", objs.getSort(table));
+		Expr txn = ctx.mkFreshConst("t", objs.getSort("T"));
+		BoolExpr rowBelongsToSet = (BoolExpr) ctx.mkApp(objs.getfuncs(label), txn, r);
+		Quantifier x = null;
+		try {
+			x = ctx.mkForall(new Expr[] { txn, r },
+					ctx.mkImplies(rowBelongsToSet, (BoolExpr) z3Util.irCondToZ3Expr(txn, r, whClause)), 1, null, null,
+					null, null);
+		} catch (UnexoectedOrUnhandledConditionalExpression e) {
+			e.printStackTrace();
+		}
 		return x;
 	}
 

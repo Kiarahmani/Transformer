@@ -1,14 +1,13 @@
 package ir.expression.vals;
 
 import ir.expression.Expression;
-import ir.expression.vars.RowVarExp;
 import ir.schema.Column;
 import ir.schema.Table;
 
 // these nodes represent columns; e.g. in conditionals (as opposed to fieldAccess which represent values of columns in a given specific row)
 public class ProjValExp extends ValExp {
-	Column column;
-	Table table;
+	public Column column;
+	public Table table;
 
 	public ProjValExp(Column column, Table table) {
 		this.table = table;

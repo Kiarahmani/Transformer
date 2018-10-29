@@ -14,6 +14,10 @@ public class RowSetVarExp extends VarExp {
 		this.whereClause = wh;
 	}
 
+	public Expression getWhClause() {
+		return this.whereClause;
+	}
+
 	public Table getTable() {
 		return this.table;
 	}
@@ -24,6 +28,7 @@ public class RowSetVarExp extends VarExp {
 
 	@Override
 	public Expression getUpdateExp(Expression newExp, int index) {
+		this.whereClause = this.whereClause.getUpdateExp(newExp, index);
 		return this;
 	}
 

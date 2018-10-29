@@ -5,8 +5,8 @@ public class BinOpExp extends Expression {
 		PLUS, MINUS, MULT, DIV, AND, OR, XOR, GEQ, LEQ, LT, GT, EQ,
 	};
 
-	BinOp op;
-	Expression e1, e2;
+	public BinOp op;
+	public Expression e1, e2;
 
 	public BinOpExp(BinOp op, Expression e1, Expression e2) {
 		this.op = op;

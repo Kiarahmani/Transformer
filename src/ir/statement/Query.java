@@ -19,6 +19,7 @@ import ir.expression.vals.ConstValExp;
 import ir.expression.vals.ProjValExp;
 import ir.expression.Expression;
 import ir.expression.UnOpExp;
+import ir.expression.vars.RowSetVarExp;
 import ir.expression.vars.UnknownExp;
 import ir.schema.Column;
 import ir.schema.Table;
@@ -33,6 +34,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.TablesNamesFinder;
+import soot.Value;
 import net.sf.jsqlparser.expression.JdbcParameter;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.*;
@@ -43,6 +45,8 @@ public class Query {
 		SELECT, INSERT, DELETE, UPDATE
 	};
 
+	// reference to the sVar which holds the select query (if applicable)
+	Expression sVar;
 	UnitData data;
 	ArrayList<Table> tables;
 	String text;
@@ -85,7 +89,10 @@ public class Query {
 
 		// must replace the i'th (oroginal placement of course) occurence of unknownExp
 		// with the given exp
+
 		this.whereClause = this.whereClause.getUpdateExp(newExp, index);
+		this.sVar = this.sVar.getUpdateExp(newExp, index);
+
 		switch (this.kind) {
 		case SELECT:
 			break;
@@ -284,7 +291,7 @@ public class Query {
 		for (Table t : tables)
 			if (t.getName().toLowerCase().equals(tableList.get(0).toLowerCase()))
 				return t;
-		throw new Exception("Query was not created -> table does not exist: " + this.text );
+		throw new Exception("Query was not created -> table does not exist: " + this.text);
 	}
 
 	private Kind extractKind() {
@@ -339,6 +346,10 @@ public class Query {
 	// GETTER & SETTERS
 	public String getText() {
 		return text;
+	}
+
+	public void addStmt(RowSetVarExp newExp) {
+		this.sVar = newExp;
 	}
 
 }

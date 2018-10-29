@@ -231,7 +231,7 @@ public class Z3Driver {
 				objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { objs.getSort("T") },
 						objs.getSort(p.getType().toZ3String())));
 			}
-			SubHeaderZ3("??????");
+			SubHeaderZ3("?");
 			// define lhs assignees [[XXX not sure what this does -> might be a legacy
 			// feature]]
 			for (VarExp ve : txn.getAllLhsVars()) {
@@ -256,10 +256,13 @@ public class Z3Driver {
 				Sort tSort = objs.getSort("T");
 				switch (exp.getClass().getSimpleName()) {
 				case "RowSetVarExp":
+					// declare SVar
 					RowSetVarExp rsv = (RowSetVarExp) exp;
 					String table = rsv.getTable().getName();
 					objs.addFunc(label,
 							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort(table) }, objs.getSort("Bool")));
+					// add props for SVar
+					addAssertion(label + "_props", dynamicAssertions.mk_svar_props(label, table, rsv.getWhClause()));
 					break;
 				case "RowVarExp":
 					break;

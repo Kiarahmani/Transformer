@@ -9,15 +9,11 @@ import exceptions.ColumnDoesNotExist;
 import exceptions.UnknownUnitException;
 import gimpToApp.utils.QueryPatcher;
 import gimpToApp.utils.ValueToExpression;
-import ir.expression.BinOpExp;
 import ir.expression.Expression;
 import ir.expression.UnOpExp;
 import ir.expression.UnOpExp.UnOp;
 import ir.expression.vals.ConstValExp;
 import ir.expression.vals.NullExp;
-import ir.expression.vals.ProjValExp;
-import ir.expression.BinOpExp.BinOp;
-import ir.expression.vars.ProjVarExp;
 import ir.expression.vars.RowSetVarExp;
 import ir.expression.vars.RowVarExp;
 import ir.expression.vars.RowVarLoopExp;
@@ -28,30 +24,21 @@ import ir.statement.Query;
 import ir.statement.Query.Kind;
 import soot.Body;
 import soot.Local;
-import soot.Type;
 import soot.Unit;
-import soot.UnitPrinter;
 import soot.Value;
-import soot.ValueBox;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
 import soot.grimp.internal.GEqExpr;
 import soot.grimp.internal.GIfStmt;
-import soot.grimp.internal.GInstanceFieldRef;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
 import soot.grimp.internal.GNeExpr;
 import soot.grimp.internal.GNewInvokeExpr;
 import soot.grimp.internal.GStaticInvokeExpr;
 import soot.grimp.internal.GVirtualInvokeExpr;
-import soot.jimple.IntConstant;
-import soot.jimple.InvokeExpr;
-import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
 import soot.jimple.internal.JGotoStmt;
-import soot.jimple.internal.JIfStmt;
 import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
-import soot.util.Switch;
 import z3.ConstantArgs;
 
 public class UnitHandler {
@@ -225,6 +212,7 @@ public class UnitHandler {
 				GAssignStmt assgnmnt = (GAssignStmt) data.getExecFromPrep(u);
 				RowSetVarExp newExp = new RowSetVarExp(assgnmnt.getLeftOp().toString(), q.getTable(), q.getWhClause());
 				this.data.addExp(assgnmnt.getLeftOp(), newExp);
+				q.addStmt(newExp);
 			} catch (ClassCastException e) {
 				// where a select queries return value is discarded
 				this.data.addExp(new FakeJimpleLocal("discarded", null, null), new UnknownExp("discarded", -2));
