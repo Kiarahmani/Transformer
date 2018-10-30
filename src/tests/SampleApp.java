@@ -47,8 +47,14 @@ public class SampleApp {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
-			PreparedStatement preparedStatement = connect.prepareStatement("update A set balance= 5 where id=1");
-			preparedStatement.executeUpdate();
+			PreparedStatement preparedStatement = connect.prepareStatement("select * from A where id=1");
+			ResultSet rs = preparedStatement.executeQuery();
+			rs.next();
+			int id = rs.getInt("id");
+			int balance = rs.getInt("balance");
+			PreparedStatement preparedStatement1 = connect.prepareStatement("update A set balance= ? where id=1");
+			preparedStatement1.setInt(1, balance);
+			preparedStatement1.executeUpdate();
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -89,16 +95,14 @@ public class SampleApp {
 
 			int id = rs.getInt("id");
 			int balance = rs.getInt("balance");
-			
-			ResultSet rs1=null;
-			while (rs.next()) {
+
+			ResultSet rs1 = null;
 				PreparedStatement preparedStatement1 = connect.prepareStatement("select * from B where id=?");
 				preparedStatement1.setInt(1, rs.getInt("id"));
 				rs1 = preparedStatement1.executeQuery();
-			}
 			rs1.next();
-			//String name = rs1.getString("name");
-			//System.out.println("(" + id + "," + name + "," + balance + ")");
+			 String name = rs1.getString("name");
+			 System.out.println("(" + id + "," + name + "," + balance + ")");
 
 		} catch (Exception e) {
 			throw e;

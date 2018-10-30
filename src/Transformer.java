@@ -7,6 +7,7 @@ import gimpToApp.GimpToApp;
 import gimpToApp.GimpToAppOne;
 import ir.*;
 import ir.schema.Table;
+import java_cup.non_terminal;
 import soot.Body;
 import soot.BodyTransformer;
 import soot.PhaseOptions;
@@ -67,12 +68,17 @@ public class Transformer extends BodyTransformer {
 		/*
 		 * generate the anomaly given the IR
 		 */
-		Z3Driver zdr = new Z3Driver(app, tables);
+		Z3Driver zdr = new Z3Driver(app, tables, false);
+		Z3Driver zdrCore = new Z3Driver(app, tables, true);
 		Anomaly anml = zdr.analyze();
+		Anomaly coreAnml = zdrCore.analyze();
+
 		// now we can visualize the anomaly or
 		// generate concrete execution plans, etc.
 		if (anml != null)
 			anml.announce();
+		if (coreAnml != null)
+			coreAnml.announce();
 
 	}
 

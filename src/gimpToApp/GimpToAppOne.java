@@ -35,7 +35,8 @@ public class GimpToAppOne extends GimpToApp {
 	public Application transform() throws UnknownUnitException {
 		Application app = new Application();
 		for (Body b : bodies) {
-			if (!b.getMethod().getName().contains("init")) {
+			if (!b.getMethod().getName().contains("init")
+					&& !ConstantArgs._EXCLUDED_TXNS.contains(b.getMethod().getName())) {
 				Transaction txn = extractTxn(b);
 				if (txn != null)
 					app.addTxn(txn);

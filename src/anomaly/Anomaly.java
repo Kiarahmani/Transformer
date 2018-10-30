@@ -37,15 +37,20 @@ public class Anomaly {
 	Map<Expr, Expr> otimes;
 	Map<Expr, Expr> opart;
 	List<Expr> isUpdate;
+	private boolean isCore;
 
-	public Anomaly(Model model, Context ctx, DeclaredObjects objs) {
+	public Anomaly(Model model, Context ctx, DeclaredObjects objs, boolean isCore) {
 		this.model = model;
 		this.ctx = ctx;
 		this.objs = objs;
+		this.isCore = isCore;
 	}
 
 	public void announce() {
-		System.out.println("\n\n-------------\n--- Model --- ");
+		if (!isCore)
+			System.out.println("\n\n-------------\n--- Model --- ");
+		else
+			System.out.println("\n\n------------------\n--- Core Model --- ");
 		Map<String, FuncDecl> functions = getFunctions();
 		parentChildPairs = getParentChild(functions.get("parent"));
 		WWPairs = getWWPairs(functions.get("WW_O"));
@@ -89,7 +94,11 @@ public class Anomaly {
 		System.out.println("-------------\n");
 		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
 				parentChildPairs, otypes, opart);
-		av.createGraph();
+		if (isCore)
+			av.createGraph("anomaly_core.dot");
+		else
+			av.createGraph("anomaly.dot");
+
 		ctx.close();
 	}
 

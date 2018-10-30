@@ -91,7 +91,8 @@ public class Query {
 		// with the given exp
 
 		this.whereClause = this.whereClause.getUpdateExp(newExp, index);
-		this.sVar = this.sVar.getUpdateExp(newExp, index);
+		if (this.sVar != null)
+			this.sVar = this.sVar.getUpdateExp(newExp, index);
 
 		switch (this.kind) {
 		case SELECT:

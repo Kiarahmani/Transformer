@@ -169,7 +169,8 @@ public class StaticAssertions {
 	}
 
 	// the final assertion, generating a cycle on the dependency graph
-	public Quantifier mk_cycle() {
+	public BoolExpr mk_cycle(boolean findCore) {
+
 		int length = ConstantArgs._DEP_CYCLE_LENGTH;
 		Expr[] Os = new Expr[length];
 		for (int i = 0; i < length; i++)
@@ -190,6 +191,7 @@ public class StaticAssertions {
 		BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
 		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
 		return x;
+
 	}
 
 	public Quantifier mk_otime_props() {

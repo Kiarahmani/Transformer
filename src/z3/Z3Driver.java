@@ -39,13 +39,15 @@ public class Z3Driver {
 	StaticAssertions staticAssrtions;
 	DynamicAssertsions dynamicAssertions;
 	// a log file containing all assertions and defs for debugging
-	File file = new File("z3-encoding.smt2");
+	File file;
 	FileWriter writer;
 	PrintWriter printer;
 	Expr vo1, vo2, vt1, vt2;
+	private boolean findCore;
 
 	// constructor
-	public Z3Driver(Application app, ArrayList<Table> tables) {
+	public Z3Driver(Application app, ArrayList<Table> tables, boolean findCore) {
+		this.findCore = findCore;
 		this.app = app;
 		this.tables = tables;
 		HashMap<String, String> cfg = new HashMap<String, String>();
@@ -53,6 +55,10 @@ public class Z3Driver {
 		cfg.put("unsat_core", "true");
 		ctx = new Context(cfg);
 		slv = ctx.mkSolver();
+		if (!findCore)
+			this.file = new File("z3-encoding.smt2");
+		else
+			this.file = new File("z3-encoding-core.smt2");
 		model = null;
 		try {
 			writer = new FileWriter(file, false);
@@ -331,7 +337,7 @@ public class Z3Driver {
 		// dependency assertions
 		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
 		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
-		addAssertion("cycle", staticAssrtions.mk_cycle());
+		addAssertion("cycle", staticAssrtions.mk_cycle(findCore));
 
 	}
 
@@ -361,13 +367,14 @@ public class Z3Driver {
 	private Anomaly checkSAT() {
 		if (slv.check() == Status.SATISFIABLE) {
 			model = slv.getModel();
-			return new Anomaly(model, ctx, objs);
+			return new Anomaly(model, ctx, objs, findCore);
 		} else {
 			System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
 			System.out.println("-------------\n--UNSAT core:");
 			for (Expr e : slv.getUnsatCore())
 				System.out.println(e);
-			ctx.close();
+			if (findCore)
+				ctx.close();
 			return null;
 		}
 	}

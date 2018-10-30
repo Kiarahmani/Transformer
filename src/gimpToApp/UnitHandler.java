@@ -407,6 +407,8 @@ public class UnitHandler {
 				return false;
 			case "GNewInvokeExpr":
 				return false;
+			case "StaticFieldRef":
+				return false;
 			default:
 				if (ConstantArgs.DEBUG_MODE)
 					System.err.println("case not handled isValueMethodCall: " + v.getClass().getSimpleName());

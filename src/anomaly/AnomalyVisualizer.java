@@ -47,10 +47,10 @@ public class AnomalyVisualizer {
 		this.opart = opart;
 	}
 
-	public void createGraph() {
+	public void createGraph(String fileName) {
 		String[] colors = new String[] { "lightyellow", "darkkhaki", "cornsilk1", "rosybrown1", "thistle", "lavender",
 				"ivory3", "mintcream" };
-		File file = new File("anomalies/anomaly.dot");
+		File file = new File("anomalies/" + fileName);
 		FileWriter writer = null;
 		PrintWriter printer;
 		String node_style = "node[ color=darkgoldenrod4, fontcolor=darkgoldenrod4, fontsize=10, fontname=\"Helvetica\"]";
