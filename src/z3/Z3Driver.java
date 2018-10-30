@@ -9,8 +9,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.microsoft.z3.*;
 import anomaly.Anomaly;
@@ -249,21 +255,47 @@ public class Z3Driver {
 			}
 
 			SubHeaderZ3("Expressions");
-			// add expressions
-			for (Value val : txn.getAllExps().keySet()) {
+			// reorder the definitions to make sure the dependencies are satisfied when
+			// defining new vars
+			LinkedHashMap<Value, Expression> sortedMap = new LinkedHashMap<Value, Expression>();
+			Map<Value, Expression> orgMap = txn.getAllExps();
+			LinkedBlockingQueue<Value> unAddedEntries = new LinkedBlockingQueue<>();
+			for (Value v : orgMap.keySet())
+				unAddedEntries.add(v);
+
+			for (Value v : orgMap.keySet())
+				if (orgMap.get(v).getClass().getSimpleName().equals("RowSetVarExp")) {
+					sortedMap.put(v, orgMap.get(v));
+					unAddedEntries.remove(v);
+					for (Value v1 : orgMap.keySet())
+						if (v1.toString().contains(v.toString() + "-")) {
+							sortedMap.put(v1, orgMap.get(v1));
+							unAddedEntries.remove(v);
+						}
+				}
+
+			for (Value v : unAddedEntries)
+				sortedMap.put(v, orgMap.get(v));
+
+			// add expressions for each trn
+			for (Value val : sortedMap.keySet()) {
 				Expression exp = txn.getAllExps().get(val);
 				String label = txn.getName() + "_" + val.toString();
 				Sort tSort = objs.getSort("T");
+
 				switch (exp.getClass().getSimpleName()) {
 				case "RowSetVarExp":
+					this.SubHeaderZ3(val.toString());
 					// declare SVar
 					RowSetVarExp rsv = (RowSetVarExp) exp;
 					String table = rsv.getTable().getName();
 					objs.addFunc(label,
 							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort(table) }, objs.getSort("Bool")));
 					// add props for SVar
-					addAssertion(label + "_props",
-							dynamicAssertions.mk_svar_props(txn.getName(), val.toString(), table, rsv.getWhClause()));
+					BoolExpr prop = dynamicAssertions.mk_svar_props(txn.getName(), val.toString(), table,
+							rsv.getWhClause());
+					addAssertion(label + "_props", prop);
+
 					break;
 				case "RowVarExp":
 					RowVarExp rv = (RowVarExp) exp;
@@ -272,12 +304,22 @@ public class Z3Driver {
 					// declare rowVar
 					objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { tSort }, objs.getSort(tableName)));
 					// add props for rowVar
-					addAssertion(label + "_props",
-							dynamicAssertions.mk_row_var_props(txn.getName(), val.toString(), setVar));
+					prop = dynamicAssertions.mk_row_var_props(txn.getName(), val.toString(), setVar);
+					addAssertion(label + "_props", prop);
+
 					break;
 				case "RowVarLoopExp":
-					break;
+					RowVarLoopExp vle = (RowVarLoopExp) exp;
+					tableName = vle.getTable().getName();
+					setVar = vle.getSetVar();
+					// System.out.println("=====" + label);
+					objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { tSort }, objs.getSort(tableName)));
+					// add props for loopVar
+					prop = dynamicAssertions.mk_row_var_props(txn.getName(), val.toString(), setVar);
+					addAssertion(label + "_props", prop);
 
+				case "ParamValExp":
+					break;
 				default:
 					break;
 				}

@@ -74,7 +74,7 @@ public class UnitData {
 		executeUnits = new HashMap<Unit, Value>();
 		definedAt = new HashMap<Value, Unit>();
 		params = new HashMap<Local, Value>();
-		exps = new HashMap<Value, Expression>();
+		exps = new LinkedHashMap<Value, Expression>();
 		queries = new LinkedHashMap<Unit, Query>();
 		prepareToExecute = new HashMap<Unit, Unit>();
 		valueToInvokations = new HashMap<>();

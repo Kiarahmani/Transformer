@@ -2,6 +2,7 @@ package ir;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class Transaction {
 		this.name = name;
 		this.stmts = new ArrayList<Statement>();
 		this.params = new HashMap<String, ParamValExp>();
-		this.exps = new HashMap<Value, Expression>();
+		this.exps = new LinkedHashMap<Value, Expression>();
 	}
 
 	public void addParam(String l, ParamValExp p) {

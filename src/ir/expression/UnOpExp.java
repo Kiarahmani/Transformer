@@ -5,8 +5,8 @@ public class UnOpExp extends Expression {
 		NOT, IsNull
 	};
 
-	UnOp op;
-	Expression e;
+	public UnOp op;
+	public Expression e;
 
 	public UnOpExp(UnOp op, Expression e) {
 		this.op = op;

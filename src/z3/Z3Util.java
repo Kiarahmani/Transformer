@@ -1,5 +1,6 @@
 package z3;
 
+import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
@@ -11,6 +12,7 @@ import ir.expression.*;
 import ir.expression.vars.*;
 import ir.expression.vals.*;
 import ir.expression.Expression;
+import ir.expression.UnOpExp.UnOp;
 
 public class Z3Util {
 	Context ctx;
@@ -54,20 +56,17 @@ public class Z3Util {
 		case "ProjVarExp":
 			ProjVarExp pv = (ProjVarExp) cond;
 			FuncDecl projFunc = objs.getfuncs(pv.getRVar().getTable().getName() + "_PROJ_" + pv.getColumn().toString());
-			// XXXXXXXXXXXXX
-			Sort rowSort = objs.getSort(pv.getRVar().getTable().getName());
 			return ctx.mkApp(projFunc, irCondToZ3Expr(txnName, txn, row, pv.getRVar()));
-		// not sure about what I am returning above -> requires handling RowVarExp case
-		// first
 		case "RowSetVarExp":
 			break;
 		case "RowVarExp":
-			/////////////// CASE TO BE HANDLED
 			RowVarExp ve = (RowVarExp) cond;
-			System.out.println("=========" + ve.getName());
-			break;
+			FuncDecl rowFunc = objs.getfuncs(txnName + "_" + ve.getName());
+			return ctx.mkApp(rowFunc, txn);
 		case "RowVarLoopExp":
-			break;
+			RowVarLoopExp vle = (RowVarLoopExp) cond;
+			FuncDecl loopVarFunc = objs.getfuncs(txnName + "_" + vle.getName());
+			return ctx.mkApp(loopVarFunc, txn);
 		case "UnknownExp":
 			break;
 		case "BinOpExp":
@@ -76,19 +75,26 @@ public class Z3Util {
 			case EQ:
 				return ctx.mkEq(irCondToZ3Expr(txnName, txn, row, boe.e1), irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case PLUS:
-				break;
+				return ctx.mkAdd((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case MINUS:
-				break;
+				return ctx.mkSub((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case MULT:
-				break;
+				return ctx.mkMul((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case DIV:
-				break;
+				return ctx.mkDiv((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case AND:
-				break;
+				return ctx.mkAnd((BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case OR:
-				break;
+				return ctx.mkOr((BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case XOR:
-				break;
+				return ctx.mkXor((BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case GEQ:
 				break;
 			case LEQ:
@@ -103,8 +109,11 @@ public class Z3Util {
 		}
 			break;
 		case "UnOpExp":
-			break;
-
+			UnOpExp uoe = (UnOpExp) cond;
+			if (uoe.equals(UnOp.NOT))
+				return ctx.mkNot((BoolExpr) irCondToZ3Expr(txnName, txn, row, uoe.e));
+			else
+				break;
 		}
 		throw new UnexoectedOrUnhandledConditionalExpression(
 				"--irCondToZ3Expr case not handled yet: " + cond.getClass().getSimpleName());
