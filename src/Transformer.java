@@ -25,8 +25,6 @@ import soot.coffi.constant_element_value;
 import soot.jimple.JimpleBody;
 import soot.util.cfgcmd.CFGIntermediateRep;
 import sql.DDLParser;
-import utils.CycleEdge;
-import utils.Digraph;
 import z3.ConstantArgs;
 import z3.Z3Driver;
 
@@ -85,9 +83,7 @@ public class Transformer extends BodyTransformer {
 		Anomaly anml = zdr.analyze();
 		if (anml != null)
 			anml.announce();
-		// now we can visualize the anomaly or
-		// generate concrete execution plans, etc.
-		trimModel(anml);
+		
 		Z3Driver zdrCore = new Z3Driver(app, tables, true);
 		Anomaly coreAnml = zdrCore.analyze();
 		if (coreAnml != null)
@@ -95,52 +91,8 @@ public class Transformer extends BodyTransformer {
 
 	}
 
-	private static void trimModel(Anomaly anml) {
-		System.out.println(getFullCycle(anml).cycleToString());
-		ConstantArgs._MAX_TXN_INSTANCES = 2;
-		ConstantArgs._DEP_CYCLE_LENGTH = 3;
-	}
+	
 
-	private static Digraph getFullCycle(Anomaly anml) {
-		Expr head = anml.cycle.keySet().stream().filter(o -> o.toString().contains("O!val!0")).findFirst().get();
-		Expr n1 = head, n2 = null;
-		Digraph headNode = new Digraph(n1, true);
-		Digraph pointer = headNode;
-
-		for (int i = 0; i < anml.cycle.size(); i++) {
-			n2 = anml.cycle.get(n1);
-			// take care of the gaps in the cycle
-			if (n2 == null) {
-				String next = "O!val!" + String.valueOf(i + 1);
-				n2 = anml.cycle.keySet().stream().filter(o -> o.toString().contains(next)).findFirst().get();
-			}
-			CycleEdge currentEdge = getEdgeType(anml, n1, n2);
-			Digraph nextNode = new Digraph(n2, false);
-			pointer.edge = currentEdge;
-			pointer.node = n1;
-			pointer.push(nextNode);
-			// get ready for the next iteration
-			pointer = nextNode;
-			n1 = n2;
-
-		}
-		// connect last and first
-		pointer.nextNode=headNode;
-		pointer.edge = getEdgeType(anml,pointer.node,headNode.node);
-		return pointer;
-	}
-
-	private static CycleEdge getEdgeType(Anomaly anml, Expr x, Expr y) {
-		CycleEdge currentEdge = null;
-		if ((anml.RWPairs.get(x) != null) && anml.RWPairs.get(x).contains(y))
-			currentEdge = CycleEdge.RW;
-		else if ((anml.WRPairs.get(x) != null) && anml.WRPairs.get(x).contains(y))
-			currentEdge = CycleEdge.WR;
-		else if ((anml.WWPairs.get(x) != null) && anml.WWPairs.get(x).contains(y))
-			currentEdge = CycleEdge.WW;
-		else
-			currentEdge = CycleEdge.SB;
-		return currentEdge;
-	}
-
+	
+	
 }
