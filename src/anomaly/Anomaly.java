@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,18 +27,20 @@ public class Anomaly {
 	private Model model;
 	private Context ctx;
 	DeclaredObjects objs;
-	Map<Expr, ArrayList<Expr>> visPairs;
-	Map<Expr, ArrayList<Expr>> WRPairs;
-	Map<Expr, ArrayList<Expr>> WWPairs;
-	Map<Expr, ArrayList<Expr>> RWPairs;
-	Map<Expr, ArrayList<Expr>> parentChildPairs;
-	Map<Expr, Expr> cycle;
-	Map<Expr, Expr> otypes;
-	Map<Expr, Expr> ttypes;
-	Map<Expr, Expr> otimes;
-	Map<Expr, Expr> opart;
-	List<Expr> isUpdate;
+	public Map<Expr, ArrayList<Expr>> visPairs;
+	public Map<Expr, ArrayList<Expr>> WRPairs;
+	public Map<Expr, ArrayList<Expr>> WWPairs;
+	public Map<Expr, ArrayList<Expr>> RWPairs;
+	public Map<Expr, ArrayList<Expr>> parentChildPairs;
+	public Map<Expr, Expr> cycle;
+	public Map<Expr, Expr> otypes;
+	public Map<Expr, Expr> ttypes;
+	public Map<Expr, Expr> otimes;
+	public Map<Expr, Expr> opart;
+	public List<Expr> isUpdate;
 	private boolean isCore;
+
+	public List<Expr> Ts;
 
 	public Anomaly(Model model, Context ctx, DeclaredObjects objs, boolean isCore) {
 		this.model = model;
@@ -63,8 +66,9 @@ public class Anomaly {
 		opart = getOPart(functions.get("opart"));
 		ttypes = getTType(functions.get("ttype"));
 		isUpdate = getIsUpdate(functions.get("is_update"));
+		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
 
-		System.out.println("{T}:       " + Arrays.asList(model.getSortUniverse(objs.getSort("T"))));
+		System.out.println("{T}:       " + Ts);
 		drawLine();
 		System.out.println("ttype:     " + ttypes);
 		drawLine();
@@ -99,7 +103,8 @@ public class Anomaly {
 		else
 			av.createGraph("anomaly.dot");
 
-		ctx.close();
+		if (isCore)
+			ctx.close();
 	}
 
 	private List<Expr> getIsUpdate(FuncDecl isUpdate) {
@@ -115,8 +120,7 @@ public class Anomaly {
 
 	private Map<Expr, Expr> getCycle(FuncDecl x) {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
-		Map<Expr, Expr> result = new HashMap<>();
-
+		Map<Expr, Expr> result = new LinkedHashMap<>();
 		for (Expr o : Os)
 			for (Expr o1 : Os) {
 				if (model.eval(x.apply(o, o1), true).toString().equals("true")) {

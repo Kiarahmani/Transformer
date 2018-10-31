@@ -97,12 +97,12 @@ public class SampleApp {
 			int balance = rs.getInt("balance");
 
 			ResultSet rs1 = null;
-				PreparedStatement preparedStatement1 = connect.prepareStatement("select * from B where id=?");
-				preparedStatement1.setInt(1, rs.getInt("id"));
-				rs1 = preparedStatement1.executeQuery();
+			PreparedStatement preparedStatement1 = connect.prepareStatement("select * from B where id=?");
+			preparedStatement1.setInt(1, rs.getInt("id"));
+			rs1 = preparedStatement1.executeQuery();
 			rs1.next();
-			 String name = rs1.getString("name");
-			 System.out.println("(" + id + "," + name + "," + balance + ")");
+			String name = rs1.getString("name");
+			System.out.println("(" + id + "," + name + "," + balance + ")");
 
 		} catch (Exception e) {
 			throw e;
