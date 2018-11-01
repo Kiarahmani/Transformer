@@ -1,25 +1,21 @@
 package anomaly;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
-import com.microsoft.z3.FuncInterp;
-import com.microsoft.z3.FuncInterp.Entry;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import com.microsoft.z3.Model;
-import com.microsoft.z3.Sort;
 
+import net.sf.jsqlparser.expression.operators.relational.Between;
 import z3.DeclaredObjects;
 
 public class Anomaly {
@@ -47,13 +43,15 @@ public class Anomaly {
 		this.ctx = ctx;
 		this.objs = objs;
 		this.isCore = isCore;
+
 	}
 
-	public void announce() {
+	public void announce(boolean isCore) {
 		if (!isCore)
 			System.out.println("\n\n-------------\n--- Model --- ");
 		else
 			System.out.println("\n\n------------------\n--- Core Model --- ");
+
 		Map<String, FuncDecl> functions = getFunctions();
 		parentChildPairs = getParentChild(functions.get("parent"));
 		WWPairs = getWWPairs(functions.get("WW_O"));
@@ -68,43 +66,61 @@ public class Anomaly {
 		isUpdate = getIsUpdate(functions.get("is_update"));
 		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
 
-		System.out.println("{T}:       " + Ts);
-		drawLine();
-		System.out.println("ttype:     " + ttypes);
-		drawLine();
-		System.out.println("{O}:       " + Arrays.asList(model.getSortUniverse(objs.getSort("O"))));
-		drawLine();
-		System.out.println("Prnt-Chld: " + parentChildPairs);
-		drawLine();
-		System.out.println("otype:     " + otypes);
-		drawLine();
-		System.out.println("is_update: " + isUpdate);
-		drawLine();
-		System.out.println("WW:        " + WWPairs);
-		drawLine();
-		System.out.println("RW:        " + RWPairs);
-		drawLine();
-		System.out.println("WR:        " + WRPairs);
-		drawLine();
-		System.out.println("vis:       " + visPairs);
-		drawLine();
-		System.out.println("cyc:       " + cycle);
-		drawLine();
-		System.out.println("otime:     " + otimes);
-		drawLine();
-		System.out.println("opart:     " + opart);
-		drawLine();
-		// System.out.println(model);
-		System.out.println("-------------\n");
-		AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
-				parentChildPairs, otypes, opart);
-		if (isCore)
-			av.createGraph("anomaly_core.dot");
-		else
+		// announce the non-core model
+		if (!isCore) {
+			System.out.println("{T}:       " + Ts);
+			drawLine();
+			System.out.println("ttype:     " + ttypes);
+			drawLine();
+			System.out.println("{O}:       " + Arrays.asList(model.getSortUniverse(objs.getSort("O"))));
+			drawLine();
+			System.out.println("Prnt-Chld: " + parentChildPairs);
+			drawLine();
+			System.out.println("otype:     " + otypes);
+			drawLine();
+			System.out.println("is_update: " + isUpdate);
+			drawLine();
+			System.out.println("WW:        " + WWPairs);
+			drawLine();
+			System.out.println("RW:        " + RWPairs);
+			drawLine();
+			System.out.println("WR:        " + WRPairs);
+			drawLine();
+			System.out.println("vis:       " + visPairs);
+			drawLine();
+			System.out.println("cyc:       " + cycle);
+			drawLine();
+			System.out.println("otime:     " + otimes);
+			drawLine();
+			System.out.println("opart:     " + opart);
+			drawLine();
+			// System.out.println(model);
+			System.out.println("--------------------\n");
+			AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
+					parentChildPairs, otypes, opart);
 			av.createGraph("anomaly.dot");
-
-		if (isCore)
-			ctx.close();
+		}
+		// announce core model
+		else {
+			List<Set<Expr>> coreOpSets = getCoreOps();
+			Map<Expr, Expr> coreDep = new HashMap<>();
+			System.out.println("Core Os:     " + coreOpSets);
+			// find connections between core operations
+			for (int i = 0; i < coreOpSets.size(); i++)
+				for (int j = 0; j < coreOpSets.size(); j++)
+					if (i != j) {
+						Set<Expr> set1 = coreOpSets.get(i);
+						Set<Expr> set2 = coreOpSets.get(j);
+						for (Expr o1 : set1)
+							for (Expr o2 : set2)
+								if (areConnected(o1, o2))
+									coreDep.put(o1, o2);
+					}
+			CoreAnomalyVisualizer av = new CoreAnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model,
+					objs, parentChildPairs, otypes, opart, coreDep, coreOpSets);
+			av.createGraph("anomaly_core.dot");
+			System.out.println("Core Edges:  "+coreDep);
+		}
 	}
 
 	private List<Expr> getIsUpdate(FuncDecl isUpdate) {
@@ -291,6 +307,56 @@ public class Anomaly {
 			child.add(o);
 			result.put(t, child);
 		}
+		return result;
+	}
+
+	private List<Set<Expr>> getCoreOps() {
+		ArrayList<Set<Expr>> result = new ArrayList<>();
+		Set<Expr> newSet = null;
+		List<Expr> Os = Arrays.asList(model.getSortUniverse(objs.getSort("O")));
+		for (Expr o1 : Os) {
+			for (Expr o2 : Os) {
+				if (areSib(o1, o2))
+					// check if set already exists
+					if (setIsCreated(result, o1) == null) {
+						newSet = new HashSet<>();
+						newSet.add(o1);
+						newSet.add(o2);
+						result.add(newSet);
+					} else {
+						newSet = setIsCreated(result, o1);
+						newSet.add(o1);
+						newSet.add(o2);
+					}
+			}
+		}
+		return result.stream().filter(s -> s.size() > 1).collect(Collectors.toList());
+	}
+
+	private boolean areConnected(Expr o1, Expr o2) {
+		Expr next = this.cycle.get(o1);
+		if (next == null)
+			return false;
+		else if (next.equals(o2))
+			return true;
+		else
+			return areConnected(next, o2);
+	}
+
+	private Set<Expr> setIsCreated(ArrayList<Set<Expr>> sets, Expr o1) {
+		for (Set<Expr> set : sets)
+			if (set.contains(o1))
+				return set;
+		return null;
+	}
+
+	private boolean areSib(Expr o1, Expr o2) {
+		boolean result = false;
+		for (ArrayList<Expr> sb : this.parentChildPairs.values())
+			if (sb.contains(o1) && sb.contains(o2)) {
+				result = true;
+				break;
+			}
 		return result;
 	}
 

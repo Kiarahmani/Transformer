@@ -47,34 +47,17 @@ public class SampleApp {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
-			PreparedStatement preparedStatement = connect.prepareStatement("select * from A where id=1");
-			ResultSet rs = preparedStatement.executeQuery();
-			rs.next();
-			int id = rs.getInt("id");
-			int balance = rs.getInt("balance");
-			PreparedStatement preparedStatement1 = connect.prepareStatement("update A set balance= ? where id=1");
-			preparedStatement1.setInt(1, balance);
-			preparedStatement1.executeUpdate();
-		} catch (Exception e) {
-			throw e;
-		} finally {
-		}
-
-	}
-
-	public void initialize(int key) throws Exception {
-		try {
-
-			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
-			System.out.println("connecting...");
-			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			System.out.println("connected: " + connect);
-			PreparedStatement preparedStatement = connect.prepareStatement("update A set balance= 10000000 where id=1");
-			preparedStatement.executeUpdate();
-
-			preparedStatement = connect.prepareStatement("update B set name=Rich where id=1");
-			preparedStatement.executeUpdate();
-
+			//PreparedStatement preparedStatement = connect.prepareStatement("select * from A where id=1");
+			//ResultSet rs = preparedStatement.executeQuery();
+			//rs.next();
+			//int id = rs.getInt("id");
+			//int balance = rs.getInt("balance");
+			//PreparedStatement preparedStatement1 = connect.prepareStatement("update A set balance= ? where id=1");
+			//preparedStatement1.setInt(1, 100);
+			//preparedStatement1.executeUpdate();
+			PreparedStatement preparedStatement2 = connect.prepareStatement("update A set balance= ? where id=2");
+			preparedStatement2.setInt(1, 100);
+			preparedStatement2.executeUpdate();
 		} catch (Exception e) {
 			throw e;
 		} finally {

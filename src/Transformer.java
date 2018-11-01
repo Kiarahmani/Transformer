@@ -53,7 +53,7 @@ public class Transformer extends BodyTransformer {
 		soot.Main.main(soot_args);
 		GimpToApp gta = null;
 		Application app = null;
-
+		long start = System.currentTimeMillis();
 		/*
 		 * extract tables from ddl file
 		 */
@@ -63,7 +63,7 @@ public class Transformer extends BodyTransformer {
 		for (Table t : tables)
 			t.printTable();
 		System.out.println();
-
+		long endTables = System.currentTimeMillis();
 		/*
 		 * generate the intermediate representation
 		 */
@@ -75,24 +75,28 @@ public class Transformer extends BodyTransformer {
 		}
 
 		app.printApp();
+		long endApp = System.currentTimeMillis();
 
 		/*
 		 * generate the anomaly given the IR
 		 */
 		Z3Driver zdr = new Z3Driver(app, tables, false);
 		Anomaly anml = zdr.analyze();
-		if (anml != null)
-			anml.announce();
-		
-		Z3Driver zdrCore = new Z3Driver(app, tables, true);
-		Anomaly coreAnml = zdrCore.analyze();
-		if (coreAnml != null)
-			coreAnml.announce();
+		if (anml != null) {
+			anml.announce(false);
+			anml.announce(true);
+			System.out.println("\n\n");
+		}
+
+
+		long endZ3 = System.currentTimeMillis();
+
+		// print stats
+		System.out.println("\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`");
+		System.out.println("~Tables extracted in: " + (endTables - start) + " ms");
+		System.out.println("~App analyzed in:     " + (endApp - endTables) + " ms");
+		System.out.println("~Model Generated in:  " + (endZ3 - endTables) + " ms");
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`");
 
 	}
-
-	
-
-	
-	
 }
