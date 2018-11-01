@@ -13,7 +13,7 @@ public class ConstantArgs {
 	public static boolean _NO_WR = false;
 	public static boolean _NO_RW = false;
 	
-	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize");
+	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "updateName", "select");
 
 	// ---
 	public static final boolean DEBUG_MODE = false;

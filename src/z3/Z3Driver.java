@@ -260,12 +260,12 @@ public class Z3Driver {
 					addAssertion(label + "_isNull_prop", isNullProp);
 			}
 
-			SubHeaderZ3("Expressions");
 			// reorder the definitions to make sure the dependencies are satisfied when
 			// defining new vars
 			LinkedHashMap<Value, Expression> sortedMap = new LinkedHashMap<Value, Expression>();
 			Map<Value, Expression> orgMap = txn.getAllExps();
 			LinkedBlockingQueue<Value> unAddedEntries = new LinkedBlockingQueue<>();
+
 			for (Value v : orgMap.keySet())
 				unAddedEntries.add(v);
 
@@ -283,6 +283,8 @@ public class Z3Driver {
 			for (Value v : unAddedEntries)
 				sortedMap.put(v, orgMap.get(v));
 
+			if (!sortedMap.isEmpty())
+				SubHeaderZ3("Expressions");
 			// add expressions for each trn
 			for (Value val : sortedMap.keySet()) {
 				Expression exp = txn.getAllExps().get(val);
@@ -315,11 +317,12 @@ public class Z3Driver {
 
 					break;
 				case "RowVarLoopExp":
+					// thse vars have an extra INT argument
 					RowVarLoopExp vle = (RowVarLoopExp) exp;
 					tableName = vle.getTable().getName();
 					setVar = vle.getSetVar();
-					// System.out.println("=====" + label);
-					objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { tSort }, objs.getSort(tableName)));
+					objs.addFunc(label,
+							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort("Int") }, objs.getSort(tableName)));
 					// add props for loopVar
 					prop = dynamicAssertions.mk_row_var_props(txn.getName(), val.toString(), setVar);
 					addAssertion(label + "_props", prop);

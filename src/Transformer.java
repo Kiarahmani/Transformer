@@ -82,7 +82,7 @@ public class Transformer extends BodyTransformer {
 		// print stats
 		System.out.println("\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`");
 		System.out.println("~Tables extracted in: " + (endTables - start) + " ms");
-		System.out.println("~App analyzed in:     " + (endApp - endTables) + " ms");
+		System.out.println("~App extracted in:     " + (endApp - endTables) + " ms");
 		System.out.println("~Model Generated in:  " + (endZ3 - endTables) + " ms");
 		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`");
 

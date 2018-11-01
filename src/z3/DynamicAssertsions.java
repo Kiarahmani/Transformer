@@ -26,6 +26,7 @@ public class DynamicAssertsions {
 	DeclaredObjects objs;
 	Expr o1, o2, o3;
 	Z3Util z3Util;
+	private int loopCount = 0;
 
 	public DynamicAssertsions(Context ctx, DeclaredObjects objs) {
 		this.ctx = ctx;
@@ -121,6 +122,7 @@ public class DynamicAssertsions {
 	public BoolExpr mk_svar_props(String txnName, String ValueName, String table, Expression whClause) {
 		Expr rsort = ctx.mkFreshConst("r", objs.getSort(table));
 		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
+		Expr loopIter = ctx.mkInt(loopCount++);
 		BoolExpr rowBelongsToSet = (BoolExpr) ctx.mkApp(objs.getfuncs(txnName + "_" + ValueName), tsort, rsort);
 		Quantifier x = null;
 		try {
@@ -136,12 +138,13 @@ public class DynamicAssertsions {
 
 	public BoolExpr mk_row_var_props(String txnName, String valueName, RowSetVarExp setVar) {
 		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
+		Expr isort = ctx.mkFreshConst("i", objs.getSort("Int"));
 		Quantifier x = null;
 		String sVarName = txnName + "_" + setVar.getName();
 		String rowVarName = txnName + "_" + valueName;
-		x = ctx.mkForall(new Expr[] { tsort },
-				ctx.mkApp(objs.getfuncs(sVarName), tsort, (ctx.mkApp(objs.getfuncs(rowVarName), tsort))), 1, null, null,
-				null, null);
+		x = ctx.mkForall(new Expr[] { tsort, isort },
+				ctx.mkApp(objs.getfuncs(sVarName), tsort, (ctx.mkApp(objs.getfuncs(rowVarName), tsort, isort))), 1,
+				null, null, null, null);
 		return x;
 	}
 

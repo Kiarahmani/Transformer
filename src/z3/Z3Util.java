@@ -17,6 +17,7 @@ import ir.expression.UnOpExp.UnOp;
 public class Z3Util {
 	Context ctx;
 	DeclaredObjects objs;
+	private int loopCount = 0;
 
 	public Z3Util(Context ctx, DeclaredObjects objs) {
 		this.ctx = ctx;
@@ -66,7 +67,7 @@ public class Z3Util {
 		case "RowVarLoopExp":
 			RowVarLoopExp vle = (RowVarLoopExp) cond;
 			FuncDecl loopVarFunc = objs.getfuncs(txnName + "_" + vle.getName());
-			return ctx.mkApp(loopVarFunc, txn);
+			return ctx.mkApp(loopVarFunc, txn, ctx.mkInt(loopCount++));
 		case "UnknownExp":
 			break;
 		case "BinOpExp":
