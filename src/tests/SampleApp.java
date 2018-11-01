@@ -55,7 +55,7 @@ public class SampleApp {
 			//PreparedStatement preparedStatement1 = connect.prepareStatement("update A set balance= ? where id=1");
 			//preparedStatement1.setInt(1, 100);
 			//preparedStatement1.executeUpdate();
-			PreparedStatement preparedStatement2 = connect.prepareStatement("update A set balance= ? where id=2");
+			PreparedStatement preparedStatement2 = connect.prepareStatement("update A set balance= ? where id=1");
 			preparedStatement2.setInt(1, 100);
 			preparedStatement2.executeUpdate();
 		} catch (Exception e) {

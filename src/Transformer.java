@@ -1,27 +1,15 @@
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.Set;
-
-import com.microsoft.z3.Expr;
-
 import anomaly.Anomaly;
 import exceptions.UnknownUnitException;
 import gimpToApp.GimpToApp;
 import gimpToApp.GimpToAppOne;
 import ir.*;
 import ir.schema.Table;
-import java_cup.non_terminal;
 import soot.Body;
 import soot.BodyTransformer;
 import soot.PhaseOptions;
 import soot.Scene;
-import soot.coffi.constant_element_value;
 import soot.jimple.JimpleBody;
 import soot.util.cfgcmd.CFGIntermediateRep;
 import sql.DDLParser;
@@ -84,10 +72,10 @@ public class Transformer extends BodyTransformer {
 		Anomaly anml = zdr.analyze();
 		if (anml != null) {
 			anml.announce(false);
-			anml.announce(true);
+			if (ConstantArgs._FIND_CORE)
+				anml.announce(true);
 			System.out.println("\n\n");
 		}
-
 
 		long endZ3 = System.currentTimeMillis();
 
