@@ -69,7 +69,7 @@ public class Z3Driver {
 		this.objs = new DeclaredObjects(printer);
 		ctxInitializeSorts();
 		this.staticAssrtions = new StaticAssertions(ctx, objs);
-		this.dynamicAssertions = new DynamicAssertsions(ctx, objs);
+		this.dynamicAssertions = new DynamicAssertsions(ctx, objs, this.app);
 
 		// to be used in the rules
 		vo1 = ctx.mkFreshConst("o", objs.getSort("O"));
@@ -324,7 +324,7 @@ public class Z3Driver {
 					objs.addFunc(label,
 							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort("Int") }, objs.getSort(tableName)));
 					// add props for loopVar
-					prop = dynamicAssertions.mk_row_var_props(txn.getName(), val.toString(), setVar);
+					prop = dynamicAssertions.mk_row_var_loop_props(txn.getName(), val.toString(), setVar);
 					addAssertion(label + "_props", prop);
 
 				case "ParamValExp":

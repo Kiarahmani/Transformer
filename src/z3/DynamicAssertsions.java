@@ -13,6 +13,7 @@ import com.microsoft.z3.Quantifier;
 import com.microsoft.z3.Sort;
 
 import exceptions.UnexoectedOrUnhandledConditionalExpression;
+import ir.Application;
 import ir.expression.Expression;
 import ir.expression.vars.PrimitiveVarExp;
 import ir.expression.vars.RowSetVarExp;
@@ -23,12 +24,13 @@ import ir.schema.Table;
 
 public class DynamicAssertsions {
 	Context ctx;
+	Application app;
 	DeclaredObjects objs;
 	Expr o1, o2, o3;
 	Z3Util z3Util;
-	private int loopCount = 0;
 
-	public DynamicAssertsions(Context ctx, DeclaredObjects objs) {
+	public DynamicAssertsions(Context ctx, DeclaredObjects objs,Application app) {
+		this.app = app;
 		this.ctx = ctx;
 		this.objs = objs;
 		this.z3Util = new Z3Util(ctx, objs);
@@ -122,7 +124,6 @@ public class DynamicAssertsions {
 	public BoolExpr mk_svar_props(String txnName, String ValueName, String table, Expression whClause) {
 		Expr rsort = ctx.mkFreshConst("r", objs.getSort(table));
 		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
-		Expr loopIter = ctx.mkInt(loopCount++);
 		BoolExpr rowBelongsToSet = (BoolExpr) ctx.mkApp(objs.getfuncs(txnName + "_" + ValueName), tsort, rsort);
 		Quantifier x = null;
 		try {
@@ -137,6 +138,17 @@ public class DynamicAssertsions {
 	}
 
 	public BoolExpr mk_row_var_props(String txnName, String valueName, RowSetVarExp setVar) {
+		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
+		Quantifier x = null;
+		String sVarName = txnName + "_" + setVar.getName();
+		String rowVarName = txnName + "_" + valueName;
+		x = ctx.mkForall(new Expr[] { tsort },
+				ctx.mkApp(objs.getfuncs(sVarName), tsort, (ctx.mkApp(objs.getfuncs(rowVarName), tsort))), 1,
+				null, null, null, null);
+		return x;
+	}
+	
+	public BoolExpr mk_row_var_loop_props(String txnName, String valueName, RowSetVarExp setVar) {
 		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
 		Expr isort = ctx.mkFreshConst("i", objs.getSort("Int"));
 		Quantifier x = null;
@@ -161,6 +173,7 @@ public class DynamicAssertsions {
 		BoolExpr cond1 = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo2);
 		BoolExpr cond2 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo1));
 		result.add(ctx.mkAnd(cond1, cond2));
+		result.add(ctx.mkFalse());
 		return result;
 	}
 
