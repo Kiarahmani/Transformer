@@ -84,7 +84,7 @@ public class SampleApp {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
-			if (key < 3) {
+			if (key !=12 ) {
 				PreparedStatement preparedStatement = connect.prepareStatement("select * from B where id =?");
 				preparedStatement.setInt(1, key);
 				ResultSet rs = preparedStatement.executeQuery();

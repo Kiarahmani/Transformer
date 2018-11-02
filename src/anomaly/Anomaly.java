@@ -15,6 +15,8 @@ import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Model;
 
+import ir.schema.Column;
+import ir.schema.Table;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import z3.DeclaredObjects;
 
@@ -37,12 +39,14 @@ public class Anomaly {
 	private boolean isCore;
 
 	public List<Expr> Ts;
+	ArrayList<Table> tables;
 
-	public Anomaly(Model model, Context ctx, DeclaredObjects objs, boolean isCore) {
+	public Anomaly(Model model, Context ctx, DeclaredObjects objs, ArrayList<Table> tables, boolean isCore) {
 		this.model = model;
 		this.ctx = ctx;
 		this.objs = objs;
 		this.isCore = isCore;
+		this.tables = tables;
 
 	}
 
@@ -99,6 +103,10 @@ public class Anomaly {
 			AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
 					parentChildPairs, otypes, opart);
 			av.createGraph("anomaly.dot");
+			// visualize records
+			RecordsVisualizer rv = new RecordsVisualizer(model, objs, tables);
+			rv.createGraph("records.dot");
+
 		}
 		// announce core model
 		else {
@@ -119,7 +127,7 @@ public class Anomaly {
 			CoreAnomalyVisualizer av = new CoreAnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model,
 					objs, parentChildPairs, otypes, opart, coreDep, coreOpSets);
 			av.createGraph("anomaly_core.dot");
-			System.out.println("Core Edges:  "+coreDep);
+			System.out.println("Core Edges:  " + coreDep);
 		}
 	}
 

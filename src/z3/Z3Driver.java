@@ -373,7 +373,7 @@ public class Z3Driver {
 	private Anomaly checkSAT() {
 		if (slv.check() == Status.SATISFIABLE) {
 			model = slv.getModel();
-			return new Anomaly(model, ctx, objs, findCore);
+			return new Anomaly(model, ctx, objs, tables, findCore);
 		} else {
 			System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
 			System.out.println("-------------\n--UNSAT core:");
