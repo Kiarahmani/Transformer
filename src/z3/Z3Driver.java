@@ -20,6 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.microsoft.z3.*;
 import anomaly.Anomaly;
+import exceptions.UnexoectedOrUnhandledConditionalExpression;
 import ir.Application;
 import ir.Transaction;
 import ir.expression.Expression;
@@ -38,6 +39,7 @@ public class Z3Driver {
 	DeclaredObjects objs;
 	StaticAssertions staticAssrtions;
 	DynamicAssertsions dynamicAssertions;
+	Rules ruleGenerator;
 	// a log file containing all assertions and defs for debugging
 	File file;
 	FileWriter writer;
@@ -70,6 +72,7 @@ public class Z3Driver {
 		ctxInitializeSorts();
 		this.staticAssrtions = new StaticAssertions(ctx, objs);
 		this.dynamicAssertions = new DynamicAssertsions(ctx, objs, this.app);
+		this.ruleGenerator = new Rules(ctx, objs, this.app);
 
 		// to be used in the rules
 		vo1 = ctx.mkFreshConst("o", objs.getSort("O"));
@@ -388,12 +391,12 @@ public class Z3Driver {
 	// ---------------------------------------------------------------------------
 	// functions adding assertions for every pair of operations that 'potentially'
 	// create the edge
-	private void RWthen() {
+	private void RWthen() throws UnexoectedOrUnhandledConditionalExpression {
 
 		Map<String, FuncDecl> Ts = objs.getAllTTypes();
 		for (FuncDecl t1 : Ts.values())
 			for (FuncDecl t2 : Ts.values()) {
-				List<BoolExpr> conditions = dynamicAssertions.return_conditions_rw_then(vo1, vo2, vt1, vt2);
+				List<BoolExpr> conditions = ruleGenerator.return_conditions_rw_then(t1, t2, vo1, vo2, vt1, vt2);
 				conditions.add(ctx.mkFalse());
 				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
 				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
@@ -418,7 +421,7 @@ public class Z3Driver {
 		Map<String, FuncDecl> Ts = objs.getAllTTypes();
 		for (FuncDecl t1 : Ts.values())
 			for (FuncDecl t2 : Ts.values()) {
-				List<BoolExpr> conditions = dynamicAssertions.return_conditions_wr_then(vo1, vo2, vt1, vt2);
+				List<BoolExpr> conditions = ruleGenerator.return_conditions_wr_then(t1, t2, vo1, vo2, vt1, vt2);
 				conditions.add(ctx.mkFalse());
 				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
 				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
@@ -459,17 +462,22 @@ public class Z3Driver {
 	 */
 	public Anomaly analyze() {
 		ctxInitialize();
-		// rules
-		HeaderZ3(" ->WW ");
-		thenWW();
-		HeaderZ3(" ->WR ");
-		thenWR();
-		HeaderZ3(" WW-> ");
-		WWthen();
-		HeaderZ3(" WR-> ");
-		WRthen();
-		HeaderZ3(" RW-> ");
-		RWthen();
+		try {
+			// rules
+			HeaderZ3(" ->WW ");
+			thenWW();
+			HeaderZ3(" ->WR ");
+			thenWR();
+			HeaderZ3(" WW-> ");
+			WWthen();
+			HeaderZ3(" WR-> ");
+			WRthen();
+			HeaderZ3(" RW-> ");
+			RWthen();
+		} catch (UnexoectedOrUnhandledConditionalExpression e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return checkSAT();
 	}
 

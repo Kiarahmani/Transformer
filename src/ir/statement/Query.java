@@ -35,6 +35,7 @@ import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 import soot.Value;
+import z3.ConstantArgs;
 import net.sf.jsqlparser.expression.JdbcParameter;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.*;
@@ -269,10 +270,13 @@ public class Query {
 			Column c = null;
 			try {
 				c = table.getColumn(clause.toString());
+				return new ProjValExp(c, this.table);
 			} catch (ColumnDoesNotExist e) {
-				e.printStackTrace();
+				if (ConstantArgs.DEBUG_MODE)
+					e.printStackTrace();
+				return new ConstValExp(clause.toString());
 			}
-			return new ProjValExp(c, this.table);
+
 		case "JdbcParameter":
 			JdbcParameter jp = (JdbcParameter) clause;
 			return new UnknownExp("?", jp.getIndex());

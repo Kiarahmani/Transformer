@@ -14,6 +14,7 @@ import com.microsoft.z3.Sort;
 
 import exceptions.UnexoectedOrUnhandledConditionalExpression;
 import ir.Application;
+import ir.Transaction;
 import ir.expression.Expression;
 import ir.expression.vars.PrimitiveVarExp;
 import ir.expression.vars.RowSetVarExp;
@@ -21,6 +22,10 @@ import ir.expression.vars.RowVarExp;
 import ir.expression.vars.VarExp;
 import ir.schema.Column;
 import ir.schema.Table;
+import ir.statement.InvokeStmt;
+import ir.statement.Query;
+import ir.statement.Query.Kind;
+import ir.statement.Statement;
 
 public class DynamicAssertsions {
 	Context ctx;
@@ -29,7 +34,7 @@ public class DynamicAssertsions {
 	Expr o1, o2, o3;
 	Z3Util z3Util;
 
-	public DynamicAssertsions(Context ctx, DeclaredObjects objs,Application app) {
+	public DynamicAssertsions(Context ctx, DeclaredObjects objs, Application app) {
 		this.app = app;
 		this.ctx = ctx;
 		this.objs = objs;
@@ -143,11 +148,11 @@ public class DynamicAssertsions {
 		String sVarName = txnName + "_" + setVar.getName();
 		String rowVarName = txnName + "_" + valueName;
 		x = ctx.mkForall(new Expr[] { tsort },
-				ctx.mkApp(objs.getfuncs(sVarName), tsort, (ctx.mkApp(objs.getfuncs(rowVarName), tsort))), 1,
-				null, null, null, null);
+				ctx.mkApp(objs.getfuncs(sVarName), tsort, (ctx.mkApp(objs.getfuncs(rowVarName), tsort))), 1, null, null,
+				null, null);
 		return x;
 	}
-	
+
 	public BoolExpr mk_row_var_loop_props(String txnName, String valueName, RowSetVarExp setVar) {
 		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
 		Expr isort = ctx.mkFreshConst("i", objs.getSort("Int"));
@@ -160,30 +165,7 @@ public class DynamicAssertsions {
 		return x;
 	}
 
-	/*
-	 * 
-	 * 
-	 * RULES
-	 * 
-	 * 
-	 */
 
-	public List<BoolExpr> return_conditions_rw_then(Expr vo1, Expr vo2, Expr vt1, Expr vt2) {
-		List<BoolExpr> result = new ArrayList<BoolExpr>();
-		BoolExpr cond1 = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo2);
-		BoolExpr cond2 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo1));
-		result.add(ctx.mkAnd(cond1, cond2));
-		result.add(ctx.mkFalse());
-		return result;
-	}
-
-	public List<BoolExpr> return_conditions_wr_then(Expr vo1, Expr vo2, Expr vt1, Expr vt2) {
-		List<BoolExpr> result = new ArrayList<BoolExpr>();
-		BoolExpr cond1 = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo1);
-		BoolExpr cond2 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), vo2));
-		result.add(ctx.mkAnd(cond1, cond2));
-		return result;
-	}
 
 	public BoolExpr mk_rw_then_deps(String tName) {
 		Expr r1 = ctx.mkFreshConst("r", objs.getSort(tName));

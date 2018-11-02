@@ -215,7 +215,8 @@ public class StaticAssertions {
 		BoolExpr body5 = ctx.mkImplies(
 				ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), o1), ctx.mkApp(objs.getfuncs("parent"), o2)), eqP);
 
-		BoolExpr body = ctx.mkAnd(body0, body1, body2, body3, body4, body5);
+		BoolExpr body6 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("ar"), o1, o2), ctx.mkGt(o2T, o1T));
+		BoolExpr body = ctx.mkAnd(body0, body1, body2, body3, body4, body5,body6);
 		Quantifier x = ctx.mkForall(new Expr[] { o1, o2 }, body, 1, null, null, null, null);
 		return x;
 	}

@@ -125,6 +125,10 @@ public class Transaction {
 		this.exps = exps;
 	}
 
+	public ArrayList<Statement> getStmts() {
+		return this.stmts;
+	}
+
 	public void printTxn() {
 		String paramList = " (";
 		int iter = 0;

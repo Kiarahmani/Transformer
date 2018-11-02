@@ -97,13 +97,17 @@ public class Z3Util {
 				return ctx.mkXor((BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
 						(BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case GEQ:
-				break;
+				return ctx.mkGe((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case LEQ:
-				break;
+				return ctx.mkLe((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case LT:
-				break;
+				return ctx.mkLt((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			case GT:
-				break;
+				return ctx.mkGt((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
 			default:
 				break;
 			}
@@ -111,7 +115,7 @@ public class Z3Util {
 			break;
 		case "UnOpExp":
 			UnOpExp uoe = (UnOpExp) cond;
-			if (uoe.equals(UnOp.NOT))
+			if (uoe.op == (UnOp.NOT))
 				return ctx.mkNot((BoolExpr) irCondToZ3Expr(txnName, txn, row, uoe.e));
 			else
 				break;

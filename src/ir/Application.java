@@ -26,6 +26,14 @@ public class Application {
 		System.out.println("========================================================================\n\n");
 	}
 
+	public Transaction getTxnByName(String txnName) {
+		return this.txns.stream().filter(t -> t.getName().equals(txnName)).findAny().get();
+	}
+
+	
+	
+	
+	
 	public String[] getAllStmtTypes() {
 		List<String> result = new ArrayList<String>();
 		int size = 0;
