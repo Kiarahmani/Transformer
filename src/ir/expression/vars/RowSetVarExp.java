@@ -17,6 +17,10 @@ public class RowSetVarExp extends VarExp {
 	public Expression getWhClause() {
 		return this.whereClause;
 	}
+	
+	public String getName() {
+		return super.getName();
+	}
 
 
 

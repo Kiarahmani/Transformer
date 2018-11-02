@@ -18,6 +18,10 @@ public class Z3Util {
 	Context ctx;
 	DeclaredObjects objs;
 	private int loopCount = 0;
+	private int absIntCount = 0;
+	private int absRealCount = 0;
+	private int absStringCount = 0;
+	private int absBoolCount = 0;
 
 	public Z3Util(Context ctx, DeclaredObjects objs) {
 		this.ctx = ctx;
@@ -69,7 +73,8 @@ public class Z3Util {
 			FuncDecl loopVarFunc = objs.getfuncs(txnName + "_" + vle.getName());
 			return ctx.mkApp(loopVarFunc, txn, ctx.mkInt(loopCount++));
 		case "UnknownExp":
-			break;
+			UnknownExp ue = (UnknownExp) cond;
+			return ctx.mkApp(objs.getfuncs("abs_integer"), ctx.mkInt(absIntCount++));
 		case "BinOpExp":
 			BinOpExp boe = (BinOpExp) cond; {
 			switch (boe.op) {

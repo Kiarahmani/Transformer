@@ -47,14 +47,14 @@ public class Query {
 	};
 
 	// reference to the sVar which holds the select query (if applicable)
-	Expression sVar;
+	private Expression sVar;
 	UnitData data;
 	ArrayList<Table> tables;
 	String text;
 	Kind kind;
 	Table table;
 	List<Column> s_columns;
-	List<Expression> i_values;
+	private List<Expression> i_values;
 	Map<Column, Expression> u_updates;
 	Expression whereClause;
 	Statement statements;
@@ -77,7 +77,7 @@ public class Query {
 			e1.printStackTrace();
 		}
 		this.s_columns = extractSCols();
-		this.i_values = extractIVals();
+		this.setI_values(extractIVals());
 		this.u_updates = extractUfuncs();
 		try {
 			this.whereClause = extractWC();
@@ -92,8 +92,8 @@ public class Query {
 		// with the given exp
 
 		this.whereClause = this.whereClause.getUpdateExp(newExp, index);
-		if (this.sVar != null)
-			this.sVar = this.sVar.getUpdateExp(newExp, index);
+		if (this.getsVar() != null)
+			this.setsVar(this.getsVar().getUpdateExp(newExp, index));
 
 		switch (this.kind) {
 		case SELECT:
@@ -106,9 +106,9 @@ public class Query {
 			break;
 		case INSERT:
 			List<Expression> newIValues = new ArrayList<Expression>();
-			for (Expression e : this.i_values)
+			for (Expression e : this.getI_values())
 				newIValues.add(e.getUpdateExp(newExp, index));
-			this.i_values = newIValues;
+			this.setI_values(newIValues);
 			break;
 		default:
 			break;
@@ -335,7 +335,7 @@ public class Query {
 			String c = this.s_columns.toString();
 			return k + "[" + t + ":" + c + "] " + " <<" + wc + ">>";
 		case INSERT:
-			String v = this.i_values.toString();
+			String v = this.getI_values().toString();
 			return k + "[" + t + "] " + v;
 		case DELETE:
 			return k + "[" + t + "] " + "<<" + wc + ">>";
@@ -353,8 +353,26 @@ public class Query {
 		return text;
 	}
 
+		
+	
 	public void addStmt(RowSetVarExp newExp) {
-		this.sVar = newExp;
+		this.setsVar(newExp);
+	}
+
+	public Expression getsVar() {
+		return sVar;
+	}
+
+	public void setsVar(Expression sVar) {
+		this.sVar = sVar;
+	}
+
+	public List<Expression> getI_values() {
+		return i_values;
+	}
+
+	public void setI_values(List<Expression> i_values) {
+		this.i_values = i_values;
 	}
 
 }

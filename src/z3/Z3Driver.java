@@ -72,7 +72,7 @@ public class Z3Driver {
 		ctxInitializeSorts();
 		this.staticAssrtions = new StaticAssertions(ctx, objs);
 		this.dynamicAssertions = new DynamicAssertsions(ctx, objs, this.app);
-		this.ruleGenerator = new Rules(ctx, objs, this.app);
+		this.ruleGenerator = new Rules(ctx, objs, this.app, this.tables);
 
 		// to be used in the rules
 		vo1 = ctx.mkFreshConst("o", objs.getSort("O"));
@@ -130,6 +130,10 @@ public class Z3Driver {
 		// =====================================================================================================================================================
 		HeaderZ3("STATIC FUNCTIONS & PROPS");
 		SubHeaderZ3(";declarations");
+		objs.addFunc("abs_integer", ctx.mkFuncDecl("abs_integer", objs.getSort("Int"), objs.getSort("Int")));
+		objs.addFunc("abs_boolean", ctx.mkFuncDecl("abs_boolean", objs.getSort("Int"), objs.getSort("Bool")));
+		objs.addFunc("abs_real", ctx.mkFuncDecl("abs_real", objs.getSort("Int"), objs.getSort("Real")));
+		objs.addFunc("abs_string", ctx.mkFuncDecl("abs_string", objs.getSort("Int"), objs.getSort("String")));
 		objs.addFunc("otime", ctx.mkFuncDecl("otime", objs.getSort("O"), objs.getSort("Int")));
 		objs.addFunc("opart", ctx.mkFuncDecl("opart", objs.getSort("O"), objs.getSort("Int")));
 		objs.addFunc("ttype", ctx.mkFuncDecl("ttype", objs.getSort("T"), objs.getDataTypes("TType")));
@@ -293,6 +297,7 @@ public class Z3Driver {
 				Expression exp = txn.getAllExps().get(val);
 				String label = txn.getName() + "_" + val.toString();
 				Sort tSort = objs.getSort("T");
+				Sort oSort = objs.getSort("O");
 
 				switch (exp.getClass().getSimpleName()) {
 				case "RowSetVarExp":
@@ -302,6 +307,8 @@ public class Z3Driver {
 					String table = rsv.getTable().getName();
 					objs.addFunc(label,
 							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort(table) }, objs.getSort("Bool")));
+					objs.addFunc(label + "_isNull",
+							ctx.mkFuncDecl(label + "_isNull", new Sort[] { oSort }, objs.getSort("Bool")));
 					// add props for SVar
 					BoolExpr prop = dynamicAssertions.mk_svar_props(txn.getName(), val.toString(), table,
 							rsv.getWhClause());
@@ -417,7 +424,7 @@ public class Z3Driver {
 
 	}
 
-	private void WRthen() {
+	private void WRthen() throws UnexoectedOrUnhandledConditionalExpression {
 		Map<String, FuncDecl> Ts = objs.getAllTTypes();
 		for (FuncDecl t1 : Ts.values())
 			for (FuncDecl t2 : Ts.values()) {
