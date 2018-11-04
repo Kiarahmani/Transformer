@@ -6,10 +6,12 @@ import ir.expression.Expression;
 public class ParamValExp extends ValExp {
 	Type type;
 	String name;
+	String originalName;
 
-	public ParamValExp(String name, Type type) {
+	public ParamValExp(String name, Type type, String originalName) {
 		this.type = type;
 		this.name = name;
+		this.originalName = originalName;
 	}
 
 	public Type getType() {

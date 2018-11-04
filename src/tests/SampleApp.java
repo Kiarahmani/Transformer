@@ -40,7 +40,7 @@ public class SampleApp {
 
 	}
 
-	public void updateBalance(int key1, int key2) throws Exception {
+	public void updateBalance() throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
@@ -48,13 +48,13 @@ public class SampleApp {
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
 			PreparedStatement preparedStatement2 = connect.prepareStatement("select * from A where id =?");
-			preparedStatement2.setInt(1, 1);
+			preparedStatement2.setInt(1, 666);
 			// preparedStatement2.setInt(2, key);
 			ResultSet rs = preparedStatement2.executeQuery();
 			rs.next();
 			System.out.println(rs.getInt(1));
 			PreparedStatement preparedStatement3 = connect.prepareStatement("update A set balance= 100 where id=?");
-			preparedStatement3.setInt(1, 1);
+			preparedStatement3.setInt(1, 999);
 			// preparedStatement2.setInt(2, key);
 			preparedStatement3.executeUpdate();
 			// }
@@ -67,9 +67,7 @@ public class SampleApp {
 
 	}
 
-	
-	
-	public void someTxn(int key1, int key2) throws Exception {
+	public void someTxn() throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
@@ -77,13 +75,13 @@ public class SampleApp {
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			System.out.println("connected: " + connect);
 			PreparedStatement preparedStatement2 = connect.prepareStatement("select * from A where id =?");
-			preparedStatement2.setInt(1, 2);
+			preparedStatement2.setInt(1, 999);
 			// preparedStatement2.setInt(2, key);
 			ResultSet rs = preparedStatement2.executeQuery();
 			rs.next();
 			System.out.println(rs.getInt(1));
 			PreparedStatement preparedStatement3 = connect.prepareStatement("update A set balance= 100 where id=?");
-			preparedStatement3.setInt(1, 1);
+			preparedStatement3.setInt(1, 999);
 			// preparedStatement2.setInt(2, key);
 			preparedStatement3.executeUpdate();
 			// }
@@ -95,9 +93,7 @@ public class SampleApp {
 		}
 
 	}
-	
-	
-	
+
 	public void select(int key) throws Exception {
 		try {
 

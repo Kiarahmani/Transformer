@@ -15,9 +15,13 @@ import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Model;
 
+import ir.Application;
+import ir.Transaction;
+import ir.expression.vals.ParamValExp;
 import ir.schema.Column;
 import ir.schema.Table;
 import net.sf.jsqlparser.expression.operators.relational.Between;
+import utils.Tuple;
 import z3.DeclaredObjects;
 
 public class Anomaly {
@@ -33,21 +37,24 @@ public class Anomaly {
 	public Map<Expr, Expr> cycle;
 	public Map<Expr, Expr> otypes;
 	public Map<Expr, Expr> ttypes;
+	public Map<Tuple<Expr, Expr>, Expr> conflictingRow;
 	public Map<Expr, Expr> otimes;
 	public Map<Expr, Expr> opart;
 	public List<Expr> isUpdate;
+	private Application app;
 	private boolean isCore;
 
 	public List<Expr> Ts;
 	ArrayList<Table> tables;
 
-	public Anomaly(Model model, Context ctx, DeclaredObjects objs, ArrayList<Table> tables, boolean isCore) {
+	public Anomaly(Model model, Context ctx, DeclaredObjects objs, ArrayList<Table> tables, Application app,
+			boolean isCore) {
 		this.model = model;
 		this.ctx = ctx;
 		this.objs = objs;
 		this.isCore = isCore;
 		this.tables = tables;
-
+		this.app = app;
 	}
 
 	public void announce(boolean isCore) {
@@ -57,6 +64,7 @@ public class Anomaly {
 			System.out.println("\n\n------------------\n--- Core Model --- ");
 
 		Map<String, FuncDecl> functions = getFunctions();
+		conflictingRow = new HashMap<>();
 		parentChildPairs = getParentChild(functions.get("parent"));
 		WWPairs = getWWPairs(functions.get("WW_O"));
 		WRPairs = getWRPairs(functions.get("WR_O"));
@@ -100,8 +108,25 @@ public class Anomaly {
 			drawLine();
 			// System.out.println(model);
 			System.out.println("--------------------\n");
+
+			System.out.println("\n\n------------------\n--- TXN Params --- ");
+			for (Expr t : Ts) {
+				System.out.print(t.toString().replaceAll("!val!", "") + ": ");
+				Expr ttype = model.eval(objs.getfuncs("ttype").apply(t), true);
+				System.out.print(ttype + "(");
+				Transaction txn = app.getTxnByName(ttype.toString());
+				String delim = "";
+				for (String pm : txn.getParams().keySet()) {
+					System.out.print(delim + pm + "=");
+					System.out.print(model.eval(ctx.mkApp(objs.getfuncs(ttype.toString() + "_PARAM_" + pm), t), true));
+
+					delim = ", ";
+				}
+				System.out.println(")");
+			}
+
 			AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
-					parentChildPairs, otypes, opart);
+					parentChildPairs, otypes, opart, conflictingRow);
 			av.createGraph("anomaly.dot");
 			// visualize records
 			RecordsVisualizer rv = new RecordsVisualizer(model, objs, tables);
@@ -145,10 +170,17 @@ public class Anomaly {
 	private Map<Expr, Expr> getCycle(FuncDecl x) {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		Map<Expr, Expr> result = new LinkedHashMap<>();
-		for (Expr o : Os)
-			for (Expr o1 : Os) {
-				if (model.eval(x.apply(o, o1), true).toString().equals("true")) {
-					result.put(o, o1);
+		for (Expr o1 : Os)
+			for (Expr o2 : Os) {
+				String o1Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o1), true).toString();
+				String o2Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o2), true).toString();
+				FuncDecl func = objs.getfuncs(o1Type.substring(1, o1Type.length() - 1) + "_"
+						+ o2Type.substring(1, o2Type.length() - 1) + "_conflict_rows");
+				Expr row = model.eval(ctx.mkApp(func, o1, o2), true);
+				conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), row);
+				// conflictingRow.put(o2, row);
+				if (model.eval(x.apply(o1, o2), true).toString().equals("true")) {
+					result.put(o1, o2);
 				}
 			}
 		return result;

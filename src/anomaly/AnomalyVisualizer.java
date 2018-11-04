@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.Model;
 
+import utils.Tuple;
 import z3.DeclaredObjects;
 
 public class AnomalyVisualizer {
@@ -27,6 +28,7 @@ public class AnomalyVisualizer {
 	Map<Expr, Expr> cycle;
 	Map<Expr, Expr> otype;
 	Map<Expr, Expr> opart;
+	Map<Tuple<Expr, Expr>, Expr> conflictingRows;
 	Model model;
 	DeclaredObjects objs;
 	Map<Expr, ArrayList<Expr>> parentChildPairs;
@@ -34,7 +36,7 @@ public class AnomalyVisualizer {
 	public AnomalyVisualizer(Map<Expr, ArrayList<Expr>> wWPairs, Map<Expr, ArrayList<Expr>> wRPairs,
 			Map<Expr, ArrayList<Expr>> rWPairs, Map<Expr, ArrayList<Expr>> visPairs, Map<Expr, Expr> cycle, Model model,
 			DeclaredObjects objs, Map<Expr, ArrayList<Expr>> parentChildPairs, Map<Expr, Expr> otype,
-			Map<Expr, Expr> opart) {
+			Map<Expr, Expr> opart, Map<Tuple<Expr, Expr>, Expr> conflictingRows) {
 		this.WRPairs = wRPairs;
 		this.WWPairs = wWPairs;
 		this.visPairs = visPairs;
@@ -45,6 +47,19 @@ public class AnomalyVisualizer {
 		this.parentChildPairs = parentChildPairs;
 		this.otype = otype;
 		this.opart = opart;
+		this.conflictingRows = conflictingRows;
+	}
+
+	private String rwB_edge_setting(String rowName, String boldStyle) {
+		return "[label = \"RW\n(" + rowName + ")\"," + boldStyle + "]";
+	}
+
+	private String wrB_edge_setting(String rowName, String boldStyle) {
+		return "[label = \"WR\n(" + rowName + ")\"," + boldStyle + "]";
+	}
+
+	private String wwB_edge_setting(String rowName, String boldStyle) {
+		return "[label = \"WW\n(" + rowName + ")\"," + boldStyle + "]";
 	}
 
 	public void createGraph(String fileName) {
@@ -64,9 +79,7 @@ public class AnomalyVisualizer {
 		String rw_edge_setting = "[label = \"rw\", " + normal_style + "]";
 		String wr_edge_setting = "[label = \"wr\", " + normal_style + "]";
 		String ww_edge_setting = "[label = \"ww\", " + normal_style + "]";
-		String rwB_edge_setting = "[label = \"RW\"," + bold_style + "]";
-		String wrB_edge_setting = "[label = \"WR\"," + bold_style + "]";
-		String wwB_edge_setting = "[label = \"WW\"," + bold_style + "]";
+
 		String vis_edge_setting = "[label = \"vis\",concentrate=true, style=dotted,weight=2, arrowhead=normal, arrowtail=inv, arrowsize=0.7, color=gray70, fontsize=10, fontcolor=gray60]";
 		try {
 			writer = new FileWriter(file, false);
@@ -105,7 +118,6 @@ public class AnomalyVisualizer {
 		}
 		// print invisible edges to put clusters close to each other
 		printer.append("\n\n");
-		String[] invisEdges = new String[10];
 		String opart1, opart2;
 		for (Expr o1 : Os) {
 			for (Expr o2 : Os) {
@@ -134,10 +146,13 @@ public class AnomalyVisualizer {
 					if (WWPairs.get(o) != null)
 						for (Expr o1 : WWPairs.get(o))
 							if (o1 != null) {
-								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
+								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString())) {
+									String confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).toString()
+											.replaceAll("!val!", "");
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
-											+ o1.toString().replaceAll("!val!", "") + wwB_edge_setting + ";\n");
-								else
+											+ o1.toString().replaceAll("!val!", "")
+											+ wwB_edge_setting(confRow, bold_style) + ";\n");
+								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + ww_edge_setting + ";\n");
 							}
@@ -145,20 +160,27 @@ public class AnomalyVisualizer {
 					if (WRPairs.get(o) != null)
 						for (Expr o1 : WRPairs.get(o))
 							if (o1 != null)
-								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
+								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString())) {
+									String confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).toString()
+											.replaceAll("!val!", "");
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
-											+ o1.toString().replaceAll("!val!", "") + wrB_edge_setting + ";\n");
-								else
+											+ o1.toString().replaceAll("!val!", "")
+											+ wrB_edge_setting(confRow, bold_style) + ";\n");
+								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + wr_edge_setting + ";\n");
 					// RW
 					if (RWPairs.get(o) != null)
 						for (Expr o1 : RWPairs.get(o))
 							if (o1 != null)
-								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString()))
+								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString())) {
+									String confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).toString()
+											.replaceAll("!val!", "");
+
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
-											+ o1.toString().replaceAll("!val!", "") + rwB_edge_setting + ";\n");
-								else
+											+ o1.toString().replaceAll("!val!", "")
+											+ rwB_edge_setting(confRow, bold_style) + ";\n");
+								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + rw_edge_setting + ";\n");
 				}

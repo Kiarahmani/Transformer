@@ -24,6 +24,8 @@ import soot.Unit;
 import soot.UnitPatchingChain;
 import soot.Value;
 import soot.ValueBox;
+import soot.jimple.ParameterRef;
+import soot.jimple.internal.JimpleLocal;
 import z3.ConstantArgs;
 
 public class GimpToAppOne extends GimpToApp {
@@ -60,7 +62,7 @@ public class GimpToAppOne extends GimpToApp {
 			Type t = Type.INT; // just to instanciate it, needed for calling the typing function
 			Value v = unitHandler.data.getParams().get(l);
 			try {
-				ParamValExp exp = (ParamValExp) new ParamValExp(l.toString(), t.fromJavaTypes(v));
+				ParamValExp exp = (ParamValExp) new ParamValExp(l.toString(), t.fromJavaTypes(v), "to-do");
 				txn.addParam(l.toString(), exp);
 				// Also add it the unit data
 				unitHandler.data.addExp(l, exp);

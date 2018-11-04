@@ -28,6 +28,8 @@ import ir.expression.vals.*;
 import ir.expression.vars.*;
 import ir.schema.Column;
 import ir.schema.Table;
+import ir.statement.InvokeStmt;
+import ir.statement.Statement;
 import soot.Value;
 
 public class Z3Driver {
@@ -209,6 +211,23 @@ public class Z3Driver {
 				}
 		}
 
+		// =====================================================================================================================================================
+		HeaderZ3("CONFLICTING ROWS");
+		for (Transaction txn1 : app.getTxns()) {
+			Sort oSort = objs.getSort("O");
+			for (Transaction txn2 : app.getTxns()) {
+				for (Statement o1 : txn1.getStmts())
+					for (Statement o2 : txn2.getStmts()) {
+						InvokeStmt io1 = (InvokeStmt) o1;
+						InvokeStmt io2 = (InvokeStmt) o2;
+						String tableName = io1.getQuery().getTable().getName();
+						objs.addFunc(io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
+								ctx.mkFuncDecl(io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows", new Sort[] { oSort, oSort },
+										objs.getSort(tableName)));
+					}
+			}
+		}
+
 		HeaderZ3("TABLE FUNCTIONS & PROPS");
 		// create table sorts and constraints
 		for (Table t : tables) {
@@ -380,7 +399,7 @@ public class Z3Driver {
 	private Anomaly checkSAT() {
 		if (slv.check() == Status.SATISFIABLE) {
 			model = slv.getModel();
-			return new Anomaly(model, ctx, objs, tables, findCore);
+			return new Anomaly(model, ctx, objs, tables, app, findCore);
 		} else {
 			System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
 			System.out.println("-------------\n--UNSAT core:");
@@ -446,11 +465,30 @@ public class Z3Driver {
 				String rule_name = t1.getName().toString() + "-" + t2.getName().toString() + "-wr-then";
 				addAssertion(rule_name, rw_then);
 			}
-
 	}
 
-	private void WWthen() {
-		// TODO Auto-generated method stub
+	private void WWthen() throws UnexoectedOrUnhandledConditionalExpression {
+		Map<String, FuncDecl> Ts = objs.getAllTTypes();
+		for (FuncDecl t1 : Ts.values())
+			for (FuncDecl t2 : Ts.values()) {
+				List<BoolExpr> conditions = ruleGenerator.return_conditions_ww_then(t1, t2, vo1, vo2, vt1, vt2);
+				conditions.add(ctx.mkFalse());
+				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
+				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
+				BoolExpr lhs2 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo2), vt2);
+				BoolExpr lhs3 = ctx.mkEq(ctx.mkApp(objs.getfuncs("ttype"), vt1),
+						ctx.mkApp(objs.getConstructor("TType", t1.getName().toString())));
+				BoolExpr lhs4 = ctx.mkEq(ctx.mkApp(objs.getfuncs("ttype"), vt2),
+						ctx.mkApp(objs.getConstructor("TType", t2.getName().toString())));
+				BoolExpr lhs5 = ctx.mkNot(ctx.mkEq(vo1, vo2));
+				BoolExpr lhs6 = ctx.mkNot(ctx.mkEq(vt1, vt2));
+				BoolExpr lhs7 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), vo1, vo2);
+				BoolExpr lhs = ctx.mkAnd(lhs1, lhs2, lhs3, lhs4, lhs5, lhs6, lhs7);
+				BoolExpr body = ctx.mkImplies(lhs, rhs);
+				Quantifier ww_then = ctx.mkForall(new Expr[] { vo1, vo2, vt1, vt2 }, body, 1, null, null, null, null);
+				String rule_name = t1.getName().toString() + "-" + t2.getName().toString() + "-ww-then";
+				addAssertion(rule_name, ww_then);
+			}
 
 	}
 
@@ -482,7 +520,6 @@ public class Z3Driver {
 			HeaderZ3(" RW-> ");
 			RWthen();
 		} catch (UnexoectedOrUnhandledConditionalExpression e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return checkSAT();
