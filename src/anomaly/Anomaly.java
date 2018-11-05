@@ -107,9 +107,9 @@ public class Anomaly {
 			System.out.println("opart:     " + opart);
 			drawLine();
 			// System.out.println(model);
-			System.out.println("--------------------\n");
+			System.out.println("------------------");
 
-			System.out.println("\n\n------------------\n--- TXN Params --- ");
+			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
 				System.out.print(t.toString().replaceAll("!val!", "") + ": ");
 				Expr ttype = model.eval(objs.getfuncs("ttype").apply(t), true);
