@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
+import com.microsoft.z3.IntNum;
 import com.microsoft.z3.Model;
 
 import ir.Application;
@@ -37,7 +38,7 @@ public class Anomaly {
 	public Map<Expr, Expr> cycle;
 	public Map<Expr, Expr> otypes;
 	public Map<Expr, Expr> ttypes;
-	public Map<Tuple<Expr, Expr>, Expr> conflictingRow;
+	public Map<Tuple<Expr, Expr>, Tuple<Expr, Integer>> conflictingRow;
 	public Map<Expr, Expr> otimes;
 	public Map<Expr, Expr> opart;
 	public List<Expr> isUpdate;
@@ -117,14 +118,14 @@ public class Anomaly {
 			// System.out.println(model);
 			System.out.println("------------------");
 
-			/*
-			 * System.out.println("\n\n\n===========================");
-			 * 
-			 * for (String key : Rs.keySet()) { FuncDecl verFunc = objs.getfuncs(key +
-			 * "_VERSION"); for (Expr e : Rs.get(key)) System.out.print(e + "(v" +
-			 * model.eval(verFunc.apply(e), true) + ")      ...  "); System.out.println(); }
-			 * System.out.println("===========================\n\n\n");
-			 */
+			System.out.println("\n\n\n===========================");
+			Expr[] As = model.getSortUniverse(objs.getSort("A"));
+				for (Expr a1 : As) {
+					System.out.println("---"+a1);
+				}
+
+			System.out.println("===========================\n\n\n");
+
 			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
 				System.out.print(t.toString().replaceAll("!val!", "") + ": ");
@@ -193,7 +194,10 @@ public class Anomaly {
 				FuncDecl func = objs.getfuncs(o1Type.substring(1, o1Type.length() - 1) + "_"
 						+ o2Type.substring(1, o2Type.length() - 1) + "_conflict_rows");
 				Expr row = model.eval(ctx.mkApp(func, o1, o2), true);
-				conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), row);
+				String tableName = row.getSort().toString();
+				IntNum version = (IntNum) model.eval(ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), row), true);
+				//
+				conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), new Tuple<Expr, Integer>(row, version.getInt()));
 				// conflictingRow.put(o2, row);
 				if (model.eval(x.apply(o1, o2), true).toString().equals("true")) {
 					result.put(o1, o2);

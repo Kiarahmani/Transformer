@@ -31,7 +31,7 @@ public class AnomalyVisualizer {
 	Map<Expr, Expr> otype;
 	Map<Expr, Expr> opart;
 	Map<Expr, Expr> Rs;
-	Map<Tuple<Expr, Expr>, Expr> conflictingRows;
+	Map<Tuple<Expr, Expr>, Tuple<Expr, Integer>> conflictingRows;
 	Model model;
 	DeclaredObjects objs;
 	Map<Expr, ArrayList<Expr>> parentChildPairs;
@@ -39,7 +39,7 @@ public class AnomalyVisualizer {
 	public AnomalyVisualizer(Map<Expr, ArrayList<Expr>> wWPairs, Map<Expr, ArrayList<Expr>> wRPairs,
 			Map<Expr, ArrayList<Expr>> rWPairs, Map<Expr, ArrayList<Expr>> visPairs, Map<Expr, Expr> cycle, Model model,
 			DeclaredObjects objs, Map<Expr, ArrayList<Expr>> parentChildPairs, Map<Expr, Expr> otype,
-			Map<Expr, Expr> opart, Map<Tuple<Expr, Expr>, Expr> conflictingRows, Map<Expr, Expr> Rs) {
+			Map<Expr, Expr> opart, Map<Tuple<Expr, Expr>, Tuple<Expr, Integer>> conflictingRows, Map<Expr, Expr> Rs) {
 		this.WRPairs = wRPairs;
 		this.WWPairs = wWPairs;
 		this.visPairs = visPairs;
@@ -151,12 +151,12 @@ public class AnomalyVisualizer {
 						for (Expr o1 : WWPairs.get(o))
 							if (o1 != null) {
 								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString())) {
-									Expr confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1));
+									Expr confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).x;
 									String confRowName = confRow.toString().replaceAll("!val!", "");
-									String confRowVersion = Rs.get(confRow).toString();
+									int confRowVersion = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).y;
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "")
-											+ wwB_edge_setting(confRowName, confRowVersion, bold_style) + ";\n");
+											+ wwB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style) + ";\n");
 								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + ww_edge_setting + ";\n");
@@ -166,12 +166,12 @@ public class AnomalyVisualizer {
 						for (Expr o1 : WRPairs.get(o))
 							if (o1 != null)
 								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString())) {
-									Expr confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1));
+									Expr confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).x;
 									String confRowName = confRow.toString().replaceAll("!val!", "");
-									String confRowVersion = Rs.get(confRow).toString();
+									int confRowVersion = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).y;
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "")
-											+ wrB_edge_setting(confRowName, confRowVersion, bold_style) + ";\n");
+											+ wrB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style) + ";\n");
 								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + wr_edge_setting + ";\n");
@@ -180,12 +180,12 @@ public class AnomalyVisualizer {
 						for (Expr o1 : RWPairs.get(o))
 							if (o1 != null)
 								if (cycle.get(o) != null && cycle.get(o).toString().equals(o1.toString())) {
-									Expr confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1));
+									Expr confRow = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).x;
 									String confRowName = confRow.toString().replaceAll("!val!", "");
-									String confRowVersion = Rs.get(confRow).toString();
+									int confRowVersion = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).y;
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "")
-											+ rwB_edge_setting(confRowName, confRowVersion, bold_style) + ";\n");
+											+ rwB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style) + ";\n");
 								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + rw_edge_setting + ";\n");

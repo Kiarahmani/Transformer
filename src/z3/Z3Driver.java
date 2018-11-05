@@ -9,13 +9,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.microsoft.z3.*;
@@ -29,7 +25,6 @@ import ir.expression.vars.*;
 import ir.schema.Column;
 import ir.schema.Table;
 import ir.statement.InvokeStmt;
-import ir.statement.Query.Kind;
 import ir.statement.Statement;
 import soot.Value;
 
@@ -214,22 +209,22 @@ public class Z3Driver {
 
 		// =====================================================================================================================================================
 		HeaderZ3("CONFLICTING ROWS");
-//		for (Transaction txn1 : app.getTxns()) {
-//			Sort oSort = objs.getSort("O");
-//			for (Transaction txn2 : app.getTxns()) {
-//				for (Statement o1 : txn1.getStmts())
-//					for (Statement o2 : txn2.getStmts()) {
-//						InvokeStmt io1 = (InvokeStmt) o1;
-//						InvokeStmt io2 = (InvokeStmt) o2;
-//						String tableName = io1.getQuery().getTable().getName();
-//						objs.addFunc(io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
-//								ctx.mkFuncDecl(
-//										io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
-//										new Sort[] { oSort, oSort }, objs.getSort(tableName)));
-//
-//					}
-//			}
-//		}
+		for (Transaction txn1 : app.getTxns()) {
+			Sort oSort = objs.getSort("O");
+			for (Transaction txn2 : app.getTxns()) {
+				for (Statement o1 : txn1.getStmts())
+					for (Statement o2 : txn2.getStmts()) {
+						InvokeStmt io1 = (InvokeStmt) o1;
+						InvokeStmt io2 = (InvokeStmt) o2;
+						String tableName = io1.getQuery().getTable().getName();
+						objs.addFunc(io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
+								ctx.mkFuncDecl(
+										io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
+										new Sort[] { oSort, oSort }, objs.getSort(tableName)));
+
+					}
+			}
+		}
 		for (Table t : tables)
 			objs.addFunc(t.getName() + "_conflict_rows", ctx.mkFuncDecl(t.getName() + "_conflict_rows",
 					new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort(t.getName())));
@@ -268,8 +263,11 @@ public class Z3Driver {
 			addAssertion(t.getName() + "_LWW", dynamicAssertions.mk_lww(t.getName()));
 
 		}
+		// =====================================================================================================================================================
 		HeaderZ3("VERSIONING PROPS");
-		addAssertion("versioning_props", dynamicAssertions.mk_versioning_props());
+		int iter = 0;
+		for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
+			addAssertion("versioning_props" + (iter++), ass);
 
 		for (Transaction txn : app.getTxns()) {
 			HeaderZ3("TXN: " + txn.getName().toUpperCase());
