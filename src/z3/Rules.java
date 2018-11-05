@@ -97,8 +97,8 @@ public class Rules {
 								q1.getWhClause());
 						BoolExpr aliveCond = ctx
 								.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo1));
-						BoolExpr notNullCond = ctx.mkNot(
-								(BoolExpr) ctx.mkApp(objs.getfuncs(txn1.getName() + "_" + lhsVarName), vt1, rowVar));
+						BoolExpr notNullCond = (BoolExpr) ctx
+								.mkApp(objs.getfuncs(txn1.getName() + "_" + lhsVarName + "_isNull"), vo1);
 						BoolExpr rwAliveOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_Alive_" + tableName),
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
@@ -106,11 +106,11 @@ public class Rules {
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, q2.getI_values().get(iter++)));
+									z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, q2.getI_values().get(iter++)));
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
-						Expr body = ctx.mkAnd(rowConflictCond,otypeCond1, otypeCond2, whereClause1, pathCond1, pathCond2,
-								allInsertedRowCond, aliveCond, notNullCond, rwAliveOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, pathCond1,
+								pathCond2, allInsertedRowCond, aliveCond, notNullCond, rwAliveOnTableCond);
 
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
@@ -132,21 +132,22 @@ public class Rules {
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
 						//
-						// XXX I DONT THINK THERE IS A DEPENDENCY HERE
 					} else if (q1.getKind() == Kind.UPDATE && q2.getKind() == Kind.DELETE) {
-						/*
-						 * BoolExpr whereClause2 = (BoolExpr) z3Util.irCondToZ3Expr(txn2.getName(), vt2,
-						 * rowVar, q2.getWhClause()); BoolExpr whereClause1 = (BoolExpr)
-						 * z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, q1.getWhClause());
-						 * BoolExpr aliveCond2 = (BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" +
-						 * tableName), rowVar, vo2); BoolExpr aliveCond1 = ctx .mkNot((BoolExpr)
-						 * ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo1)); BoolExpr
-						 * rwAliveOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_Alive_" +
-						 * tableName), rowVar, vo1, vo2); Expr body = ctx.mkAnd(otypeCond1, otypeCond2,
-						 * whereClause1, whereClause2, pathCond1, pathCond2, aliveCond1, aliveCond2,
-						 * rwAliveOnTableCond); BoolExpr rowExistsCond = ctx.mkExists(new Expr[] {
-						 * rowVar }, body, 1, null, null, null, null); result.add(rowExistsCond);
-						 */
+
+						BoolExpr whereClause2 = (BoolExpr) z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar,
+								q2.getWhClause());
+						BoolExpr whereClause1 = (BoolExpr) z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar,
+								q1.getWhClause());
+						BoolExpr aliveCond2 = (BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo2);
+						BoolExpr aliveCond1 = ctx
+								.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo1));
+						BoolExpr rwAliveOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_Alive_" + tableName),
+								rowVar, vo1, vo2);
+						Expr body = ctx.mkAnd(otypeCond1, otypeCond2, whereClause1, whereClause2, pathCond1, pathCond2,
+								aliveCond1, aliveCond2, rwAliveOnTableCond);
+						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
+						result.add(rowExistsCond);
+
 					} else if (q1.getKind() == Kind.UPDATE && q2.getKind() == Kind.INSERT) {
 						BoolExpr whereClause1 = (BoolExpr) z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar,
 								q1.getWhClause());
@@ -161,8 +162,8 @@ public class Rules {
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
 									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, q2.getI_values().get(iter++)));
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
-						Expr body = ctx.mkAnd(rowConflictCond,otypeCond1, otypeCond2, whereClause1, pathCond1, pathCond2, aliveCond1,
-								allInsertedRowCond, rwAliveOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, pathCond1,
+								pathCond2, aliveCond1, allInsertedRowCond, rwAliveOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
 					} else if (q1.getKind() == Kind.DELETE && q2.getKind() == Kind.INSERT) {
@@ -179,8 +180,8 @@ public class Rules {
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
 									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, q2.getI_values().get(iter++)));
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
-						Expr body = ctx.mkAnd(rowConflictCond,rowConflictCond, otypeCond1, otypeCond2, whereClause1, pathCond1,
-								pathCond2, aliveCond1, allInsertedRowCond, rwAliveOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, rowConflictCond, otypeCond1, otypeCond2, whereClause1,
+								pathCond1, pathCond2, aliveCond1, allInsertedRowCond, rwAliveOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
 					}
@@ -235,8 +236,8 @@ public class Rules {
 						BoolExpr aliveCond = (BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo1);
 						BoolExpr notNullCond = (BoolExpr) ctx
 								.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName + "_isNull"), vo2);
-						Expr body = ctx.mkAnd(rowConflictCond,otypeCond1, otypeCond2, whereClause1, whereClause2, pathCond1, pathCond2,
-								aliveCond, notNullCond, wrOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
+								pathCond1, pathCond2, aliveCond, notNullCond, wrOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
 						//
@@ -245,8 +246,8 @@ public class Rules {
 						BoolExpr whereClause2 = (BoolExpr) z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar,
 								q2.getWhClause());
 						BoolExpr aliveCond = (BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo2);
-						BoolExpr notNullCond = (BoolExpr) ctx
-								.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName + "_isNull"), vo2);
+						BoolExpr notNullCond = ctx.mkNot((BoolExpr) ctx
+								.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName + "_isNull"), vo2));
 						BoolExpr wrAliveOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_Alive_" + tableName),
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
@@ -254,11 +255,11 @@ public class Rules {
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn1.getName(), rowVar, vt1, q1.getI_values().get(iter++)));
+									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, q1.getI_values().get(iter++)));
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
-						Expr body = ctx.mkAnd(rowConflictCond,otypeCond1, otypeCond2, whereClause2, pathCond1, pathCond2,
-								allInsertedRowCond, aliveCond, notNullCond, wrAliveOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause2, pathCond1,
+								pathCond2, allInsertedRowCond, aliveCond, notNullCond, wrAliveOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
 						//
@@ -272,14 +273,14 @@ public class Rules {
 						BoolExpr aliveCond2 = ctx
 								.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo2));
 
-						BoolExpr notNullCond = ctx.mkNot(
-								(BoolExpr) ctx.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName), vt2, rowVar));
+						BoolExpr notNullCond = (BoolExpr) ctx
+								.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName + "_isNull"), vo2);
 
 						BoolExpr wrAliveOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_Alive_" + tableName),
 								rowVar, vo1, vo2);
 
-						Expr body = ctx.mkAnd(rowConflictCond,otypeCond1, otypeCond2, whereClause1, whereClause2, pathCond1, pathCond2,
-								aliveCond1, aliveCond2, notNullCond, wrAliveOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
+								pathCond1, pathCond2, aliveCond1, aliveCond2, notNullCond, wrAliveOnTableCond);
 
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
@@ -296,8 +297,8 @@ public class Rules {
 
 						BoolExpr wrAliveOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_Alive_" + tableName),
 								rowVar, vo1, vo2);
-						Expr body = ctx.mkAnd(rowConflictCond,otypeCond1, otypeCond2, whereClause1, whereClause2, pathCond1, pathCond2,
-								aliveCond1, aliveCond2, wrAliveOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
+								pathCond1, pathCond2, aliveCond1, aliveCond2, wrAliveOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
 						//
@@ -315,8 +316,8 @@ public class Rules {
 									z3Util.irCondToZ3Expr(txn1.getName(), rowVar, vt1, q1.getI_values().get(iter++)));
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
-						Expr body = ctx.mkAnd(rowConflictCond,otypeCond1, otypeCond2, whereClause2, pathCond1, pathCond2,
-								allInsertedRowCond, aliveCond, wrAliveOnTableCond);
+						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause2, pathCond1,
+								pathCond2, allInsertedRowCond, aliveCond, wrAliveOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
 						result.add(rowExistsCond);
 					} else if (q1.getKind() == Kind.INSERT && q2.getKind() == Kind.DELETE) {
