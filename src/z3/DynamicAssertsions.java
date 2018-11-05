@@ -283,4 +283,12 @@ public class DynamicAssertsions {
 		return null;
 	}
 
+	public BoolExpr mk_versioning_props() {
+		//FuncDecl verFunc = objs
+		BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("is_update"), o2);
+		BoolExpr rhs = ctx.mkTrue();
+		Expr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { o1, o2, o3 }, body, 1, null, null, null, null);
+		return x;
+	}
 }
