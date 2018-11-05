@@ -78,7 +78,9 @@ public class RecordsVisualizer {
 						content += delim;
 						delim = "|";
 						FuncDecl projFunc = objs.getfuncs(tableName + "_PROJ_" + column.name);
-						Expr value = model.eval(projFunc.apply(row), true);
+						FuncDecl versionFunc = objs.getfuncs(tableName + "_VERSION");
+						Expr version = model.eval(versionFunc.apply(row), true);
+						Expr value = model.eval(projFunc.apply(row, version), true);
 						if (value.toString().equals("\"\""))
 							content += "\'\' \\'\\'";
 						else

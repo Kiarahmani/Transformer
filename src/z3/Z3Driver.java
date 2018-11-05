@@ -222,8 +222,9 @@ public class Z3Driver {
 						InvokeStmt io2 = (InvokeStmt) o2;
 						String tableName = io1.getQuery().getTable().getName();
 						objs.addFunc(io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
-								ctx.mkFuncDecl(io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows", new Sort[] { oSort, oSort },
-										objs.getSort(tableName)));
+								ctx.mkFuncDecl(
+										io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
+										new Sort[] { oSort, oSort }, objs.getSort(tableName)));
 					}
 			}
 		}
@@ -235,9 +236,11 @@ public class Z3Driver {
 			LogZ3(";");
 			Sort tSort = objs.getSort(t.getName());
 			Sort oSort = objs.getSort("O");
+			objs.addFunc(t.getName() + "_VERSION",
+					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort }, objs.getSort("Int")));
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
-						new Sort[] { tSort }, objs.getSort(c.getType().toZ3String())));
+						new Sort[] { tSort, objs.getSort("Int") }, objs.getSort(c.getType().toZ3String())));
 			addAssertion("pk_" + t.getName(), dynamicAssertions.mk_pk_tables(t));
 			// dependecy relations on operations
 			objs.addFunc("IsAlive_" + t.getName(),

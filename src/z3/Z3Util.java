@@ -55,7 +55,8 @@ public class Z3Util {
 			return ctx.mkApp(objs.getfuncs(txnName + "_PARAM_" + pave.getName()), txn);
 		case "ProjValExp":
 			ProjValExp pve = (ProjValExp) cond;
-			return ctx.mkApp(objs.getfuncs(pve.table.getName() + "_PROJ_" + pve.column.name), row);
+			return ctx.mkApp(objs.getfuncs(pve.table.getName() + "_PROJ_" + pve.column.name), row,
+					ctx.mkApp(objs.getfuncs(pve.table.getName() + "_VERSION"), row));
 		case "PrimitiveVarExp":
 			break;
 		case "ProjVarExp":

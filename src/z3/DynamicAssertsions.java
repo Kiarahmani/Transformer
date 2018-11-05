@@ -113,16 +113,18 @@ public class DynamicAssertsions {
 	public BoolExpr mk_pk_tables(Table t) {
 		Expr r1 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
 		Expr r2 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
+		Expr i1 = ctx.mkFreshConst("i", objs.getSort("Int"));
+		Expr i2 = ctx.mkFreshConst("i", objs.getSort("Int"));
 		BoolExpr lhs = ctx.mkTrue();
 		for (Column c : t.getColumns())
 			if (c.isPK()) {
-				Expr proj1 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r1);
-				Expr proj2 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r2);
+				Expr proj1 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r1 , i1);
+				Expr proj2 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r2 , i2);
 				lhs = ctx.mkAnd(lhs, ctx.mkEq(proj1, proj2));
 			}
 		BoolExpr rhs = ctx.mkEq(r1, r2);
 		BoolExpr body = ctx.mkImplies(lhs, rhs);
-		Quantifier x = ctx.mkForall(new Expr[] { r1, r2 }, body, 1, null, null, null, null);
+		Quantifier x = ctx.mkForall(new Expr[] { r1, r2, i1, i2 }, body, 1, null, null, null, null);
 		return x;
 	}
 
@@ -164,8 +166,6 @@ public class DynamicAssertsions {
 				null, null, null, null);
 		return x;
 	}
-
-
 
 	public BoolExpr mk_rw_then_deps(String tName) {
 		Expr r1 = ctx.mkFreshConst("r", objs.getSort(tName));

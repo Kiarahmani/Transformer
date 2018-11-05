@@ -45,6 +45,7 @@ public class Anomaly {
 	private boolean isCore;
 
 	public List<Expr> Ts;
+	private Map<Expr, Expr> VRs;
 	ArrayList<Table> tables;
 
 	public Anomaly(Model model, Context ctx, DeclaredObjects objs, ArrayList<Table> tables, Application app,
@@ -55,6 +56,7 @@ public class Anomaly {
 		this.isCore = isCore;
 		this.tables = tables;
 		this.app = app;
+		this.VRs = new HashMap<>();
 	}
 
 	public void announce(boolean isCore) {
@@ -77,6 +79,12 @@ public class Anomaly {
 		ttypes = getTType(functions.get("ttype"));
 		isUpdate = getIsUpdate(functions.get("is_update"));
 		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
+
+		for (Table t : tables) {
+			Expr[] rows = model.getSortUniverse(objs.getSort(t.getName()));
+			for (Expr r : rows)
+				this.VRs.put(r, model.eval(objs.getfuncs(t.getName() + "_VERSION").apply(r), true));
+		}
 
 		// announce the non-core model
 		if (!isCore) {
@@ -109,6 +117,14 @@ public class Anomaly {
 			// System.out.println(model);
 			System.out.println("------------------");
 
+			/*
+			 * System.out.println("\n\n\n===========================");
+			 * 
+			 * for (String key : Rs.keySet()) { FuncDecl verFunc = objs.getfuncs(key +
+			 * "_VERSION"); for (Expr e : Rs.get(key)) System.out.print(e + "(v" +
+			 * model.eval(verFunc.apply(e), true) + ")      ...  "); System.out.println(); }
+			 * System.out.println("===========================\n\n\n");
+			 */
 			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
 				System.out.print(t.toString().replaceAll("!val!", "") + ": ");
@@ -126,7 +142,7 @@ public class Anomaly {
 			}
 
 			AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
-					parentChildPairs, otypes, opart, conflictingRow);
+					parentChildPairs, otypes, opart, conflictingRow, VRs);
 			av.createGraph("anomaly.dot");
 			// visualize records
 			RecordsVisualizer rv = new RecordsVisualizer(model, objs, tables);
