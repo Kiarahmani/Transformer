@@ -59,11 +59,11 @@ public class AnomalyVisualizer {
 	}
 
 	private String wrB_edge_setting(String rowName, String rowVersion, String boldStyle) {
-		return "[label = \"WR\n(" + rowName + "(v" + rowVersion + ")\"," + boldStyle + "]";
+		return "[label = \"WR\n" + rowName + "(v" + rowVersion + ")\"," + boldStyle + "]";
 	}
 
 	private String wwB_edge_setting(String rowName, String rowVersion, String boldStyle) {
-		return "[label = \"WW\n(" + rowName + "(v" + rowVersion + ")\"," + boldStyle + "]";
+		return "[label = \"WW\n" + rowName + "(v" + rowVersion + ")\"," + boldStyle + "]";
 	}
 
 	public void createGraph(String fileName) {

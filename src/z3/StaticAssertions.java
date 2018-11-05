@@ -216,18 +216,27 @@ public class StaticAssertions {
 				ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), o1), ctx.mkApp(objs.getfuncs("parent"), o2)), eqP);
 
 		BoolExpr body6 = ctx.mkImplies((BoolExpr) ctx.mkApp(objs.getfuncs("ar"), o1, o2), ctx.mkGt(o2T, o1T));
-		BoolExpr body = ctx.mkAnd(body0, body1, body2, body3, body4, body5,body6);
+		BoolExpr body = ctx.mkAnd(body0, body1, body2, body3, body4, body5, body6);
 		Quantifier x = ctx.mkForall(new Expr[] { o1, o2 }, body, 1, null, null, null, null);
 		return x;
 	}
 
 	public Quantifier mk_opart_props() {
 		ArithExpr o1P = (ArithExpr) ctx.mkApp(objs.getfuncs("opart"), o1);
-		ArithExpr o2P = (ArithExpr) ctx.mkApp(objs.getfuncs("opart"), o2);
 		BoolExpr body1 = ctx.mkLe(o1P, ctx.mkInt(ConstantArgs._MAX_NUM_PARTS));
 		BoolExpr body2 = ctx.mkGe(o1P, ctx.mkInt(1));
 		BoolExpr body = ctx.mkAnd(body1, body2);
 		Quantifier x = ctx.mkForall(new Expr[] { o1 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public Quantifier mk_row_version_props(String tableName, int max) {
+		Expr r1 = ctx.mkFreshConst(tableName, objs.getSort(tableName));
+		ArithExpr r1P = (ArithExpr) ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), r1);
+		BoolExpr body1 = ctx.mkLe(r1P, ctx.mkInt(max));
+		BoolExpr body2 = ctx.mkGe(r1P, ctx.mkInt(1));
+		BoolExpr body = ctx.mkAnd(body1, body2);
+		Quantifier x = ctx.mkForall(new Expr[] { r1 }, body, 1, null, null, null, null);
 		return x;
 	}
 

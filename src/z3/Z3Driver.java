@@ -29,6 +29,7 @@ import ir.expression.vars.*;
 import ir.schema.Column;
 import ir.schema.Table;
 import ir.statement.InvokeStmt;
+import ir.statement.Query.Kind;
 import ir.statement.Statement;
 import soot.Value;
 
@@ -225,6 +226,7 @@ public class Z3Driver {
 								ctx.mkFuncDecl(
 										io1.getType().toString() + "_" + io2.getType().toString() + "_conflict_rows",
 										new Sort[] { oSort, oSort }, objs.getSort(tableName)));
+
 					}
 			}
 		}
@@ -261,6 +263,7 @@ public class Z3Driver {
 			addAssertion(t.getName() + "_WR_TABLE_then_WR", dynamicAssertions.mk_wr_then_deps(t.getName()));
 			addAssertion(t.getName() + "_WW_TABLE_then_WW", dynamicAssertions.mk_ww_then_deps(t.getName()));
 			addAssertion(t.getName() + "_LWW", dynamicAssertions.mk_lww(t.getName()));
+
 		}
 
 		for (Transaction txn : app.getTxns()) {
