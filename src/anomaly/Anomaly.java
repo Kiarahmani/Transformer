@@ -20,6 +20,7 @@ import ir.Application;
 import ir.Transaction;
 import ir.schema.Table;
 import utils.Tuple;
+import z3.ConstantArgs;
 import z3.DeclaredObjects;
 
 public class Anomaly {
@@ -104,10 +105,12 @@ public class Anomaly {
 			drawLine();
 			System.out.println("opart:     " + opart);
 			drawLine();
-			// System.out.println(model);
+			if (ConstantArgs.DEBUG_MODE)
+				System.out.println(model);
 			System.out.println("------------------");
 
-			//printAllVersions();
+			if (ConstantArgs.DEBUG_MODE)
+				printAllVersions();
 
 			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
@@ -157,17 +160,18 @@ public class Anomaly {
 	}
 
 	private void printAllVersions() {
-		System.out.println("\n\n\n===========================");
+		System.out.println("\n\n==== ROWS AND VERSIONS:\n===========================");
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		for (Table t : tables) {
 			Expr[] Rs = model.getSortUniverse(objs.getSort(t.getName()));
 			FuncDecl verFunc = objs.getfuncs(t.getName() + "_VERSION");
 			for (Expr r1 : Rs) {
-				if (conflictingRow.values().stream().map(tuple -> tuple.x).collect(Collectors.toList()).contains(r1))
+				if (conflictingRow.values().stream().map(tuple -> tuple.x).collect(Collectors.toList()).contains(r1)) {
 					System.out.println("\n===" + r1);
-				for (Expr o : Os)
-					System.out.print("(" + o.toString().replaceAll("!val!", "") + ","
-							+ model.eval(verFunc.apply(r1, o), true) + ")");
+					for (Expr o : Os)
+						System.out.print("(" + o.toString().replaceAll("!val!", "") + ","
+								+ model.eval(verFunc.apply(r1, o), true) + ")");
+				}
 
 			}
 			System.out.println();

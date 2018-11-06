@@ -55,7 +55,7 @@ public class Query {
 	Table table;
 	List<Column> s_columns;
 	private List<Expression> i_values;
-	Map<Column, Expression> u_updates;
+	private Map<Column, Expression> u_updates;
 	Expression whereClause;
 	Statement statements;
 
@@ -78,7 +78,7 @@ public class Query {
 		}
 		this.s_columns = extractSCols();
 		this.setI_values(extractIVals());
-		this.u_updates = extractUfuncs();
+		this.setU_updates(extractUfuncs());
 		try {
 			this.whereClause = extractWC();
 		} catch (WhereClauseNotKnownException e) {
@@ -99,8 +99,8 @@ public class Query {
 		case SELECT:
 			break;
 		case UPDATE:
-			for (Column c : this.u_updates.keySet())
-				this.u_updates.put(c, this.u_updates.get(c).getUpdateExp(newExp, index));
+			for (Column c : this.getU_updates().keySet())
+				this.getU_updates().put(c, this.getU_updates().get(c).getUpdateExp(newExp, index));
 			break;
 		case DELETE:
 			break;
@@ -340,7 +340,7 @@ public class Query {
 		case DELETE:
 			return k + "[" + t + "] " + "<<" + wc + ">>";
 		case UPDATE:
-			String u = this.u_updates.toString();
+			String u = this.getU_updates().toString();
 			return k + "[" + t + "] " + u + " <<" + wc + ">>";
 
 		default:
@@ -373,6 +373,14 @@ public class Query {
 
 	public void setI_values(List<Expression> i_values) {
 		this.i_values = i_values;
+	}
+
+	public Map<Column, Expression> getU_updates() {
+		return u_updates;
+	}
+
+	public void setU_updates(Map<Column, Expression> u_updates) {
+		this.u_updates = u_updates;
 	}
 
 }
