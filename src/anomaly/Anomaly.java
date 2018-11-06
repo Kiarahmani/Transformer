@@ -46,7 +46,6 @@ public class Anomaly {
 	private boolean isCore;
 
 	public List<Expr> Ts;
-	private Map<Expr, Expr> VRs;
 	ArrayList<Table> tables;
 
 	public Anomaly(Model model, Context ctx, DeclaredObjects objs, ArrayList<Table> tables, Application app,
@@ -57,7 +56,6 @@ public class Anomaly {
 		this.isCore = isCore;
 		this.tables = tables;
 		this.app = app;
-		this.VRs = new HashMap<>();
 	}
 
 	public void announce(boolean isCore) {
@@ -80,12 +78,6 @@ public class Anomaly {
 		ttypes = getTType(functions.get("ttype"));
 		isUpdate = getIsUpdate(functions.get("is_update"));
 		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
-
-		for (Table t : tables) {
-			Expr[] rows = model.getSortUniverse(objs.getSort(t.getName()));
-			for (Expr r : rows)
-				this.VRs.put(r, model.eval(objs.getfuncs(t.getName() + "_VERSION").apply(r), true));
-		}
 
 		// announce the non-core model
 		if (!isCore) {
@@ -118,13 +110,7 @@ public class Anomaly {
 			// System.out.println(model);
 			System.out.println("------------------");
 
-			System.out.println("\n\n\n===========================");
-			Expr[] As = model.getSortUniverse(objs.getSort("A"));
-				for (Expr a1 : As) {
-					System.out.println("---"+a1);
-				}
-
-			System.out.println("===========================\n\n\n");
+			printAllVersions();
 
 			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
@@ -143,7 +129,7 @@ public class Anomaly {
 			}
 
 			AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
-					parentChildPairs, otypes, opart, conflictingRow, VRs);
+					parentChildPairs, otypes, opart, conflictingRow);
 			av.createGraph("anomaly.dot");
 			// visualize records
 			RecordsVisualizer rv = new RecordsVisualizer(model, objs, tables);
@@ -173,6 +159,30 @@ public class Anomaly {
 		}
 	}
 
+	private void printAllVersions() {
+		System.out.println("\n\n\n===========================");
+		Expr[] As = model.getSortUniverse(objs.getSort("A"));
+		Expr[] Bs = model.getSortUniverse(objs.getSort("B"));
+		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
+		FuncDecl verFuncA = objs.getfuncs("A_VERSION");
+		FuncDecl verFuncB = objs.getfuncs("B_VERSION");
+		for (Expr a1 : As) {
+			System.out.println("\n===" + a1);
+			for (Expr o : Os)
+				System.out.print("(" + o.toString().replaceAll("!val!", "") + ","
+						+ model.eval(verFuncA.apply(a1, o), true) + ") ");
+		}
+		System.out.println("\n-----------------\n");
+		for (Expr b1 : Bs) {
+			System.out.println("\n===" + b1);
+			for (Expr o : Os)
+				System.out.print("(" + o.toString().replaceAll("!val!", "") + ","
+						+ model.eval(verFuncB.apply(b1, o), true) + ") ");
+		}
+		System.out.println("===========================\n\n\n");
+
+	}
+
 	private List<Expr> getIsUpdate(FuncDecl isUpdate) {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		List<Expr> result = new ArrayList<>();
@@ -189,20 +199,26 @@ public class Anomaly {
 		Map<Expr, Expr> result = new LinkedHashMap<>();
 		for (Expr o1 : Os)
 			for (Expr o2 : Os) {
-				String o1Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o1), true).toString();
-				String o2Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o2), true).toString();
-				FuncDecl func = objs.getfuncs(o1Type.substring(1, o1Type.length() - 1) + "_"
-						+ o2Type.substring(1, o2Type.length() - 1) + "_conflict_rows");
-				Expr row = model.eval(ctx.mkApp(func, o1, o2), true);
-				String tableName = row.getSort().toString();
-				IntNum version = (IntNum) model.eval(ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), row), true);
-				//
-				conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), new Tuple<Expr, Integer>(row, version.getInt()));
-				// conflictingRow.put(o2, row);
 				if (model.eval(x.apply(o1, o2), true).toString().equals("true")) {
+					String o1Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o1), true).toString();
+					String o2Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o2), true).toString();
+					FuncDecl func = objs.getfuncs(o1Type.substring(1, o1Type.length() - 1) + "_"
+							+ o2Type.substring(1, o2Type.length() - 1) + "_conflict_rows");
+					Expr row = model.eval(ctx.mkApp(func, o1, o2), true);
+					String tableName = row.getSort().toString();
+					IntNum version = (IntNum) model.eval(ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), row, o1),
+							true);
+					//
+
 					result.put(o1, o2);
-				}
+					System.out.println(o1 + "<<---->>" + o2+": "+row);
+					conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), new Tuple<Expr, Integer>(row, version.getInt()));
+				} 
 			}
+		System.out.println("\n\n\n\n============");
+		System.out.println(conflictingRow);
+		System.out.println("============\n\n\n\n");
+
 		return result;
 	}
 

@@ -225,9 +225,10 @@ public class Z3Driver {
 					}
 			}
 		}
-		for (Table t : tables)
+	/*	for (Table t : tables)
 			objs.addFunc(t.getName() + "_conflict_rows", ctx.mkFuncDecl(t.getName() + "_conflict_rows",
 					new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort(t.getName())));
+					*/
 
 		HeaderZ3("TABLE FUNCTIONS & PROPS");
 		// create table sorts and constraints
@@ -237,7 +238,7 @@ public class Z3Driver {
 			Sort tSort = objs.getSort(t.getName());
 			Sort oSort = objs.getSort("O");
 			objs.addFunc(t.getName() + "_VERSION",
-					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort }, objs.getSort("Int")));
+					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort, oSort }, objs.getSort("Int")));
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
 						new Sort[] { tSort, objs.getSort("Int") }, objs.getSort(c.getType().toZ3String())));
@@ -268,6 +269,8 @@ public class Z3Driver {
 		int iter = 0;
 		for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
 			addAssertion("versioning_props" + (iter++), ass);
+
+		// =====================================================================================================================================================
 
 		for (Transaction txn : app.getTxns()) {
 			HeaderZ3("TXN: " + txn.getName().toUpperCase());

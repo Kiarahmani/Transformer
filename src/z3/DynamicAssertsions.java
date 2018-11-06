@@ -117,13 +117,15 @@ public class DynamicAssertsions {
 		BoolExpr lhs = ctx.mkTrue();
 		for (Column c : t.getColumns())
 			if (c.isPK()) {
-				Expr proj1 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r1, ctx.mkApp(verFunc, r1));
-				Expr proj2 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r2, ctx.mkApp(verFunc, r2));
+				Expr proj1 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r1,
+						ctx.mkApp(verFunc, r1, o1));
+				Expr proj2 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r2,
+						ctx.mkApp(verFunc, r2, o2));
 				lhs = ctx.mkAnd(lhs, ctx.mkEq(proj1, proj2));
 			}
 		BoolExpr rhs = ctx.mkEq(r1, r2);
 		BoolExpr body = ctx.mkImplies(lhs, rhs);
-		Quantifier x = ctx.mkForall(new Expr[] { r1, r2 }, body, 1, null, null, null, null);
+		Quantifier x = ctx.mkForall(new Expr[] { o1, o2, r1, r2 }, body, 1, null, null, null, null);
 		return x;
 	}
 
@@ -133,8 +135,9 @@ public class DynamicAssertsions {
 		BoolExpr rowBelongsToSet = (BoolExpr) ctx.mkApp(objs.getfuncs(txnName + "_" + ValueName), tsort, rsort);
 		Quantifier x = null;
 		try {
-			x = ctx.mkForall(new Expr[] { tsort, rsort },
-					ctx.mkImplies(rowBelongsToSet, (BoolExpr) z3Util.irCondToZ3Expr(txnName, tsort, rsort, whClause)),
+			x = ctx.mkForall(new Expr[] { o1, tsort, rsort },
+					ctx.mkImplies(rowBelongsToSet,
+							(BoolExpr) z3Util.irCondToZ3Expr(txnName, tsort, rsort, o1, whClause)),
 					1, null, null, null, null);
 		} catch (UnexoectedOrUnhandledConditionalExpression e) {
 			// TODO Auto-generated catch block
@@ -287,41 +290,26 @@ public class DynamicAssertsions {
 		List<BoolExpr> result = new ArrayList<>();
 		for (Table t : tables) {
 			Expr r1 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
-			Expr r2 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
 			FuncDecl verFunc = objs.getfuncs(t.getName() + "_VERSION");
-			BoolExpr lhs1 = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + t.getName()), r1, o1, o2);
-			BoolExpr lhs2 = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" + t.getName()), r2, o2, o3);
-			BoolExpr lhs = ctx.mkAnd(lhs1, lhs2);
-			BoolExpr rhs = ctx.mkGt((ArithExpr) ctx.mkApp(verFunc, r2), (ArithExpr) ctx.mkApp(verFunc, r1));
+			BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" + t.getName()), r1, o1, o2);
+			BoolExpr rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(9988));
+			// ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(1)));
 			Expr body = ctx.mkImplies(lhs, rhs);
-			Quantifier x = ctx.mkForall(new Expr[] { o1, o2, o3 }, body, 1, null, null, null, null);
+			Quantifier x = ctx.mkForall(new Expr[] { r1, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
-			lhs1 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r1, o1, o2);
-			lhs2 = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" + t.getName()), r2, o2, o3);
-			lhs = ctx.mkAnd(lhs1, lhs2);
-			rhs = ctx.mkGt((ArithExpr) ctx.mkApp(verFunc, r2), (ArithExpr) ctx.mkApp(verFunc, r1));
+			lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r1, o1, o2);
+			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(99));
+			// ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(1)));
 			body = ctx.mkImplies(lhs, rhs);
-			x = ctx.mkForall(new Expr[] { o1, o2, o3 }, body, 1, null, null, null, null);
-			result.add(x);
-
-			lhs1 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r1, o1, o2);
-			lhs2 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r2, o2, o3);
-			lhs = ctx.mkAnd(lhs1, lhs2);
-			rhs = ctx.mkGt((ArithExpr) ctx.mkApp(verFunc, r2), (ArithExpr) ctx.mkApp(verFunc, r1));
-			body = ctx.mkImplies(lhs, rhs);
-			x = ctx.mkForall(new Expr[] { o1, o2, o3 }, body, 1, null, null, null, null);
-			result.add(x);
-
-			lhs1 = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + t.getName()), r1, o1, o2);
-			lhs2 = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r2, o2, o3);
-			lhs = ctx.mkAnd(lhs1, lhs2);
-			rhs = ctx.mkGt((ArithExpr) ctx.mkApp(verFunc, r2), (ArithExpr) ctx.mkApp(verFunc, r1));
-			body = ctx.mkImplies(lhs, rhs);
-			x = ctx.mkForall(new Expr[] { o1, o2, o3 }, body, 1, null, null, null, null);
+			x = ctx.mkForall(new Expr[] { r1, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
 		}
+		Expr r1 = ctx.mkFreshConst("r", objs.getSort("A"));
+		Quantifier temp = ctx.mkForall(new Expr[] { r1, o1 }, ctx.mkEq(ctx.mkApp(objs.getfuncs("A_VERSION"), r1,o1), ctx.mkInt(999)), 1, null, null, null,
+				null);
+		//result.add(temp);
 		return result;
 	}
 }

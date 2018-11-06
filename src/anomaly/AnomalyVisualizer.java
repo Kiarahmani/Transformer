@@ -39,7 +39,7 @@ public class AnomalyVisualizer {
 	public AnomalyVisualizer(Map<Expr, ArrayList<Expr>> wWPairs, Map<Expr, ArrayList<Expr>> wRPairs,
 			Map<Expr, ArrayList<Expr>> rWPairs, Map<Expr, ArrayList<Expr>> visPairs, Map<Expr, Expr> cycle, Model model,
 			DeclaredObjects objs, Map<Expr, ArrayList<Expr>> parentChildPairs, Map<Expr, Expr> otype,
-			Map<Expr, Expr> opart, Map<Tuple<Expr, Expr>, Tuple<Expr, Integer>> conflictingRows, Map<Expr, Expr> Rs) {
+			Map<Expr, Expr> opart, Map<Tuple<Expr, Expr>, Tuple<Expr, Integer>> conflictingRows) {
 		this.WRPairs = wRPairs;
 		this.WWPairs = wWPairs;
 		this.visPairs = visPairs;

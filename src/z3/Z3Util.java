@@ -28,7 +28,7 @@ public class Z3Util {
 		this.objs = objs;
 	}
 
-	public Expr irCondToZ3Expr(String txnName, Expr txn, Expr row, Expression cond)
+	public Expr irCondToZ3Expr(String txnName, Expr txn, Expr row, Expr o1, Expression cond)
 			throws UnexoectedOrUnhandledConditionalExpression {
 
 		switch (cond.getClass().getSimpleName()) {
@@ -56,13 +56,13 @@ public class Z3Util {
 		case "ProjValExp":
 			ProjValExp pve = (ProjValExp) cond;
 			return ctx.mkApp(objs.getfuncs(pve.table.getName() + "_PROJ_" + pve.column.name), row,
-					ctx.mkApp(objs.getfuncs(pve.table.getName() + "_VERSION"), row));
+					ctx.mkApp(objs.getfuncs(pve.table.getName() + "_VERSION"), row, o1));
 		case "PrimitiveVarExp":
 			break;
 		case "ProjVarExp":
 			ProjVarExp pv = (ProjVarExp) cond;
 			FuncDecl projFunc = objs.getfuncs(pv.getRVar().getTable().getName() + "_PROJ_" + pv.getColumn().toString());
-			return ctx.mkApp(projFunc, irCondToZ3Expr(txnName, txn, row, pv.getRVar()));
+			return ctx.mkApp(projFunc, irCondToZ3Expr(txnName, txn, row, o1, pv.getRVar()));
 		case "RowSetVarExp":
 			break;
 		case "RowVarExp":
@@ -80,40 +80,41 @@ public class Z3Util {
 			BinOpExp boe = (BinOpExp) cond; {
 			switch (boe.op) {
 			case EQ:
-				return ctx.mkEq(irCondToZ3Expr(txnName, txn, row, boe.e1), irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkEq(irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case PLUS:
-				return ctx.mkAdd((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkAdd((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case MINUS:
-				return ctx.mkSub((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkSub((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case MULT:
-				return ctx.mkMul((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkMul((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case DIV:
-				return ctx.mkDiv((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkDiv((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case AND:
-				return ctx.mkAnd((BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkAnd((BoolExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(BoolExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case OR:
-				return ctx.mkOr((BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkOr((BoolExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(BoolExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case XOR:
-				return ctx.mkXor((BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(BoolExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkXor((BoolExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(BoolExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case GEQ:
-				return ctx.mkGe((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkGe((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case LEQ:
-				return ctx.mkLe((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkLe((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case LT:
-				return ctx.mkLt((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkLt((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			case GT:
-				return ctx.mkGt((ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e1),
-						(ArithExpr) irCondToZ3Expr(txnName, txn, row, boe.e2));
+				return ctx.mkGt((ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e1),
+						(ArithExpr) irCondToZ3Expr(txnName, txn, row, o1, boe.e2));
 			default:
 				break;
 			}
@@ -122,7 +123,7 @@ public class Z3Util {
 		case "UnOpExp":
 			UnOpExp uoe = (UnOpExp) cond;
 			if (uoe.op == (UnOp.NOT))
-				return ctx.mkNot((BoolExpr) irCondToZ3Expr(txnName, txn, row, uoe.e));
+				return ctx.mkNot((BoolExpr) irCondToZ3Expr(txnName, txn, row,o1, uoe.e));
 			else
 				break;
 		}
