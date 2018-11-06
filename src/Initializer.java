@@ -26,7 +26,7 @@ public class Initializer {
 		String[] soot_args = new String[3];
 		soot_args[0] = "--soot-classpath";
 		soot_args[1] = "/Users/Kiarash/dev/eclipse_workspace/Transformer/bin:" + _RT_PATH + _JCE_PATH;
-		soot_args[2] = "tests.SampleApp";
+		soot_args[2] = "tests.DirtyRead";
 
 		return soot_args;
 	}
