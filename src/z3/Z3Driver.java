@@ -272,8 +272,9 @@ public class Z3Driver {
 		// =====================================================================================================================================================
 		HeaderZ3("VERSIONING PROPS");
 		int iter = 0;
-		for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
-			addAssertion("versioning_props" + (iter++), ass);
+		if (ConstantArgs._ENFORCE_VERSIONING)
+			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
+				addAssertion("versioning_props" + (iter++), ass);
 
 		// =====================================================================================================================================================
 

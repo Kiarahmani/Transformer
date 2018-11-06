@@ -319,9 +319,11 @@ public class DynamicAssertsions {
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 			// versions are always positive
-			//x = ctx.mkForall(new Expr[] { r, o1 }, ctx.mkGe((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(0)), 1,
-		//			null, null, null, null);
-			result.add(x);
+			// x = ctx.mkForall(new Expr[] { r, o1 },
+			// ctx.mkBVSGE((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(0,
+			// ConstantArgs._MAX_VERSIONS_)), 1,
+			// null, null, null, null);
+			// result.add(x);
 		}
 		return result;
 	}

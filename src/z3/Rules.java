@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Quantifier;
+import com.microsoft.z3.SeqExpr;
 import com.microsoft.z3.Sort;
 
 import exceptions.UnexoectedOrUnhandledConditionalExpression;
@@ -90,9 +92,10 @@ public class Rules {
 						BoolExpr rwOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + tableName), rowVar, vo1,
 								vo2);
 						// realte the updating velues to the next version
-						//ZZZ
-						BoolExpr versionCond2 = ctx.mkTrue();// ctx.mkAnd(getVersionCondsRW(txn2, vt2, vo2, q2,
-																// rowVar));
+						// ZZZ
+						BoolExpr versionCond2 = ConstantArgs._ENFORCE_VERSIONING
+								? ctx.mkAnd(getVersionCondsRW(txn2, vt2, vo2, vo1, q2, rowVar))
+								: ctx.mkTrue();
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
 								versionCond2, pathCond1, pathCond2, aliveCond, rwOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
@@ -200,7 +203,7 @@ public class Rules {
 		return result;
 	}
 
-	private BoolExpr[] getVersionCondsRW(Transaction txn, Expr t, Expr o, Query q, Expr rowVar)
+	private BoolExpr[] getVersionCondsRW(Transaction txn, Expr t, Expr o, Expr oldO, Query q, Expr rowVar)
 			throws UnexoectedOrUnhandledConditionalExpression {
 		Map<Column, Expression> updateFuncs = q.getU_updates();
 		String tableName = q.getTable().getName();
@@ -210,11 +213,29 @@ public class Rules {
 			FuncDecl projFunc = objs.getfuncs(tableName + "_PROJ_" + c);
 			FuncDecl verFunc = objs.getfuncs(tableName + "_VERSION");
 			Expr lhsVal = ctx.mkApp(projFunc, rowVar, (ctx.mkApp(verFunc, rowVar, o)));
-			Expr lhsValolderVersion = ctx.mkApp(projFunc, rowVar,
-					ctx.mkAdd(((ArithExpr) ctx.mkApp(verFunc, rowVar, o)), ctx.mkInt(-1)));
+			switch (c.type) {
+			case STRING:
+				SeqExpr lhsValolderVersion = (SeqExpr) ctx.mkApp(projFunc, rowVar,
+						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
+				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.MkConcat(lhsValolderVersion, ctx.MkString("'"))));
+				break;
+			case INT:
+				ArithExpr lhsValolderVersion1 = (ArithExpr) ctx.mkApp(projFunc, rowVar,
+						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
+				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion1, ctx.mkInt(100))));
+				break;
+			case REAL:
+				ArithExpr lhsValolderVersion2 = (ArithExpr) ctx.mkApp(projFunc, rowVar,
+						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
+				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion2, ctx.mkInt(100))));
+				break;
+			default:
+				System.out.println("----- case not handled yet: " + c.type);
+			}
+
 			Expression rhsVal = updateFuncs.get(c);
 			versionConds[iter96++] = (ctx.mkEq(z3Util.irCondToZ3Expr(txn.getName(), t, rowVar, o, rhsVal), lhsVal));
-			versionConds[iter96++] = ctx.mkNot(ctx.mkEq(lhsVal, lhsValolderVersion));
+
 		}
 
 		return versionConds;
@@ -283,7 +304,9 @@ public class Rules {
 						BoolExpr notNullCond = (BoolExpr) ctx
 								.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName + "_isNull"), vo2);
 						// ZZZ
-						BoolExpr versionCond1 = ctx.mkTrue(); // ctx.mkAnd(getVersionCondsWR(txn1, vt1, vo1, q1, rowVar));
+						BoolExpr versionCond1 = ConstantArgs._ENFORCE_VERSIONING
+								? ctx.mkAnd(getVersionCondsWR(txn1, vt1, vo1, q1, rowVar))
+								: ctx.mkTrue();
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
 								versionCond1, pathCond1, pathCond2, aliveCond, notNullCond, wrOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
