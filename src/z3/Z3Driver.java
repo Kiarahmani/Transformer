@@ -225,10 +225,7 @@ public class Z3Driver {
 					}
 			}
 		}
-	/*	for (Table t : tables)
-			objs.addFunc(t.getName() + "_conflict_rows", ctx.mkFuncDecl(t.getName() + "_conflict_rows",
-					new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort(t.getName())));
-					*/
+
 
 		HeaderZ3("TABLE FUNCTIONS & PROPS");
 		// create table sorts and constraints

@@ -74,7 +74,8 @@ public class Rules {
 					BoolExpr pathCond2 = (BoolExpr) z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 							o2.getPathCond());
 
-					FuncDecl funcConf = objs.getfuncs(tableName + "_conflict_rows");
+					FuncDecl funcConf = objs.getfuncs(
+							((InvokeStmt) o1).getType() + "_" + ((InvokeStmt) o2).getType() + "_conflict_rows");
 					BoolExpr rowConflictCond = ctx.mkEq(ctx.mkApp(funcConf, vo1, vo2), rowVar);
 					//
 					if (q1.getKind() == Kind.SELECT && q2.getKind() == Kind.UPDATE) {
@@ -222,7 +223,8 @@ public class Rules {
 							o1.getPathCond());
 					BoolExpr pathCond2 = (BoolExpr) z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 							o2.getPathCond());
-					FuncDecl funcConf = objs.getfuncs(tableName + "_conflict_rows");
+					FuncDecl funcConf = objs.getfuncs(
+							((InvokeStmt) o1).getType() + "_" + ((InvokeStmt) o2).getType() + "_conflict_rows");
 					BoolExpr rowConflictCond = ctx.mkEq(ctx.mkApp(funcConf, vo1, vo2), rowVar);
 					//
 					if (q1.getKind() == Kind.UPDATE && q2.getKind() == Kind.SELECT) {
@@ -368,9 +370,10 @@ public class Rules {
 							o1.getPathCond());
 					BoolExpr pathCond2 = (BoolExpr) z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2, 
 							o2.getPathCond());
-					FuncDecl funcConf = objs.getfuncs(tableName + "_conflict_rows");
+					FuncDecl funcConf = objs.getfuncs(
+							((InvokeStmt) o1).getType() + "_" + ((InvokeStmt) o2).getType() + "_conflict_rows");
 					BoolExpr rowConflictCond = ctx.mkEq(ctx.mkApp(funcConf, vo1, vo2), rowVar);
-					/
+					//
 					if (q1.getKind() == Kind.UPDATE && q2.getKind() == Kind.UPDATE) {
 						BoolExpr whereClause1 = (BoolExpr) z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,
 								q1.getWhClause()); 

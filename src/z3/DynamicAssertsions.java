@@ -289,27 +289,27 @@ public class DynamicAssertsions {
 	public List<BoolExpr> mk_versioning_props(ArrayList<Table> tables) {
 		List<BoolExpr> result = new ArrayList<>();
 		for (Table t : tables) {
-			Expr r1 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
+			Expr r = ctx.mkFreshConst("r", objs.getSort(t.getName()));
 			FuncDecl verFunc = objs.getfuncs(t.getName() + "_VERSION");
-			BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" + t.getName()), r1, o1, o2);
-			BoolExpr rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(9988));
-			// ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(1)));
+			BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + t.getName()), r, o1, o2);
+			BoolExpr rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
+					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
 			Expr body = ctx.mkImplies(lhs, rhs);
-			Quantifier x = ctx.mkForall(new Expr[] { r1, o1, o2 }, body, 1, null, null, null, null);
+			Quantifier x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
-			lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r1, o1, o2);
-			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(99));
-			// ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r1, o1), ctx.mkInt(1)));
+			lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r, o1, o2);
+			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
+					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
 			body = ctx.mkImplies(lhs, rhs);
-			x = ctx.mkForall(new Expr[] { r1, o1, o2 }, body, 1, null, null, null, null);
+			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
 		}
 		Expr r1 = ctx.mkFreshConst("r", objs.getSort("A"));
-		Quantifier temp = ctx.mkForall(new Expr[] { r1, o1 }, ctx.mkEq(ctx.mkApp(objs.getfuncs("A_VERSION"), r1,o1), ctx.mkInt(999)), 1, null, null, null,
-				null);
-		//result.add(temp);
+		Quantifier temp = ctx.mkForall(new Expr[] { r1, o1 },
+				ctx.mkEq(ctx.mkApp(objs.getfuncs("A_VERSION"), r1, o1), ctx.mkInt(999)), 1, null, null, null, null);
+		// result.add(temp);
 		return result;
 	}
 }

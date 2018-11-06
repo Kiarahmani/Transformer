@@ -110,7 +110,7 @@ public class Anomaly {
 			// System.out.println(model);
 			System.out.println("------------------");
 
-			printAllVersions();
+			//printAllVersions();
 
 			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
@@ -208,16 +208,10 @@ public class Anomaly {
 					String tableName = row.getSort().toString();
 					IntNum version = (IntNum) model.eval(ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), row, o1),
 							true);
-					//
-
 					result.put(o1, o2);
-					System.out.println(o1 + "<<---->>" + o2+": "+row);
 					conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), new Tuple<Expr, Integer>(row, version.getInt()));
-				} 
+				}
 			}
-		System.out.println("\n\n\n\n============");
-		System.out.println(conflictingRow);
-		System.out.println("============\n\n\n\n");
 
 		return result;
 	}
