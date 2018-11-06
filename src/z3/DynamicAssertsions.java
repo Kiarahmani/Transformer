@@ -44,6 +44,8 @@ public class DynamicAssertsions {
 		o3 = ctx.mkFreshConst("o", objs.getSort("O"));
 	}
 
+	
+
 	public Quantifier mk_oType_to_is_update(List<String> updateTypes) {
 		BoolExpr[] ors = new BoolExpr[updateTypes.size()];
 		int iter = 0;

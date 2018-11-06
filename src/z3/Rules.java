@@ -90,7 +90,9 @@ public class Rules {
 						BoolExpr rwOnTableCond = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + tableName), rowVar, vo1,
 								vo2);
 						// realte the updating velues to the next version
-						BoolExpr versionCond2 = ctx.mkAnd(getVersionCondsRW(txn2, vt2, vo2, q2, rowVar));
+						//ZZZ
+						BoolExpr versionCond2 = ctx.mkTrue();// ctx.mkAnd(getVersionCondsRW(txn2, vt2, vo2, q2,
+																// rowVar));
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
 								versionCond2, pathCond1, pathCond2, aliveCond, rwOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);
@@ -214,6 +216,7 @@ public class Rules {
 			versionConds[iter96++] = (ctx.mkEq(z3Util.irCondToZ3Expr(txn.getName(), t, rowVar, o, rhsVal), lhsVal));
 			versionConds[iter96++] = ctx.mkNot(ctx.mkEq(lhsVal, lhsValolderVersion));
 		}
+
 		return versionConds;
 	}
 
@@ -279,8 +282,8 @@ public class Rules {
 						BoolExpr aliveCond = (BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo1);
 						BoolExpr notNullCond = (BoolExpr) ctx
 								.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName + "_isNull"), vo2);
-
-						BoolExpr versionCond1 = ctx.mkAnd(getVersionCondsWR(txn1, vt1, vo1, q1, rowVar));
+						// ZZZ
+						BoolExpr versionCond1 = ctx.mkTrue(); // ctx.mkAnd(getVersionCondsWR(txn1, vt1, vo1, q1, rowVar));
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
 								versionCond1, pathCond1, pathCond2, aliveCond, notNullCond, wrOnTableCond);
 						BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null, null);

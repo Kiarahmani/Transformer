@@ -230,13 +230,33 @@ public class StaticAssertions {
 		return x;
 	}
 
-	public Quantifier mk_row_version_props(String tableName, int max) {
-		Expr r1 = ctx.mkFreshConst(tableName, objs.getSort(tableName));
-		ArithExpr r1P = (ArithExpr) ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), r1);
+	public Quantifier mk_string_function_bounded_2(String funcName, String arg1Type, String arg2Type) {
+		Expr a1 = ctx.mkFreshConst(arg1Type, objs.getSort(arg1Type));
+		Expr a2 = ctx.mkFreshConst(arg1Type, objs.getSort(arg2Type));
+		Expr r1P = ctx.mkApp(objs.getfuncs(funcName), a1, a2);
+		BoolExpr body = (BoolExpr) ctx.mkApp(objs.getfuncs("my_strings"), r1P);
+		Quantifier x = ctx.mkForall(new Expr[] { a1, a2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public Quantifier mk_integer_function_bounded_2(String funcName, String arg1Type, String arg2Type, int max) {
+		Expr a1 = ctx.mkFreshConst(arg1Type, objs.getSort(arg1Type));
+		Expr a2 = ctx.mkFreshConst(arg1Type, objs.getSort(arg2Type));
+		ArithExpr r1P = (ArithExpr) ctx.mkApp(objs.getfuncs(funcName), a1, a2);
 		BoolExpr body1 = ctx.mkLe(r1P, ctx.mkInt(max));
 		BoolExpr body2 = ctx.mkGe(r1P, ctx.mkInt(1));
 		BoolExpr body = ctx.mkAnd(body1, body2);
-		Quantifier x = ctx.mkForall(new Expr[] { r1 }, body, 1, null, null, null, null);
+		Quantifier x = ctx.mkForall(new Expr[] { a1, a2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public Quantifier mk_integer_function_bounded_1(String funcName, String arg1Type, int max) {
+		Expr a1 = ctx.mkFreshConst(arg1Type, objs.getSort(arg1Type));
+		ArithExpr r1P = (ArithExpr) ctx.mkApp(objs.getfuncs(funcName), a1);
+		BoolExpr body1 = ctx.mkLe(r1P, ctx.mkInt(max));
+		BoolExpr body2 = ctx.mkGe(r1P, ctx.mkInt(1));
+		BoolExpr body = ctx.mkAnd(body1, body2);
+		Quantifier x = ctx.mkForall(new Expr[] { a1 }, body, 1, null, null, null, null);
 		return x;
 	}
 
@@ -258,6 +278,19 @@ public class StaticAssertions {
 	public Quantifier mk_no_wr() {
 		BoolExpr body = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), o1, o2));
 		Quantifier x = ctx.mkForall(new Expr[] { o1, o2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr my_strings_props(int max) {
+		Expr s1 = ctx.mkFreshConst("s", objs.getSort("String"));
+		BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("my_strings"), s1);
+		BoolExpr allRhs[] = new BoolExpr[max];
+		for (int i = 0; i < max; i++) {
+			allRhs[i] = ctx.mkEq(s1, ctx.MkString("text#" + String.valueOf(i)));
+		}
+		BoolExpr rhs = ctx.mkOr(allRhs);
+		BoolExpr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { s1 }, body, 1, null, null, null, null);
 		return x;
 	}
 

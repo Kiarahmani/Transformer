@@ -4,7 +4,7 @@ import ir.Type;
 
 public class Column {
 	public String name;
-	private Type type;
+	public Type type;
 	private boolean isPK;
 
 	public Column(String name, Type type, boolean isPK) {

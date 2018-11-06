@@ -29,6 +29,8 @@ import ir.statement.Statement;
 import soot.Value;
 
 public class Z3Driver {
+	int _MAX_VERSIONS = 2;
+	int _MAX_STRINGS = 1;
 	Application app;
 	ArrayList<Table> tables;
 	Context ctx;
@@ -113,6 +115,7 @@ public class Z3Driver {
 		objs.addSort("Int", ctx.mkIntSort());
 		objs.addSort("String", ctx.mkStringSort());
 		objs.addSort("Real", ctx.mkRealSort());
+
 		// create table sorts and constraints
 		for (Table t : tables) {
 			objs.addSort(t.getName(), ctx.mkUninterpretedSort(t.getName()));
@@ -127,7 +130,12 @@ public class Z3Driver {
 
 		// =====================================================================================================================================================
 		HeaderZ3("STATIC FUNCTIONS & PROPS");
+		SubHeaderZ3(";bounded sets for generic data types");
+		objs.addFunc("my_strings", ctx.mkFuncDecl("my_strings", objs.getSort("String"), objs.getSort("Bool")));
+		addAssertion("my_strings_props", staticAssrtions.my_strings_props(_MAX_STRINGS));
+
 		SubHeaderZ3(";declarations");
+
 		objs.addFunc("abs_integer", ctx.mkFuncDecl("abs_integer", objs.getSort("Int"), objs.getSort("Int")));
 		objs.addFunc("abs_boolean", ctx.mkFuncDecl("abs_boolean", objs.getSort("Int"), objs.getSort("Bool")));
 		objs.addFunc("abs_real", ctx.mkFuncDecl("abs_real", objs.getSort("Int"), objs.getSort("Real")));
@@ -207,6 +215,8 @@ public class Z3Driver {
 				}
 		}
 
+		// addAssertion("test", dynamicAssertions.test());
+
 		// =====================================================================================================================================================
 		HeaderZ3("CONFLICTING ROWS");
 		for (Transaction txn1 : app.getTxns()) {
@@ -238,6 +248,23 @@ public class Z3Driver {
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
 						new Sort[] { tSort, objs.getSort("Int") }, objs.getSort(c.getType().toZ3String())));
+			// bounding the version an projection functions
+/*
+			addAssertion("bound_on_version_function", staticAssrtions
+					.mk_integer_function_bounded_2(t.getName() + "_VERSION", t.getName(), "O", _MAX_VERSIONS));
+			for (Column c : t.getColumns())
+				switch (c.type) {
+				case INT:
+					addAssertion("bound_on_proj_" + c.name + "_function", staticAssrtions.mk_integer_function_bounded_2(
+							t.getName() + "_PROJ_" + c.getName(), t.getName(), "Int", _MAX_VERSIONS));
+					break;
+				case STRING:
+					addAssertion("bound_on_proj_" + c.name + "_function", staticAssrtions
+							.mk_string_function_bounded_2(t.getName() + "_PROJ_" + c.getName(), t.getName(), "Int"));
+				default:
+					break;
+				}
+*/
 			addAssertion("pk_" + t.getName(), dynamicAssertions.mk_pk_tables(t));
 			// dependecy relations on operations
 			objs.addFunc("IsAlive_" + t.getName(),
