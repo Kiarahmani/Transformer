@@ -292,42 +292,32 @@ public class DynamicAssertsions {
 			// RW then version increases
 			Expr r = ctx.mkFreshConst("r", objs.getSort(t.getName()));
 			FuncDecl verFunc = objs.getfuncs(t.getName() + "_VERSION");
-			BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + t.getName()), r, o1, o2);
+			FuncDecl wwFunc = objs.getfuncs("WW_O_" + t.getName());
+			FuncDecl wrFunc = objs.getfuncs("WR_O_" + t.getName());
+			FuncDecl rwFunc = objs.getfuncs("RW_O_" + t.getName());
+
+			BoolExpr lhs = (BoolExpr) ctx.mkApp(rwFunc, r, o1, o2);
 			BoolExpr rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
 					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
 			Expr body = ctx.mkImplies(lhs, rhs);
 			Quantifier x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
-			// WW then version increases
-			lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r, o1, o2);
+			// WR then version increases
+			lhs = (BoolExpr) ctx.mkApp(wrFunc, r, o1, o2);
 			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
-					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
+					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(0)));
 			body = ctx.mkImplies(lhs, rhs);
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
 			// WW then version increases
-			lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r, o1, o2);
+			lhs = (BoolExpr) ctx.mkApp(wwFunc, r, o1, o2);
 			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
 					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
 			body = ctx.mkImplies(lhs, rhs);
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
-
-			// no incomming wr then version is 0
-			/*
-			 * BoolExpr lhs0 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" +
-			 * t.getName()), r, o1, o2)); BoolExpr lhs1 = ctx.mkForall(new Expr[] { r, o1,
-			 * o2 }, lhs0, 1, null, null, null, null); BoolExpr lhs21 = (BoolExpr)
-			 * ctx.mkApp(objs.getfuncs("X"), o1, o2); BoolExpr lhs22 = (BoolExpr)
-			 * ctx.mkApp(objs.getfuncs("X"), o2, o1); BoolExpr lhs2 = ctx.mkOr(lhs21,
-			 * lhs22); lhs = ctx.mkAnd(lhs1, lhs2);
-			 * 
-			 * rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2), ctx.mkInt(0)); body =
-			 * ctx.mkImplies(lhs, rhs); result.add((BoolExpr) body);
-			 */
-
 			// versions are always positive
 			x = ctx.mkForall(new Expr[] { r, o1 }, ctx.mkGe((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(0)), 1,
 					null, null, null, null);
