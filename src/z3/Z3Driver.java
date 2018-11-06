@@ -226,7 +226,6 @@ public class Z3Driver {
 			}
 		}
 
-
 		HeaderZ3("TABLE FUNCTIONS & PROPS");
 		// create table sorts and constraints
 		for (Table t : tables) {
