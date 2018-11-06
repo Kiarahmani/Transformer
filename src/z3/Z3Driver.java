@@ -113,6 +113,7 @@ public class Z3Driver {
 		objs.addSort("O", ctx.mkUninterpretedSort("O"));
 		objs.addSort("Bool", ctx.mkBoolSort());
 		objs.addSort("Int", ctx.mkIntSort());
+		objs.addSort("BitVec", ctx.mkBitVecSort(ConstantArgs._MAX_VERSIONS_));
 		objs.addSort("String", ctx.mkStringSort());
 		objs.addSort("Real", ctx.mkRealSort());
 
@@ -130,9 +131,6 @@ public class Z3Driver {
 
 		// =====================================================================================================================================================
 		HeaderZ3("STATIC FUNCTIONS & PROPS");
-		SubHeaderZ3(";bounded sets for generic data types");
-		objs.addFunc("my_strings", ctx.mkFuncDecl("my_strings", objs.getSort("String"), objs.getSort("Bool")));
-		addAssertion("my_strings_props", staticAssrtions.my_strings_props(_MAX_STRINGS));
 
 		SubHeaderZ3(";declarations");
 
@@ -244,27 +242,11 @@ public class Z3Driver {
 			Sort tSort = objs.getSort(t.getName());
 			Sort oSort = objs.getSort("O");
 			objs.addFunc(t.getName() + "_VERSION",
-					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort, oSort }, objs.getSort("Int")));
+					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort, oSort }, objs.getSort("BitVec")));
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
-						new Sort[] { tSort, objs.getSort("Int") }, objs.getSort(c.getType().toZ3String())));
-			// bounding the version an projection functions
-/*
-			addAssertion("bound_on_version_function", staticAssrtions
-					.mk_integer_function_bounded_2(t.getName() + "_VERSION", t.getName(), "O", _MAX_VERSIONS));
-			for (Column c : t.getColumns())
-				switch (c.type) {
-				case INT:
-					addAssertion("bound_on_proj_" + c.name + "_function", staticAssrtions.mk_integer_function_bounded_2(
-							t.getName() + "_PROJ_" + c.getName(), t.getName(), "Int", _MAX_VERSIONS));
-					break;
-				case STRING:
-					addAssertion("bound_on_proj_" + c.name + "_function", staticAssrtions
-							.mk_string_function_bounded_2(t.getName() + "_PROJ_" + c.getName(), t.getName(), "Int"));
-				default:
-					break;
-				}
-*/
+						new Sort[] { tSort, objs.getSort("BitVec") }, objs.getSort(c.getType().toZ3String())));
+
 			addAssertion("pk_" + t.getName(), dynamicAssertions.mk_pk_tables(t));
 			// dependecy relations on operations
 			objs.addFunc("IsAlive_" + t.getName(),

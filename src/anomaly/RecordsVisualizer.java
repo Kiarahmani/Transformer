@@ -28,6 +28,7 @@ import com.microsoft.z3.Model;
 import ir.schema.Column;
 import ir.schema.Table;
 import utils.Tuple;
+import z3.ConstantArgs;
 import z3.DeclaredObjects;
 
 public class RecordsVisualizer {
@@ -65,8 +66,7 @@ public class RecordsVisualizer {
 		model.getSortUniverse(objs.getSort("T"));
 		model.getSortUniverse(objs.getSort("O"));
 		printer.append("digraph {\n" + node_style);
-		
-		
+
 		for (Tuple<Expr, Integer> versionedRow : conflictingRow.values()) {
 			Table table = tables.stream().filter(t -> versionedRow.x.toString().contains(t.getName())).findAny().get();
 			String content = "";
@@ -78,7 +78,9 @@ public class RecordsVisualizer {
 			content += "{Z3 label|" + lable + "(v" + labelVersion + ")}";
 			for (Column column : table.getColumns()) {
 				FuncDecl projFunc = objs.getfuncs(table.getName() + "_PROJ_" + column.name);
-				String value = (model.eval(projFunc.apply(versionedRow.x, ctx.mkInt(versionedRow.y)), true)).toString();
+				String value = (model.eval(
+						projFunc.apply(versionedRow.x, ctx.mkBV(versionedRow.y, ConstantArgs._MAX_VERSIONS_)), true))
+								.toString();
 				content += "|{";
 				content += column.name;
 				content += "|";

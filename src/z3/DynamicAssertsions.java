@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.microsoft.z3.ArithExpr;
+import com.microsoft.z3.BitVecExpr;
 import com.microsoft.z3.BoolExpr;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
@@ -43,8 +44,6 @@ public class DynamicAssertsions {
 		o2 = ctx.mkFreshConst("o", objs.getSort("O"));
 		o3 = ctx.mkFreshConst("o", objs.getSort("O"));
 	}
-
-	
 
 	public Quantifier mk_oType_to_is_update(List<String> updateTypes) {
 		BoolExpr[] ors = new BoolExpr[updateTypes.size()];
@@ -299,30 +298,29 @@ public class DynamicAssertsions {
 			FuncDecl rwFunc = objs.getfuncs("RW_O_" + t.getName());
 
 			BoolExpr lhs = (BoolExpr) ctx.mkApp(rwFunc, r, o1, o2);
-			BoolExpr rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
-					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
+			BoolExpr rhs = ctx.mkEq(ctx.mkApp(verFunc, r, o2),
+					ctx.mkBVAdd((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(1, ConstantArgs._MAX_VERSIONS_)));
 			Expr body = ctx.mkImplies(lhs, rhs);
 			Quantifier x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
 			// WR then version increases
 			lhs = (BoolExpr) ctx.mkApp(wrFunc, r, o1, o2);
-			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
-					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(0)));
+			rhs = ctx.mkEq(ctx.mkApp(verFunc, r, o2), ctx.mkApp(verFunc, r, o1));
 			body = ctx.mkImplies(lhs, rhs);
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
 			// WW then version increases
 			lhs = (BoolExpr) ctx.mkApp(wwFunc, r, o1, o2);
-			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
-					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
+			rhs = ctx.mkEq(ctx.mkApp(verFunc, r, o2),
+					ctx.mkBVAdd((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(1, ConstantArgs._MAX_VERSIONS_)));
 			body = ctx.mkImplies(lhs, rhs);
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 			// versions are always positive
-			x = ctx.mkForall(new Expr[] { r, o1 }, ctx.mkGe((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(0)), 1,
-					null, null, null, null);
+			//x = ctx.mkForall(new Expr[] { r, o1 }, ctx.mkGe((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(0)), 1,
+		//			null, null, null, null);
 			result.add(x);
 		}
 		return result;

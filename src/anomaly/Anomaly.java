@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.microsoft.z3.BitVecNum;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
@@ -203,7 +204,7 @@ public class Anomaly {
 							+ o2Type.substring(1, o2Type.length() - 1) + "_conflict_rows");
 					Expr row = model.eval(ctx.mkApp(func, o1, o2), true);
 					String tableName = row.getSort().toString();
-					IntNum version = (IntNum) model.eval(ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), row, o1),
+					BitVecNum version = (BitVecNum) model.eval(ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), row, o1),
 							true);
 					result.put(o1, o2);
 					conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), new Tuple<Expr, Integer>(row, version.getInt()));
