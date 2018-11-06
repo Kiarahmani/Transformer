@@ -29,5 +29,5 @@ public class Initializer {
 		soot_args[2] = "tests.LostUpdate";
 
 		return soot_args;
-	}
+	} 
 }

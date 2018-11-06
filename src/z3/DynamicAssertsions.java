@@ -289,6 +289,7 @@ public class DynamicAssertsions {
 	public List<BoolExpr> mk_versioning_props(ArrayList<Table> tables) {
 		List<BoolExpr> result = new ArrayList<>();
 		for (Table t : tables) {
+			// RW then version increases
 			Expr r = ctx.mkFreshConst("r", objs.getSort(t.getName()));
 			FuncDecl verFunc = objs.getfuncs(t.getName() + "_VERSION");
 			BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O_" + t.getName()), r, o1, o2);
@@ -298,6 +299,7 @@ public class DynamicAssertsions {
 			Quantifier x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
+			// WW then version increases
 			lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r, o1, o2);
 			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
 					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
@@ -305,11 +307,47 @@ public class DynamicAssertsions {
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
 
+			// WW then version increases
+			lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("WW_O_" + t.getName()), r, o1, o2);
+			rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2),
+					ctx.mkAdd((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(1)));
+			body = ctx.mkImplies(lhs, rhs);
+			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
+			result.add(x);
+
+			// no incomming wr then version is 0
+			/*
+			 * BoolExpr lhs0 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O_" +
+			 * t.getName()), r, o1, o2)); BoolExpr lhs1 = ctx.mkForall(new Expr[] { r, o1,
+			 * o2 }, lhs0, 1, null, null, null, null); BoolExpr lhs21 = (BoolExpr)
+			 * ctx.mkApp(objs.getfuncs("X"), o1, o2); BoolExpr lhs22 = (BoolExpr)
+			 * ctx.mkApp(objs.getfuncs("X"), o2, o1); BoolExpr lhs2 = ctx.mkOr(lhs21,
+			 * lhs22); lhs = ctx.mkAnd(lhs1, lhs2);
+			 * 
+			 * rhs = ctx.mkEq((ArithExpr) ctx.mkApp(verFunc, r, o2), ctx.mkInt(0)); body =
+			 * ctx.mkImplies(lhs, rhs); result.add((BoolExpr) body);
+			 */
+
+			// versions are always positive
+			x = ctx.mkForall(new Expr[] { r, o1 }, ctx.mkGe((ArithExpr) ctx.mkApp(verFunc, r, o1), ctx.mkInt(0)), 1,
+					null, null, null, null);
+			result.add(x);
 		}
-		Expr r1 = ctx.mkFreshConst("r", objs.getSort("A"));
-		Quantifier temp = ctx.mkForall(new Expr[] { r1, o1 },
-				ctx.mkEq(ctx.mkApp(objs.getfuncs("A_VERSION"), r1, o1), ctx.mkInt(999)), 1, null, null, null, null);
-		// result.add(temp);
 		return result;
 	}
 }
+
+/*
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */

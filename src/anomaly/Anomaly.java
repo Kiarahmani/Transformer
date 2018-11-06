@@ -18,10 +18,7 @@ import com.microsoft.z3.Model;
 
 import ir.Application;
 import ir.Transaction;
-import ir.expression.vals.ParamValExp;
-import ir.schema.Column;
 import ir.schema.Table;
-import net.sf.jsqlparser.expression.operators.relational.Between;
 import utils.Tuple;
 import z3.DeclaredObjects;
 
@@ -132,7 +129,7 @@ public class Anomaly {
 					parentChildPairs, otypes, opart, conflictingRow);
 			av.createGraph("anomaly.dot");
 			// visualize records
-			RecordsVisualizer rv = new RecordsVisualizer(model, objs, tables);
+			RecordsVisualizer rv = new RecordsVisualizer(ctx, model, objs, tables, conflictingRow);
 			rv.createGraph("records.dot");
 
 		}
@@ -161,23 +158,19 @@ public class Anomaly {
 
 	private void printAllVersions() {
 		System.out.println("\n\n\n===========================");
-		Expr[] As = model.getSortUniverse(objs.getSort("A"));
-		Expr[] Bs = model.getSortUniverse(objs.getSort("B"));
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
-		FuncDecl verFuncA = objs.getfuncs("A_VERSION");
-		FuncDecl verFuncB = objs.getfuncs("B_VERSION");
-		for (Expr a1 : As) {
-			System.out.println("\n===" + a1);
-			for (Expr o : Os)
-				System.out.print("(" + o.toString().replaceAll("!val!", "") + ","
-						+ model.eval(verFuncA.apply(a1, o), true) + ") ");
-		}
-		System.out.println("\n-----------------\n");
-		for (Expr b1 : Bs) {
-			System.out.println("\n===" + b1);
-			for (Expr o : Os)
-				System.out.print("(" + o.toString().replaceAll("!val!", "") + ","
-						+ model.eval(verFuncB.apply(b1, o), true) + ") ");
+		for (Table t : tables) {
+			Expr[] Rs = model.getSortUniverse(objs.getSort(t.getName()));
+			FuncDecl verFunc = objs.getfuncs(t.getName() + "_VERSION");
+			for (Expr r1 : Rs) {
+				if (conflictingRow.values().stream().map(tuple -> tuple.x).collect(Collectors.toList()).contains(r1))
+					System.out.println("\n===" + r1);
+				for (Expr o : Os)
+					System.out.print("(" + o.toString().replaceAll("!val!", "") + ","
+							+ model.eval(verFunc.apply(r1, o), true) + ")");
+
+			}
+			System.out.println();
 		}
 		System.out.println("===========================\n\n\n");
 
