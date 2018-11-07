@@ -74,7 +74,7 @@ public class Transformer extends BodyTransformer {
 		int iter = 1;
 		List<Anomaly> seenAnmls = new ArrayList<>();
 		while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
-			ConstantArgs._Current_Cycle_Length = 3;
+			ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
 			do {
 				long loopBegin = System.currentTimeMillis();
 				System.out.println(runHeader(iter++));
@@ -88,9 +88,13 @@ public class Transformer extends BodyTransformer {
 					zdr.closeCtx();
 				System.out.println(runTimeFooter(loopBegin));
 				// update global variables for the next round
-				ConstantArgs._Current_Cycle_Length++;
+				if (ConstantArgs._ENFORCE_EXCLUSION) {
+					// if (anml == null) //XXX add this once exclusion at Z3 is done
+					ConstantArgs._Current_Cycle_Length++;
+				} else
+					ConstantArgs._Current_Cycle_Length++;
 
-			} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_MODEL_GENERATION_TRIALS);
+			} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_CYCLE_LENGTH);
 			ConstantArgs._current_partition_size++;
 		}
 

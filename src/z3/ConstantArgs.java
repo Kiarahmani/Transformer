@@ -8,11 +8,10 @@ import java.util.Properties;
 
 public class ConstantArgs {
 
-	
 	// file under analysis
-	public static String _BENCHMARK_NAME = "SampleApp";
+	public static String _BENCHMARK_NAME = "DualProblems";
 	// maximum length of anomalous cycles looked for
-	public static int _MAX_CYCLE_LENGTH = 8;
+	public static int _MAX_CYCLE_LENGTH = 4;
 	// maxim number of partitions
 	public static int _MAX_NUM_PARTS = 1;
 	// size of the bit vectors representing integers
@@ -27,13 +26,14 @@ public class ConstantArgs {
 	public static boolean _ENFORCE_EXCLUSION = true;
 	// additional constraints on the anomalies
 	public static boolean _NO_WW = true;
-	public static boolean _NO_WR = false;
+	public static boolean _NO_WR = true;
 	public static boolean _NO_RW = false;
 
 	/*
 	 * Internal Global Variables (do not change unless you know what you're doing)
 	 */
-	public static int _Current_Cycle_Length = 3;
+	public static int _Minimum_Cycle_Length = 4;
+	public static int _Current_Cycle_Length = _Minimum_Cycle_Length;
 	public static int _current_partition_size = 1;
 
 	/*

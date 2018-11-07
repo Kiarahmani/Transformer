@@ -29,6 +29,12 @@ public class DualProblems {
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+			PreparedStatement ps5 = connect.prepareStatement("select * from A where id=1");
+			ResultSet rs2 = ps5.executeQuery();
+			rs2.next();
+			int id = rs2.getInt("id");
+			int balance = rs2.getInt("balance");
+			System.out.println(id + balance);
 			PreparedStatement ps = connect.prepareStatement("update A set balance= ? where id=1");
 			ps.setInt(1, bal1);
 			ps.executeUpdate();
