@@ -1,10 +1,7 @@
 package z3;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 public class ConstantArgs {
 
@@ -26,7 +23,7 @@ public class ConstantArgs {
 	public static boolean _ENFORCE_EXCLUSION = true;
 	// additional constraints on the anomalies
 	public static boolean _NO_WW = true;
-	public static boolean _NO_WR = true;
+	public static boolean _NO_WR = false;
 	public static boolean _NO_RW = false;
 
 	/*
