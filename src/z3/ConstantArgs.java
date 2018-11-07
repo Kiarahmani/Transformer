@@ -6,9 +6,9 @@ import java.util.List;
 
 public class ConstantArgs {
 
-	public static int _MAX_VERSIONS_ = 2;
-	public static int _DEP_CYCLE_LENGTH = 6;
-	public static int _MAX_NUM_PARTS = 1;
+	public static int _DEP_CYCLE_LENGTH = 4;
+	public static int _MAX_VERSIONS_ = 3;
+	public static int _MAX_NUM_PARTS = 2;
 	public static int _MAX_TXN_INSTANCES = -1; // -1 for no constraint
 	public static boolean _NO_WW = true;
 	public static boolean _NO_WR = false;
