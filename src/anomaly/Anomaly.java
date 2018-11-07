@@ -25,6 +25,7 @@ import z3.ConstantArgs;
 import z3.DeclaredObjects;
 
 public class Anomaly {
+
 	private String name;
 	private Model model;
 	private Context ctx;
@@ -41,6 +42,7 @@ public class Anomaly {
 	public Map<Expr, Expr> otimes;
 	public Map<Expr, Expr> opart;
 	public List<Expr> isUpdate;
+	private List<Tuple<String, String>> cycleStructure;
 	private Application app;
 	private boolean isCore;
 
@@ -59,6 +61,21 @@ public class Anomaly {
 
 	public void closeCtx() {
 		this.ctx.close();
+	}
+
+	private void generateCycleStructure() {
+		this.cycleStructure = new ArrayList<>();
+		FuncDecl otypeFunc = objs.getfuncs("otype");
+		for (Expr x : this.cycle.keySet()) {
+			Expr y = this.cycle.get(x);
+			Tuple<String, String> newTuple = new Tuple<String, String>(model.eval(otypeFunc.apply(x), true).toString(),
+					model.eval(otypeFunc.apply(y), true).toString());
+			this.cycleStructure.add(newTuple);
+		}
+	}
+
+	public List<Tuple<String, String>> getCycleStructure() {
+		return this.cycleStructure;
 	}
 
 	public void announce(boolean isCore, int anmlNo) {
@@ -140,6 +157,8 @@ public class Anomaly {
 			AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
 					parentChildPairs, otypes, opart, conflictingRow);
 			av.createGraph("anomaly_" + anmlNo + ".dot");
+			// prepare it for the next analysis round to be excluded
+			generateCycleStructure();
 
 		}
 		// announce core model
@@ -436,4 +455,45 @@ public class Anomaly {
 	private void drawLine() {
 		// System.out.println("--------------------------------------");
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Model getModel() {
+		return model;
+	}
+
+	public void setModel(Model model) {
+		this.model = model;
+	}
+
+	public Context getCtx() {
+		return ctx;
+	}
+
+	public void setCtx(Context ctx) {
+		this.ctx = ctx;
+	}
+
+	public Application getApp() {
+		return app;
+	}
+
+	public void setApp(Application app) {
+		this.app = app;
+	}
+
+	public boolean isCore() {
+		return isCore;
+	}
+
+	public void setCore(boolean isCore) {
+		this.isCore = isCore;
+	}
+
 }

@@ -89,8 +89,8 @@ public class Transformer extends BodyTransformer {
 				System.out.println(runTimeFooter(loopBegin));
 				// update global variables for the next round
 				if (ConstantArgs._ENFORCE_EXCLUSION) {
-					// if (anml == null) //XXX add this once exclusion at Z3 is done
-					ConstantArgs._Current_Cycle_Length++;
+					if (anml == null) // keep the length unchanged untill all of this length is found
+						ConstantArgs._Current_Cycle_Length++;
 				} else
 					ConstantArgs._Current_Cycle_Length++;
 

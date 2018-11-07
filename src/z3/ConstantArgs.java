@@ -6,11 +6,11 @@ import java.util.List;
 public class ConstantArgs {
 
 	// file under analysis
-	public static String _BENCHMARK_NAME = "DualProblems";
+	public static String _BENCHMARK_NAME = "SampleApp";
 	// maximum length of anomalous cycles looked for
-	public static int _MAX_CYCLE_LENGTH = 4;
+	public static int _MAX_CYCLE_LENGTH = 6;
 	// maxim number of partitions
-	public static int _MAX_NUM_PARTS = 1;
+	public static int _MAX_NUM_PARTS = 2;
 	// size of the bit vectors representing integers
 	public static int _MAX_VERSIONS_ = 4;
 	// maximum number of transaction instances in the anomaly (-1 for no constraint)
@@ -29,7 +29,7 @@ public class ConstantArgs {
 	/*
 	 * Internal Global Variables (do not change unless you know what you're doing)
 	 */
-	public static int _Minimum_Cycle_Length = 4;
+	public static int _Minimum_Cycle_Length = 3;
 	public static int _Current_Cycle_Length = _Minimum_Cycle_Length;
 	public static int _current_partition_size = 1;
 

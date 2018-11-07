@@ -27,6 +27,7 @@ import ir.schema.Table;
 import ir.statement.InvokeStmt;
 import ir.statement.Statement;
 import soot.Value;
+import utils.Tuple;
 
 public class Z3Driver {
 	int _MAX_VERSIONS = 2;
@@ -421,7 +422,8 @@ public class Z3Driver {
 			model = slv.getModel();
 			return new Anomaly(model, ctx, objs, tables, app, findCore);
 		} else {
-			//System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
+			// System.err.println("Failed to generate a counter example +++ bound: " +
+			// ConstantArgs._DEP_CYCLE_LENGTH);
 			System.out.println("--------\n-- UNSAT");
 			for (Expr e : slv.getUnsatCore())
 				System.out.println(e);
@@ -525,7 +527,9 @@ public class Z3Driver {
 	 */
 	public Anomaly analyze(List<Anomaly> seenAnmls) {
 		ctxInitialize();
-		excludeAnomaly(seenAnmls);
+		int iter530 = 0;
+		for (Anomaly anml : seenAnmls)
+			excludeAnomaly(anml, iter530++);
 		try {
 			// rules
 			HeaderZ3(" ->WW ");
@@ -545,9 +549,10 @@ public class Z3Driver {
 		return checkSAT();
 	}
 
-	private void excludeAnomaly(List<Anomaly> seenAnmls) {
-		if (!seenAnmls.isEmpty())
-			addAssertion("temp", ctx.mkTrue());
+	private void excludeAnomaly(Anomaly anml, int iter) {
+		HeaderZ3("previous anomalies exclusion");
+		List<Tuple<String, String>> structure = anml.getCycleStructure();
+		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
 	}
 
 }
