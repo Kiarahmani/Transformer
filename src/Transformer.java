@@ -73,19 +73,26 @@ public class Transformer extends BodyTransformer {
 		Anomaly anml = null;
 		int iter = 1;
 		List<Anomaly> seenAnmls = new ArrayList<>();
-		do {
-			long loopBegin = System.currentTimeMillis();
-			System.out.println(runHeader(iter++));
-			zdr = new Z3Driver(app, tables, false);
-			anml = zdr.analyze(seenAnmls);
-			if (anml != null) {
-				seenAnmls.add(anml);
-				anml.announce(false, seenAnmls.size());
-				anml.closeCtx();
-			} else
-				zdr.closeCtx();
-			System.out.println(runTimeFooter(loopBegin));
-		} while (iter < ConstantArgs._MAX_MODEL_GENERATION_TRIALS);
+		while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
+			ConstantArgs._Current_Cycle_Length = 3;
+			do {
+				long loopBegin = System.currentTimeMillis();
+				System.out.println(runHeader(iter++));
+				zdr = new Z3Driver(app, tables, false);
+				anml = zdr.analyze(seenAnmls);
+				if (anml != null) {
+					seenAnmls.add(anml);
+					anml.announce(false, seenAnmls.size());
+					anml.closeCtx();
+				} else
+					zdr.closeCtx();
+				System.out.println(runTimeFooter(loopBegin));
+				// update global variables for the next round
+				ConstantArgs._Current_Cycle_Length++;
+
+			} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_MODEL_GENERATION_TRIALS);
+			ConstantArgs._current_partition_size++;
+		}
 
 		long endZ3 = System.currentTimeMillis();
 		// print stats
@@ -107,10 +114,10 @@ public class Transformer extends BodyTransformer {
 	}
 
 	private static String runHeader(int iter) {
-		String output = "\n\n\n~ " + String.format("%0" + 73 + "d", 0).replace("0", "=");
+		String output = "\n~ " + String.format("%0" + 73 + "d", 0).replace("0", "=");
 		output += "\n~ RUN #" + iter;
-		output += "  [cycle length:" + ConstantArgs._DEP_CYCLE_LENGTH + "]";
-		output += "  [partitions allowed:" + ConstantArgs._MAX_NUM_PARTS + "]";
+		output += "  [cycle length:" + ConstantArgs._Current_Cycle_Length + "]";
+		output += "  [partitions allowed:" + ConstantArgs._current_partition_size + "]";
 		output += "  [max txns allowed:"
 				+ ((ConstantArgs._MAX_TXN_INSTANCES == -1) ? "∞" : String.valueOf(ConstantArgs._MAX_TXN_INSTANCES))
 				+ "]";

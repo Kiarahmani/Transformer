@@ -171,7 +171,7 @@ public class StaticAssertions {
 	// the final assertion, generating a cycle on the dependency graph
 	public BoolExpr mk_cycle(boolean findCore) {
 
-		int length = ConstantArgs._DEP_CYCLE_LENGTH;
+		int length = ConstantArgs._Current_Cycle_Length;
 		Expr[] Os = new Expr[length];
 		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
@@ -223,7 +223,7 @@ public class StaticAssertions {
 
 	public Quantifier mk_opart_props() {
 		ArithExpr o1P = (ArithExpr) ctx.mkApp(objs.getfuncs("opart"), o1);
-		BoolExpr body1 = ctx.mkLe(o1P, ctx.mkInt(ConstantArgs._MAX_NUM_PARTS));
+		BoolExpr body1 = ctx.mkLe(o1P, ctx.mkInt(ConstantArgs._current_partition_size));
 		BoolExpr body2 = ctx.mkGe(o1P, ctx.mkInt(1));
 		BoolExpr body = ctx.mkAnd(body1, body2);
 		Quantifier x = ctx.mkForall(new Expr[] { o1 }, body, 1, null, null, null, null);
