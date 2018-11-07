@@ -409,6 +409,10 @@ public class Z3Driver {
 		return result;
 	}
 
+	public void closeCtx() {
+		this.ctx.close();
+	}
+
 	/*
 	 * final call to Z3 when the context is completely done
 	 */
@@ -417,12 +421,10 @@ public class Z3Driver {
 			model = slv.getModel();
 			return new Anomaly(model, ctx, objs, tables, app, findCore);
 		} else {
-			System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
-			System.out.println("-------------\n--UNSAT core:");
+			//System.err.println("Failed to generate a counter example +++ bound: " + ConstantArgs._DEP_CYCLE_LENGTH);
+			System.out.println("--------\n-- UNSAT");
 			for (Expr e : slv.getUnsatCore())
 				System.out.println(e);
-			if (findCore)
-				ctx.close();
 			return null;
 		}
 	}
@@ -521,8 +523,9 @@ public class Z3Driver {
 	/*
 	 * public function called from main
 	 */
-	public Anomaly analyze() {
+	public Anomaly analyze(List<Anomaly> seenAnmls) {
 		ctxInitialize();
+		excludeAnomaly(seenAnmls);
 		try {
 			// rules
 			HeaderZ3(" ->WW ");
@@ -538,7 +541,13 @@ public class Z3Driver {
 		} catch (UnexoectedOrUnhandledConditionalExpression e) {
 			e.printStackTrace();
 		}
+
 		return checkSAT();
+	}
+
+	private void excludeAnomaly(List<Anomaly> seenAnmls) {
+		if (!seenAnmls.isEmpty())
+			addAssertion("temp", ctx.mkTrue());
 	}
 
 }

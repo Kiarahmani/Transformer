@@ -20,6 +20,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
+
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
@@ -51,8 +53,19 @@ public class RecordsVisualizer {
 
 	}
 
-	public void createGraph(String fileName) {
-		File file = new File("anomalies/" + fileName);
+	public void createGraph(String fileName, int anmlNo) {
+		try {
+			if (anmlNo == 1) {
+				File file = new File("anomalies/" + ConstantArgs._BENCH_FILE);
+				file.getParentFile().mkdirs();
+				FileUtils.deleteDirectory(file);
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		File file = new File("anomalies/" + ConstantArgs._BENCH_FILE + "/" + fileName);
+		file.getParentFile().mkdirs();
+
 		FileWriter writer = null;
 		PrintWriter printer;
 		String node_style = "node[shape=record, color=midnightblue, fontcolor=midnightblue, fontsize=10, fontname=\"Helvetica\"]";

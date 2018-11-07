@@ -1,7 +1,5 @@
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import anomaly.Anomaly;
 import exceptions.UnknownUnitException;
@@ -72,22 +70,62 @@ public class Transformer extends BodyTransformer {
 		 * generate the anomaly given the IR
 		 */
 		Z3Driver zdr = new Z3Driver(app, tables, false);
-		Anomaly anml = zdr.analyze();
-		if (anml != null) {
-			anml.announce(false);
-			if (ConstantArgs._FIND_CORE)
-				anml.announce(true);
-			System.out.println("\n\n");
-		}
+		Anomaly anml = null;
+		int iter = 1;
+		List<Anomaly> seenAnmls = new ArrayList<>();
+		do {
+			long loopBegin = System.currentTimeMillis();
+			System.out.println(runHeader(iter++));
+			zdr = new Z3Driver(app, tables, false);
+			anml = zdr.analyze(seenAnmls);
+			if (anml != null) {
+				seenAnmls.add(anml);
+				anml.announce(false, seenAnmls.size());
+				anml.closeCtx();
+			} else
+				zdr.closeCtx();
+			System.out.println(runTimeFooter(loopBegin));
+		} while (iter < ConstantArgs._MAX_MODEL_GENERATION_TRIALS);
 
 		long endZ3 = System.currentTimeMillis();
-
 		// print stats
-		System.out.println("\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`");
-		System.out.println("~Tables extracted in: " + (endTables - start) + " ms");
-		System.out.println("~App extracted in:     " + (endApp - endTables) + " ms");
-		System.out.println("~Model Generated in:  " + (endZ3 - endTables) + " ms");
-		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`");
+		printStats(seenAnmls.size(), ((endZ3 - endTables) / iter), (endTables - start), (endApp - endTables),
+				(endZ3 - endTables));
 
+	}
+
+	/*
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
+	private static String runTimeFooter(long beginTime) {
+		return ("----------------------------\n-- Extration time:  " + (System.currentTimeMillis() - beginTime) + " ms"
+				+ "\n----------------------------" + "\n\n");
+	}
+
+	private static String runHeader(int iter) {
+		String output = "\n\n\n~ " + String.format("%0" + 73 + "d", 0).replace("0", "=");
+		output += "\n~ RUN #" + iter;
+		output += "  [cycle length:" + ConstantArgs._DEP_CYCLE_LENGTH + "]";
+		output += "  [partitions allowed:" + ConstantArgs._MAX_NUM_PARTS + "]";
+		output += "  [max txns allowed:"
+				+ ((ConstantArgs._MAX_TXN_INSTANCES == -1) ? "∞" : String.valueOf(ConstantArgs._MAX_TXN_INSTANCES))
+				+ "]";
+		output += "\n~ " + String.format("%0" + 73 + "d", 0).replace("0", "=");
+		return output;
+	}
+
+	private static void printStats(int anmlCount, long avgExt, long tableExtTime, long appExtTime, long modelsTime) {
+		System.out.println("\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.println("~Anomalies found: " + anmlCount);
+		System.out.println("~Avg Ext. Time:   " + avgExt + " ms");
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.println("~Tables Extracted in:  " + tableExtTime + " ms");
+		System.out.println("~App Extracted in:     " + appExtTime + " ms");
+		System.out.println("~Models Generated in:  " + modelsTime + " ms");
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 	}
 }

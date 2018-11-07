@@ -1,1 +1,0 @@
-dot -Tpng anomaly.dot -o anomaly.png && open anomaly.png && dot -Tpng records.dot -o records.png && open records.png

@@ -19,6 +19,7 @@ import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Model;
 
 import utils.Tuple;
+import z3.ConstantArgs;
 import z3.DeclaredObjects;
 
 public class AnomalyVisualizer {
@@ -69,7 +70,7 @@ public class AnomalyVisualizer {
 	public void createGraph(String fileName) {
 		String[] colors = new String[] { "lightyellow", "darkkhaki", "cornsilk1", "rosybrown1", "thistle", "lavender",
 				"ivory3", "mintcream" };
-		File file = new File("anomalies/" + fileName);
+		File file = new File("anomalies/" + ConstantArgs._BENCH_FILE + "/" + fileName);
 		FileWriter writer = null;
 		PrintWriter printer;
 		String node_style = "node[ color=darkgoldenrod4, fontcolor=darkgoldenrod4, fontsize=10, fontname=\"Helvetica\"]";
@@ -156,7 +157,8 @@ public class AnomalyVisualizer {
 									int confRowVersion = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).y;
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "")
-											+ wwB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style) + ";\n");
+											+ wwB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style)
+											+ ";\n");
 								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + ww_edge_setting + ";\n");
@@ -171,7 +173,8 @@ public class AnomalyVisualizer {
 									int confRowVersion = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).y;
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "")
-											+ wrB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style) + ";\n");
+											+ wrB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style)
+											+ ";\n");
 								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + wr_edge_setting + ";\n");
@@ -185,7 +188,8 @@ public class AnomalyVisualizer {
 									int confRowVersion = conflictingRows.get(new Tuple<Expr, Expr>(o, o1)).y;
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "")
-											+ rwB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style) + ";\n");
+											+ rwB_edge_setting(confRowName, String.valueOf(confRowVersion), bold_style)
+											+ ";\n");
 								} else
 									printer.append(o.toString().replaceAll("!val!", "") + " -> "
 											+ o1.toString().replaceAll("!val!", "") + rw_edge_setting + ";\n");

@@ -1,12 +1,11 @@
 package z3;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class ConstantArgs {
 
-	public static int _DEP_CYCLE_LENGTH = 6;
+	public static int _DEP_CYCLE_LENGTH = 8;
 	public static int _MAX_VERSIONS_ = 3;
 	public static int _MAX_NUM_PARTS = 1;
 	public static int _MAX_TXN_INSTANCES = -1; // -1 for no constraint
@@ -16,6 +15,12 @@ public class ConstantArgs {
 
 	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "select2");
 
+	
+	// ---
+	public static int _MAX_MODEL_GENERATION_TRIALS = 5;
+	public static String _BENCH_FILE = "LostUpdate";
+	
+	
 	// ---
 	public static final boolean DEBUG_MODE = false;
 	public static boolean _FIND_CORE = false;

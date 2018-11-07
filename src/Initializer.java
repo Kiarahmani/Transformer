@@ -1,5 +1,6 @@
 import soot.PackManager;
 import soot.Transform;
+import z3.ConstantArgs;
 
 public class Initializer {
 	static String _RT_PATH = "/Library/Java/JavaVirtualMachines/jdk1.8.0_77.jdk/Contents/Home/jre/lib/rt.jar:";
@@ -26,7 +27,7 @@ public class Initializer {
 		String[] soot_args = new String[3];
 		soot_args[0] = "--soot-classpath";
 		soot_args[1] = "/Users/Kiarash/dev/eclipse_workspace/Transformer/bin:" + _RT_PATH + _JCE_PATH;
-		soot_args[2] = "tests.SampleApp";
+		soot_args[2] = "tests." + ConstantArgs._BENCH_FILE;
 
 		return soot_args;
 	}
