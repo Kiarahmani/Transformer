@@ -8,13 +8,13 @@ public class ConstantArgs {
 	 * Analyzer Parameters (update these for each experiment)
 	 */
 	// file under analysis
-	public static String _BENCH_FILE = "LostUpdate";
+	public static String _BENCHMARK_NAME = "SampleApp";
 	// maximum length of anomalous cycles looked for
 	public static int _MAX_CYCLE_LENGTH = 8;
 	// maxim number of partitions
-	public static int _MAX_NUM_PARTS = 3;
+	public static int _MAX_NUM_PARTS = 1;
 	// size of the bit vectors representing integers
-	public static int _MAX_VERSIONS_ = 3;
+	public static int _MAX_VERSIONS_ = 4;
 	// maximum number of transaction instances in the anomaly (-1 for no constraint)
 	public static int _MAX_TXN_INSTANCES = -1;
 	// upper safety bound on the number of iterations
@@ -33,7 +33,7 @@ public class ConstantArgs {
 	public static int _current_partition_size = 1;
 
 	/*
-	 * Developer's Variables
+	 * Developer's Area
 	 */
 	public static final boolean DEBUG_MODE = false;
 	public static boolean _FIND_CORE = false;

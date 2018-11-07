@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,14 +57,14 @@ public class RecordsVisualizer {
 	public void createGraph(String fileName, int anmlNo) {
 		try {
 			if (anmlNo == 1) {
-				File file = new File("anomalies/" + ConstantArgs._BENCH_FILE);
+				File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME);
 				file.getParentFile().mkdirs();
 				FileUtils.deleteDirectory(file);
 			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		File file = new File("anomalies/" + ConstantArgs._BENCH_FILE + "/" + fileName);
+		File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/" + fileName);
 		file.getParentFile().mkdirs();
 
 		FileWriter writer = null;
@@ -80,11 +81,17 @@ public class RecordsVisualizer {
 		model.getSortUniverse(objs.getSort("O"));
 		printer.append("digraph {\n" + node_style);
 
+		Map<Expr, Set<Integer>> orderedVersionsMap = new HashMap<>();
+
 		for (Tuple<Expr, Integer> versionedRow : conflictingRow.values()) {
 			Table table = tables.stream().filter(t -> versionedRow.x.toString().contains(t.getName())).findAny().get();
 			String content = "";
 			String lable = versionedRow.x.toString().replaceAll("!val!", "");
 			String labelVersion = String.valueOf(versionedRow.y);
+			// book keeping for the next loop which prints the edges
+			if (orderedVersionsMap.get(versionedRow.x) == null)
+				orderedVersionsMap.put(versionedRow.x, new HashSet<>());
+			orderedVersionsMap.get(versionedRow.x).add(versionedRow.y);
 			String tableStringBeing = "\n" + lable + labelVersion + "" + " [label=\"{";
 			String tableStringEnd = "\"];";
 			content += "{";
@@ -101,31 +108,28 @@ public class RecordsVisualizer {
 				content += "}";
 			}
 
-			/*
-			 * 
-			 * 
-			 * String outerDelim = "{Z3 label|"; for (Expr row :
-			 * Arrays.asList(model.getSortUniverse(objs.getSort(tableName)))) { if
-			 * (conflictingRow.values().stream().map(tuple ->
-			 * tuple.x).collect(Collectors.toList()).contains(row)) { content += outerDelim;
-			 * outerDelim = "|"; content += row.toString().replaceAll("!val!", ""); } }
-			 * outerDelim = "}|"; for (Column column : table.getColumns()) { content +=
-			 * outerDelim + "{"; outerDelim = "|"; content += column.name + "|"; String
-			 * delim = ""; for (Expr row :
-			 * Arrays.asList(model.getSortUniverse(objs.getSort(tableName)))) { if
-			 * (conflictingRow.values().stream().map(tuple ->
-			 * tuple.x).collect(Collectors.toList()) .contains(row)) { content += delim;
-			 * delim = "|"; FuncDecl projFunc = objs.getfuncs(tableName + "_PROJ_" +
-			 * column.name); FuncDecl versionFunc = objs.getfuncs(tableName + "_VERSION");
-			 * // XXX // Expr version = model.eval(versionFunc.apply(row), true); // Expr
-			 * value = model.eval(projFunc.apply(row, version), true); String value =
-			 * "TEMP"; if (value.toString().equals("\"\"")) content += "\'\' \\'\\'"; else
-			 * content += value.toString().replaceAll("\"", ""); } } content += "}"; }
-			 */
 			content += "}}";
 			printer.append(tableStringBeing + content + tableStringEnd);
 			printer.flush();
 
+		}
+		List<Integer> orderedListOfVersions = new ArrayList<>();
+		Set<Expr> seenExprs = new HashSet<>();
+		String edgeStyle = "[concentrate=true,weight=10, arrowhead=normal, arrowsize=0.7, color=gray70]";
+		for (Tuple<Expr, Integer> versionedRow : conflictingRow.values()) {
+			Expr currentExpr = versionedRow.x;
+			if (!seenExprs.contains(currentExpr)) {
+				seenExprs.add(currentExpr);
+				orderedListOfVersions.clear();
+				orderedListOfVersions.addAll(orderedVersionsMap.get(currentExpr));
+				Collections.sort(orderedListOfVersions);
+				for (int i = 0; i < orderedListOfVersions.size() - 1; i++) {
+					String label = currentExpr.toString().replaceAll("!val!", "");
+					printer.append("\n" + label + orderedListOfVersions.get(i));
+					printer.append(" -> " + label + orderedListOfVersions.get(i + 1));
+					printer.append(edgeStyle);
+				}
+			}
 		}
 
 		printer.append("\n}");

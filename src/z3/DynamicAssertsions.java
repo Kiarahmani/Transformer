@@ -325,8 +325,7 @@ public class DynamicAssertsions {
 			// sibling and PO then version increases
 			BoolExpr lhs1 = (BoolExpr) ctx.mkApp(siblingFunc, o1, o2);
 			BoolExpr lhs2 = ctx.mkGt((ArithExpr) ctx.mkApp(otimeFunc, o2), (ArithExpr) ctx.mkApp(otimeFunc, o1));
-			BoolExpr lhs3 = ctx.mkAnd((BoolExpr) ctx.mkApp(isUpdateFunc, o2),
-					ctx.mkNot((BoolExpr) ctx.mkApp(isUpdateFunc, o1)));
+			BoolExpr lhs3 = (BoolExpr) ctx.mkApp(isUpdateFunc, o2);
 			lhs = ctx.mkAnd(lhs1, lhs2, lhs3);
 			rhs = ctx.mkEq(ctx.mkApp(verFunc, r, o2),
 					ctx.mkBVAdd((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(1, ConstantArgs._MAX_VERSIONS_)));

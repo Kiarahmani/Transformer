@@ -70,7 +70,7 @@ public class AnomalyVisualizer {
 	public void createGraph(String fileName) {
 		String[] colors = new String[] { "lightyellow", "darkkhaki", "cornsilk1", "rosybrown1", "thistle", "lavender",
 				"ivory3", "mintcream" };
-		File file = new File("anomalies/" + ConstantArgs._BENCH_FILE + "/" + fileName);
+		File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/" + fileName);
 		FileWriter writer = null;
 		PrintWriter printer;
 		String node_style = "node[ color=darkgoldenrod4, fontcolor=darkgoldenrod4, fontsize=10, fontname=\"Helvetica\"]";
