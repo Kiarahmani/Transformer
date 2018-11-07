@@ -213,8 +213,6 @@ public class Z3Driver {
 				}
 		}
 
-		// addAssertion("test", dynamicAssertions.test());
-
 		// =====================================================================================================================================================
 		HeaderZ3("CONFLICTING ROWS");
 		for (Transaction txn1 : app.getTxns()) {

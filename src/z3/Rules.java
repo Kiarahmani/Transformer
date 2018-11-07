@@ -222,12 +222,12 @@ public class Rules {
 			case INT:
 				ArithExpr lhsValolderVersion1 = (ArithExpr) ctx.mkApp(projFunc, rowVar,
 						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
-				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion1, ctx.mkInt(100))));
+				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion1, ctx.mkInt(1))));
 				break;
 			case REAL:
 				ArithExpr lhsValolderVersion2 = (ArithExpr) ctx.mkApp(projFunc, rowVar,
 						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
-				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion2, ctx.mkInt(100))));
+				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion2, ctx.mkInt(1))));
 				break;
 			default:
 				System.out.println("----- case not handled yet: " + c.type);

@@ -296,6 +296,9 @@ public class DynamicAssertsions {
 			FuncDecl wwFunc = objs.getfuncs("WW_O_" + t.getName());
 			FuncDecl wrFunc = objs.getfuncs("WR_O_" + t.getName());
 			FuncDecl rwFunc = objs.getfuncs("RW_O_" + t.getName());
+			FuncDecl siblingFunc = objs.getfuncs("sibling");
+			FuncDecl otimeFunc = objs.getfuncs("otime");
+			FuncDecl isUpdateFunc = objs.getfuncs("is_update");
 
 			BoolExpr lhs = (BoolExpr) ctx.mkApp(rwFunc, r, o1, o2);
 			BoolExpr rhs = ctx.mkEq(ctx.mkApp(verFunc, r, o2),
@@ -318,6 +321,19 @@ public class DynamicAssertsions {
 			body = ctx.mkImplies(lhs, rhs);
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
+
+			// sibling and PO then version increases
+			BoolExpr lhs1 = (BoolExpr) ctx.mkApp(siblingFunc, o1, o2);
+			BoolExpr lhs2 = ctx.mkGt((ArithExpr) ctx.mkApp(otimeFunc, o2), (ArithExpr) ctx.mkApp(otimeFunc, o1));
+			BoolExpr lhs3 = ctx.mkAnd((BoolExpr) ctx.mkApp(isUpdateFunc, o2),
+					ctx.mkNot((BoolExpr) ctx.mkApp(isUpdateFunc, o1)));
+			lhs = ctx.mkAnd(lhs1, lhs2, lhs3);
+			rhs = ctx.mkEq(ctx.mkApp(verFunc, r, o2),
+					ctx.mkBVAdd((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(1, ConstantArgs._MAX_VERSIONS_)));
+			body = ctx.mkImplies(lhs, rhs);
+			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
+			result.add(x);
+
 			// versions are always positive
 			// x = ctx.mkForall(new Expr[] { r, o1 },
 			// ctx.mkBVSGE((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(0,
