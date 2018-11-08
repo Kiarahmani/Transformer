@@ -62,14 +62,15 @@ public class Z3Util {
 		case "ProjVarExp":
 			ProjVarExp pv = (ProjVarExp) cond;
 			FuncDecl projFunc = objs.getfuncs(pv.getRVar().getTable().getName() + "_PROJ_" + pv.getColumn().toString());
-			
+			FuncDecl rowFunc = objs.getfuncs(txnName+"_"+pv.getName());
+			//System.out.println("\n\n\n\n\n\n\n\n\n==========="+  +"\n\n\n\n\n\n\n\n\n\n");
 			return ctx.mkApp(projFunc, irCondToZ3Expr(txnName, txn, row, o1, pv.getRVar()),
-					ctx.mkApp(objs.getfuncs(pv.getRVar().getTable().getName() + "_VERSION"), row, o1));
+					ctx.mkApp(objs.getfuncs(pv.getRVar().getTable().getName() + "_VERSION"), ctx.mkApp(rowFunc,txn), o1));
 		case "RowSetVarExp":
 			break;
 		case "RowVarExp":
 			RowVarExp ve = (RowVarExp) cond;
-			FuncDecl rowFunc = objs.getfuncs(txnName + "_" + ve.getName());
+			rowFunc = objs.getfuncs(txnName + "_" + ve.getName());
 			return ctx.mkApp(rowFunc, txn);
 		case "RowVarLoopExp":
 			RowVarLoopExp vle = (RowVarLoopExp) cond;
