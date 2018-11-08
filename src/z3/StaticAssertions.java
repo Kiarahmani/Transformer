@@ -223,9 +223,9 @@ public class StaticAssertions {
 
 	public Quantifier mk_opart_props() {
 		ArithExpr o1P = (ArithExpr) ctx.mkApp(objs.getfuncs("opart"), o1);
-		BoolExpr body1 = ctx.mkLe(o1P, ctx.mkInt(ConstantArgs._current_partition_size));
-		BoolExpr body2 = ctx.mkGe(o1P, ctx.mkInt(1));
-		BoolExpr body = ctx.mkAnd(body1, body2);
+		BoolExpr body = ctx.mkEq(o1P, ctx.mkInt(ConstantArgs._current_partition_size));
+		//BoolExpr body2 = ctx.mkGe(o1P, ctx.mkInt(1));
+		//BoolExpr body = ctx.mkAnd(body1, body2);
 		Quantifier x = ctx.mkForall(new Expr[] { o1 }, body, 1, null, null, null, null);
 		return x;
 	}
