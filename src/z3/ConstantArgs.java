@@ -6,13 +6,13 @@ import java.util.List;
 public class ConstantArgs {
 
 	// file under analysis
-	//public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
-	public static String _TESTS_OR_BENCHMARKS = "tests.";
-	public static String _BENCHMARK_NAME = "LostUpdate";
+	public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
+	public static String _DDL_FILE = "ddl_seats.sql";
+	public static String _BENCHMARK_NAME = "SEATS";
 	// maximum length of anomalous cycles looked for
-	public static int _MAX_CYCLE_LENGTH = 8;
+	public static int _MAX_CYCLE_LENGTH = 3;
 	// maxim number of partitions
-	public static int _MAX_NUM_PARTS = 2;
+	public static int _MAX_NUM_PARTS = 1;
 	// size of the bit vectors representing integers
 	public static int _MAX_VERSIONS_ = 4;
 	// maximum number of transaction instances in the anomaly (-1 for no constraint)
@@ -37,6 +37,7 @@ public class ConstantArgs {
 	 * Developer's Area
 	 */
 	public static final boolean DEBUG_MODE = false;
+	public static final boolean EXTRACT_ONLY = true;
 	public static boolean _FIND_CORE = false;
 	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "select2");
 

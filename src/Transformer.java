@@ -66,6 +66,8 @@ public class Transformer extends BodyTransformer {
 		app.printApp();
 		long endApp = System.currentTimeMillis();
 
+		if (ConstantArgs.EXTRACT_ONLY)
+			return;
 		/*
 		 * generate the anomaly given the IR
 		 */
