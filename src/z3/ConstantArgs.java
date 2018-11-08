@@ -6,23 +6,23 @@ import java.util.List;
 public class ConstantArgs {
 
 	// file under analysis
-	public static String _BENCHMARK_NAME = "SampleApp";
+	//public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
+	public static String _TESTS_OR_BENCHMARKS = "tests.";
+	public static String _BENCHMARK_NAME = "LostUpdate";
 	// maximum length of anomalous cycles looked for
-	public static int _MAX_CYCLE_LENGTH = 6;
+	public static int _MAX_CYCLE_LENGTH = 8;
 	// maxim number of partitions
 	public static int _MAX_NUM_PARTS = 2;
 	// size of the bit vectors representing integers
 	public static int _MAX_VERSIONS_ = 4;
 	// maximum number of transaction instances in the anomaly (-1 for no constraint)
 	public static int _MAX_TXN_INSTANCES = -1;
-	// upper safety bound on the number of iterations
-	public static int _MAX_MODEL_GENERATION_TRIALS = 6;
 	// should Z3 extract transaction parameters as well?
 	public static boolean _ENFORCE_VERSIONING = true;
 	// should Z3 exclue anomalies already found from the analysis?
 	public static boolean _ENFORCE_EXCLUSION = true;
 	// additional constraints on the anomalies
-	public static boolean _NO_WW = true;
+	public static boolean _NO_WW = false;
 	public static boolean _NO_WR = false;
 	public static boolean _NO_RW = false;
 
