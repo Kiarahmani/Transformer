@@ -49,11 +49,14 @@ public class SEATS {
 					if (results1.next()) {
 						extracted_c_id = results1.getLong(0);
 						if (has_al_id)
-							ff_al_id = results1.getLong(2);
+							ff_al_id = results1.getLong(1);
 						PreparedStatement stmt2 = connect.prepareStatement(
 								"SELECT C_SATTR00, C_SATTR02, C_SATTR04, C_IATTR00, C_IATTR02, C_IATTR04, C_IATTR06 FROM CUSTOMER WHERE C_ID = ?");
 						stmt2.setLong(1, extracted_c_id);
 						ResultSet results2 = stmt2.executeQuery();
+						results2.next();
+						long c_iattr00 = results2.getLong(0) + 1;
+
 						if (!results2.next()) {
 							results2.close();
 						}
@@ -62,15 +65,42 @@ public class SEATS {
 								.prepareStatement("SELECT F_SEATS_LEFT FROM FLIGHT WHERE F_ID = ? ");
 						stmt31.setLong(1, f_id);
 						ResultSet results3 = stmt31.executeQuery();
+						results3.next();
+						long seats_left = results3.getLong(0);
 
 						// select reservation
 						PreparedStatement stmt32 = connect.prepareStatement(
 								"SELECT R_ID, R_SEAT, R_PRICE, R_IATTR00 FROM RESERVATION WHERE R_C_ID = ? ");
 						stmt32.setLong(1, extracted_c_id);
 						ResultSet results4 = stmt32.executeQuery();
-
 						if (!results4.next() || !results3.next())
 							return;
+						results4.next();
+						long r_id = results4.getLong(0);
+						double r_price = results4.getDouble(2);
+						results4.close();
+						int updated = 0;
+						// Now delete all of the flights that they have on this flight
+						PreparedStatement stmt4 = connect.prepareStatement(
+								"DELETE FROM RESERVATION WHERE R_ID = ? AND R_C_ID = ? AND R_F_ID = ?");
+						stmt4.setLong(1, r_id);
+						stmt4.setLong(2, extracted_c_id);
+						stmt4.setLong(3, f_id);
+						updated = stmt4.executeUpdate();
+
+						// Update Available Seats on Flight
+						PreparedStatement stmt51 = connect
+								.prepareStatement("SELECT F_SEATS_LEFT FROM FLIGHT WHERE F_ID = ? ");
+						stmt51.setLong(1, f_id);
+						ResultSet results5 = stmt51.executeQuery();
+						results5.next();
+						int oldLeft = results5.getInt(0);
+
+						PreparedStatement stmt52 = connect
+								.prepareStatement("UPDATE FLIGHT SET F_SEATS_LEFT = ?" + " WHERE F_ID = ? ");
+						stmt52.setInt(1, oldLeft + 1);
+						stmt52.setLong(2, f_id);
+						updated = stmt52.executeUpdate();
 
 					}
 				}
