@@ -210,7 +210,7 @@ public class Z3Driver {
 			for (int j = 1; j < map.size(); j++)
 				for (int i = j; i <= map.size(); i++) {
 					if (map.get(i + 1) != null) {
-						addAssertion("otime_follows_po_" + i + "_"+j + map.get(i),
+						addAssertion("otime_follows_po_" + i + "_" + j + map.get(i),
 								dynamicAssertions.otime_follows_po(map.get(j), map.get(i + 1)));
 					}
 				}
@@ -408,8 +408,12 @@ public class Z3Driver {
 		for (int i = 0; i < consts.length; i++)
 			constructors[i] = ctx.mkConstructor(ctx.mkSymbol(consts[i]), ctx.mkSymbol("is_" + consts[i]), head_tail,
 					sorts, sort_refs);
-		DatatypeSort result = ctx.mkDatatypeSort(name, constructors);
-		return result;
+		try {
+			DatatypeSort result = ctx.mkDatatypeSort(name, constructors);
+			return result;
+		} catch (com.microsoft.z3.Z3Exception e) {
+			throw new com.microsoft.z3.Z3Exception("No Txn with SQL operations found");
+		}
 	}
 
 	public void closeCtx() {
