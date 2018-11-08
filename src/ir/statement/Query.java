@@ -131,10 +131,10 @@ public class Query {
 					e.printStackTrace();
 				}
 				net.sf.jsqlparser.expression.Expression exp = updateStatement.getExpressions().get(iter++);
+				
 				if (exp.toString().equals("?")) {
 					JdbcParameter jp = (JdbcParameter) exp;
 					result.put(myCol, new UnknownExp("?", jp.getIndex()));
-					iter++;
 				} else
 					switch (myCol.getType()) {
 					case INT:

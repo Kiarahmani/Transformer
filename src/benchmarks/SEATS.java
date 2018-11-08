@@ -51,10 +51,13 @@ public class SEATS {
 						if (has_al_id)
 							ff_al_id = results1.getLong(1);
 						PreparedStatement stmt2 = connect.prepareStatement(
-								"SELECT C_SATTR00, C_SATTR02, C_SATTR04, C_IATTR00, C_IATTR02, C_IATTR04, C_IATTR06 FROM CUSTOMER WHERE C_ID = ?");
+								"SELECT C_SATTR00, C_SATTR02, C_SATTR04, C_IATTR00, C_IATTR02, C_IATTR04, C_IATTR06, C_BALANCE, C_IATTR10, C_IATTR11 FROM CUSTOMER WHERE C_ID = ?");
 						stmt2.setLong(1, extracted_c_id);
 						ResultSet results2 = stmt2.executeQuery();
 						results2.next();
+						int oldBal = results2.getInt("C_BALANCE");
+						int oldAttr10 = results2.getInt("C_IATTR10");
+						int oldAttr11 = results2.getInt("C_IATTR11");
 						long c_iattr00 = results2.getLong(0) + 1;
 
 						if (!results2.next()) {
@@ -66,7 +69,7 @@ public class SEATS {
 						stmt31.setLong(1, f_id);
 						ResultSet results3 = stmt31.executeQuery();
 						results3.next();
-						long seats_left = results3.getLong(0);
+						int seats_left = results3.getInt(0);
 
 						// select reservation
 						PreparedStatement stmt32 = connect.prepareStatement(
@@ -88,24 +91,122 @@ public class SEATS {
 						stmt4.setLong(3, f_id);
 						updated = stmt4.executeUpdate();
 
-						// Update Available Seats on Flight
-						PreparedStatement stmt51 = connect
-								.prepareStatement("SELECT F_SEATS_LEFT FROM FLIGHT WHERE F_ID = ? ");
-						stmt51.setLong(1, f_id);
-						ResultSet results5 = stmt51.executeQuery();
-						results5.next();
-						int oldLeft = results5.getInt(0);
-
 						PreparedStatement stmt52 = connect
 								.prepareStatement("UPDATE FLIGHT SET F_SEATS_LEFT = ?" + " WHERE F_ID = ? ");
-						stmt52.setInt(1, oldLeft + 1);
+						stmt52.setInt(1, seats_left + 1);
 						stmt52.setLong(2, f_id);
 						updated = stmt52.executeUpdate();
 
+						// Update Customer's Balance
+						PreparedStatement stmt6 = connect.prepareStatement(
+								"UPDATE CUSTOMER SET C_BALANCE = ?, C_IATTR00 = ?, C_IATTR10 = ?,  C_IATTR11 = ? WHERE C_ID = ? ");
+						stmt6.setLong(1, oldBal + (long) (-1 * r_price));
+						stmt6.setLong(2, c_iattr00);
+						stmt6.setLong(3, oldAttr10 - 1);
+						stmt6.setLong(4, oldAttr11 - 1);
+						stmt6.setLong(5, extracted_c_id);
+						updated = stmt6.executeUpdate();
+
+						// Update Customer's Frequent Flyer Information (Optional)
+						if (ff_al_id != -1) {
+							PreparedStatement stmt71 = connect.prepareStatement("SELECT FF_IATTR10 FROM FREQUENT_FLYER "
+									+ " WHERE FF_C_ID = ? " + "   AND FF_AL_ID = ?");
+							stmt71.setLong(1, extracted_c_id);
+							stmt71.setLong(2, ff_al_id);
+							ResultSet results5 = stmt71.executeQuery();
+							results5.next();
+							int olAttr10 = results5.getInt(0);
+							PreparedStatement stmt72 = connect
+									.prepareStatement("UPDATE FREQUENT_FLYER SET FF_IATTR10 = ?" + " WHERE FF_C_ID = ? "
+											+ "   AND FF_AL_ID = ?");
+							stmt72.setLong(1, olAttr10 - 1);
+							stmt72.setLong(2, extracted_c_id);
+							stmt72.setLong(3, ff_al_id);
+							updated = stmt72.executeUpdate();
+						}
 					}
 				}
 			} else {
-				// if c_id is given
+				boolean has_al_id = false;
+				long extracted_c_id;
+				// Use the customer's id as a string
+						PreparedStatement stmt2 = connect.prepareStatement(
+								"SELECT C_SATTR00, C_SATTR02, C_SATTR04, C_IATTR00, C_IATTR02, C_IATTR04, C_IATTR06, C_BALANCE, C_IATTR10, C_IATTR11 FROM CUSTOMER WHERE C_ID = ?");
+						stmt2.setLong(1, given_c_id);
+						ResultSet results2 = stmt2.executeQuery();
+						results2.next();
+						int oldBal = results2.getInt("C_BALANCE");
+						int oldAttr10 = results2.getInt("C_IATTR10");
+						int oldAttr11 = results2.getInt("C_IATTR11");
+						long c_iattr00 = results2.getLong(0) + 1;
+
+						if (!results2.next()) {
+							results2.close();
+						}
+						// select flight
+						PreparedStatement stmt31 = connect
+								.prepareStatement("SELECT F_SEATS_LEFT FROM FLIGHT WHERE F_ID = ? ");
+						stmt31.setLong(1, f_id);
+						ResultSet results3 = stmt31.executeQuery();
+						results3.next();
+						int seats_left = results3.getInt(0);
+
+						// select reservation
+						PreparedStatement stmt32 = connect.prepareStatement(
+								"SELECT R_ID, R_SEAT, R_PRICE, R_IATTR00 FROM RESERVATION WHERE R_C_ID = ? ");
+						stmt32.setLong(1, given_c_id);
+						ResultSet results4 = stmt32.executeQuery();
+						if (!results4.next() || !results3.next())
+							return;
+						results4.next();
+						long r_id = results4.getLong(0);
+						double r_price = results4.getDouble(2);
+						results4.close();
+						int updated = 0;
+						// Now delete all of the flights that they have on this flight
+						PreparedStatement stmt4 = connect.prepareStatement(
+								"DELETE FROM RESERVATION WHERE R_ID = ? AND R_C_ID = ? AND R_F_ID = ?");
+						stmt4.setLong(1, r_id);
+						stmt4.setLong(2, given_c_id);
+						stmt4.setLong(3, f_id);
+						updated = stmt4.executeUpdate();
+
+						PreparedStatement stmt52 = connect
+								.prepareStatement("UPDATE FLIGHT SET F_SEATS_LEFT = ?" + " WHERE F_ID = ? ");
+						stmt52.setInt(1, seats_left + 1);
+						stmt52.setLong(2, f_id);
+						updated = stmt52.executeUpdate();
+
+						// Update Customer's Balance
+						PreparedStatement stmt6 = connect.prepareStatement(
+								"UPDATE CUSTOMER SET C_BALANCE = ?, C_IATTR00 = ?, C_IATTR10 = ?,  C_IATTR11 = ? WHERE C_ID = ? ");
+						stmt6.setLong(1, oldBal + (long) (-1 * r_price));
+						stmt6.setLong(2, c_iattr00);
+						stmt6.setLong(3, oldAttr10 - 1);
+						stmt6.setLong(4, oldAttr11 - 1);
+						stmt6.setLong(5, given_c_id);
+						updated = stmt6.executeUpdate();
+
+						// Update Customer's Frequent Flyer Information (Optional)
+						if (ff_al_id != -1) {
+							PreparedStatement stmt71 = connect.prepareStatement("SELECT FF_IATTR10 FROM FREQUENT_FLYER "
+									+ " WHERE FF_C_ID = ? " + "   AND FF_AL_ID = ?");
+							stmt71.setLong(1, given_c_id);
+							stmt71.setLong(2, ff_al_id);
+							ResultSet results5 = stmt71.executeQuery();
+							results5.next();
+							int olAttr10 = results5.getInt(0);
+							PreparedStatement stmt72 = connect
+									.prepareStatement("UPDATE FREQUENT_FLYER SET FF_IATTR10 = ?" + " WHERE FF_C_ID = ? "
+											+ "   AND FF_AL_ID = ?");
+							stmt72.setLong(1, olAttr10 - 1);
+							stmt72.setLong(2, given_c_id);
+							stmt72.setLong(3, ff_al_id);
+							updated = stmt72.executeUpdate();
+						
+					
+				}
+
 			}
 
 			connect.commit();

@@ -18,7 +18,7 @@ public class ConstantArgs {
 	// maximum number of transaction instances in the anomaly (-1 for no constraint)
 	public static int _MAX_TXN_INSTANCES = -1;
 	// should Z3 extract transaction parameters as well?
-	public static boolean _ENFORCE_VERSIONING = true;
+	public static boolean _ENFORCE_VERSIONING = false;
 	// should Z3 exclue anomalies already found from the analysis?
 	public static boolean _ENFORCE_EXCLUSION = true;
 	// additional constraints on the anomalies

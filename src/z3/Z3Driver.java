@@ -207,10 +207,12 @@ public class Z3Driver {
 		// make sure the otime assignment follows the program order
 		for (Transaction txn : app.getTxns()) {
 			Map<Integer, String> map = txn.getStmtNamesMap();
-			for (int po : map.keySet())
-				if (map.get(po + 1) != null) {
-					addAssertion("otime_follows_po_" + po + "_" + map.get(po),
-							dynamicAssertions.otime_follows_po(map.get(po), map.get(po + 1)));
+			for (int j = 1; j < map.size(); j++)
+				for (int i = j; i <= map.size(); i++) {
+					if (map.get(i + 1) != null) {
+						addAssertion("otime_follows_po_" + i + "_"+j + map.get(i),
+								dynamicAssertions.otime_follows_po(map.get(j), map.get(i + 1)));
+					}
 				}
 		}
 
