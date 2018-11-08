@@ -22,25 +22,19 @@ public class SEATS {
 		p = new Properties();
 		p.setProperty("ID", String.valueOf(insID));
 	}
-
-	public void updateBalance(int bal1, int bal2) throws Exception {
+	
+	/*
+	 * 
+	 * 	(1) DELETE RESERVATION
+	 * 
+	 */
+	public void deleteReservation() throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			PreparedStatement ps5 = connect.prepareStatement("select * from A where id=1");
-			ResultSet rs2 = ps5.executeQuery();
-			rs2.next();
-			int id = rs2.getInt("id");
-			int balance = rs2.getInt("balance");
-			System.out.println(id + balance);
-			PreparedStatement ps = connect.prepareStatement("update A set balance= ? where id=1");
-			ps.setInt(1, bal1);
-			ps.executeUpdate();
-			PreparedStatement ps2 = connect.prepareStatement("update A set balance= ? where id=1");
-			ps2.setInt(1, bal2);
-			ps2.executeUpdate();
+			
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -49,25 +43,98 @@ public class SEATS {
 
 	}
 
-	public void readBalance(int key) throws Exception {
+	/*
+	 * 
+	 * 	(2) FIND FLIGHTS
+	 * 
+	 */
+	public void findFlights() throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			PreparedStatement ps = connect.prepareStatement("select * from A where id=1");
-			ResultSet rs2 = ps.executeQuery();
-			rs2.next();
-			int id = rs2.getInt("id");
-			int balance = rs2.getInt("balance");
-			System.out.println(id + balance);
+		
+		} catch (Exception e) {
+			throw e;
+		} finally {
 
-			PreparedStatement ps1 = connect.prepareStatement("select * from A where id=1");
-			ResultSet rs3 = ps1.executeQuery();
-			rs3.next();
-			int id1 = rs3.getInt("id");
-			int balance1 = rs3.getInt("balance");
-			System.out.println(id1 + balance1);
+		}
+
+	}
+	
+	/*
+	 * 
+	 *  (3) FIND OPEN SEATS
+	 * 
+	 */
+	public void findOpenSeats() throws Exception {
+		try {
+
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+		
+		} catch (Exception e) {
+			throw e;
+		} finally {
+
+		}
+
+	}
+	
+	/*
+	 * 
+	 * 	(4) NEW RESERVATION
+	 * 
+	 */
+	public void newReservation() throws Exception {
+		try {
+
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+		
+		} catch (Exception e) {
+			throw e;
+		} finally {
+
+		}
+
+	}
+	
+	/*
+	 * 
+	 * 	(5) UPDATE CUSTOMER
+	 * 
+	 */
+	public void updateCustomer() throws Exception {
+		try {
+
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+		
+		} catch (Exception e) {
+			throw e;
+		} finally {
+
+		}
+
+	}
+	
+	/*
+	 * 
+	 * 	(6) UPDATE RESERVATION
+	 * 
+	 */
+	public void updateReservation() throws Exception {
+		try {
+
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+		
 		} catch (Exception e) {
 			throw e;
 		} finally {

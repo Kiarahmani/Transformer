@@ -79,7 +79,8 @@ public class GimpToAppOne extends GimpToApp {
 		}
 		txn.setExps(unitHandler.data.getExps());
 		txn.setTypes();
-		printExpressions(unitHandler);
+		if (ConstantArgs.DEBUG_MODE)
+			printExpressions(unitHandler);
 		return txn;
 
 	}
@@ -101,7 +102,6 @@ public class GimpToAppOne extends GimpToApp {
 		for (Value x : unitHandler.data.getExps().keySet()) {
 			System.out.println(x + " := " + unitHandler.data.getExps().get(x));
 		}
-		System.out.println("=============================");
 	}
 
 }

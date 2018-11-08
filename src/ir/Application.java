@@ -20,7 +20,7 @@ public class Application {
 	}
 
 	public void printApp() {
-		System.out.println("===	Application");
+		System.out.println("=============================\n===	APPLICATION");
 		for (Transaction t : txns)
 			t.printTxn();
 		System.out.println("========================================================================\n\n");
