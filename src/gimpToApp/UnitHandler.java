@@ -142,7 +142,9 @@ public class UnitHandler {
 				iter = 0;
 			}
 			// for all rowSets calls found so far, map them to the appropriate expression
+
 			for (Value LastRowSet : LastRowSets) {
+				// System.out.println("~"+LastRowSet);
 				int index = unitsWithNextCall.get(LastRowSet).indexOf(u);
 				if (index != -1) {// if you are one of the .next() calls
 					if (data.getLoopNo(u) == -1) {// if you are outside of loops
@@ -166,20 +168,28 @@ public class UnitHandler {
 							nextU = body.getUnits().getSuccOf(nextU);
 						}
 					} else {// if you are inside of a loop
-
+						// data.printMapUTSE();
 						RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
 						String newRVarName = LastRowSet.toString() + "-loopVar" + String.valueOf(data.getLoopNo(u));
 						RowVarLoopExp newRLVar = new RowVarLoopExp(newRVarName, oldRSVar.getTable(), oldRSVar);
+
 						data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRLVar);
-						map = new HashMap<Value, Expression>();
-						map.put(LastRowSet, newRLVar);
+
+						System.out.println("\n\n=======" + map);
 						for (Unit x : data.getAllUnitsFromLoop(data.getLoopNo(u))) {
+							Map<Value, Expression> oldMap = data.getUTSEs().get(x);
+							System.out.println("~" + oldMap);
+							if (oldMap == null)
+								map = new HashMap<Value, Expression>();
+							map.put(LastRowSet, newRLVar);
 							data.addMapUTSE(x, map);
 						}
+						System.out.println("--------------------------------------");
 					}
 
 				}
 			}
+
 		}
 		// loop #3
 		// patch the queries and the rSets

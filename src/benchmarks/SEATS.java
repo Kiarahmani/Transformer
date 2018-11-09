@@ -218,14 +218,14 @@ public class SEATS {
 	 * 
 	 */
 
-	public void findFlights(long depart_aid, long arrive_aid, long start_date, long end_date, long distance)
+	public void findFlights(int depart_aid, int arrive_aid, long start_date, long end_date, int distance)
 			throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			final List<Long> arrive_aids = new ArrayList<Long>();
+			final List<Integer> arrive_aids = new ArrayList<Integer>();
 			arrive_aids.add(arrive_aid);
 			final List<Object[]> finalResults = new ArrayList<Object[]>();
 			if (distance > 0) {
@@ -233,12 +233,12 @@ public class SEATS {
 				PreparedStatement nearby_stmt = connect
 						.prepareStatement("SELECT * " + "  FROM AIRPORT_DISTANCE WHERE D_AP_ID0 = ? "
 								+ "   AND D_DISTANCE <= ? " + " ORDER BY D_DISTANCE ASC ");
-				nearby_stmt.setLong(1, depart_aid);
-				nearby_stmt.setLong(2, distance);
+				nearby_stmt.setInt(1, depart_aid);
+				nearby_stmt.setInt(2, distance);
 				ResultSet nearby_results = nearby_stmt.executeQuery();
 				while (nearby_results.next()) {
-					long aid = nearby_results.getLong(1);
-					double aid_distance = nearby_results.getDouble(2);
+					int aid = nearby_results.getInt(1);
+					int aid_distance = nearby_results.getInt(2);
 					arrive_aids.add(aid);
 				} // WHILE
 				nearby_results.close();
@@ -249,7 +249,7 @@ public class SEATS {
 							+ " AL_NAME, AL_IATTR00, AL_IATTR01 " + " FROM FLIGHT WHERE F_DEPART_AP_ID = ? "
 							+ "   AND F_DEPART_TIME >= ? AND F_DEPART_TIME <= ? ");
 					// Set Parameters
-					f_stmt1.setLong(1, depart_aid);
+					f_stmt1.setInt(1, depart_aid);
 					f_stmt1.setLong(2, start_date);
 					f_stmt1.setLong(3, end_date);
 
@@ -283,17 +283,17 @@ public class SEATS {
 						int countryId = ai_results1.getInt("AP_CO_ID");
 					PreparedStatement ai_stmt2 = connect.prepareStatement(
 								"SELECT CO_ID, CO_NAME, CO_CODE_2, CO_CODE_3 " + " FROM COUNTRY WHERE CO_ID = ?");
-						ai_stmt2.setInt(1,countryId );
+						ai_stmt2.setInt(1,countryId);
 						ResultSet ai_results2 = ai_stmt2.executeQuery();
-		/*				// save the results
-						boolean adv = ai_results2.next();
+					// save the results
+	/*				boolean adv = ai_results2.next();
 						row[r++] = flightResults1.getInt("F_DEPART_TIME"); // [03] DEPART_TIME
 						row[r++] = ai_results1.getString("AP_CODE"); // [04] DEPART_AP_CODE
 						row[r++] = ai_results1.getString("AP_NAME"); // [05] DEPART_AP_NAME
 						row[r++] = ai_results1.getString("AP_CITY"); // [06] DEPART_AP_CITY
 						row[r++] = ai_results2.getString("CO_NAME"); // [07] DEPART_AP_COUNTRY
 */
-					}
+					} 
 
 				}
 

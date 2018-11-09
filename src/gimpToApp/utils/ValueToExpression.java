@@ -116,6 +116,7 @@ public class ValueToExpression {
 			String mName = iie.getMethod().getName();
 			Expression result;
 			if (mName.equals("getInt") || mName.equals("getString") || mName.equals("getLong")) {
+				System.out.println("where is r10   --"+data.getUTSEs().get(callerU));
 				RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
 				result = projectRow(rSet, iie.getArgs());
 				data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);

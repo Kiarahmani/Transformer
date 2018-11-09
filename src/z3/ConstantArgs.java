@@ -38,7 +38,7 @@ public class ConstantArgs {
 	/*
 	 * Developer's Area
 	 */
-	public static final boolean DEBUG_MODE = true;
+	public static final boolean DEBUG_MODE = false;
 	public static final boolean EXTRACT_ONLY = false;
 	public static boolean _FIND_CORE = false;
 	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "deleteReservation");

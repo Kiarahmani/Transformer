@@ -236,6 +236,10 @@ public class UnitData {
 		case "JimpleLocal":
 			result.add(v);
 			return result;
+			
+			
+		case "GCmpExpr":
+			System.out.println(v);
 		}
 		if (ConstantArgs.DEBUG_MODE)
 			System.err.println("---- UnitDAta.java.extractInvokedValues: value extraction case not handled yet: "
