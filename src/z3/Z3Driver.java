@@ -371,8 +371,8 @@ public class Z3Driver {
 					RowVarLoopExp vle = (RowVarLoopExp) exp;
 					tableName = vle.getTable().getName();
 					setVar = vle.getSetVar();
-					objs.addFunc(label,
-							ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort("BitVec") }, objs.getSort(tableName)));
+					objs.addFunc(label, ctx.mkFuncDecl(label, new Sort[] { tSort, objs.getSort("BitVec") },
+							objs.getSort(tableName)));
 					// add props for loopVar
 					prop = dynamicAssertions.mk_row_var_loop_props(txn.getName(), val.toString(), setVar);
 					addAssertion(label + "_props", prop);

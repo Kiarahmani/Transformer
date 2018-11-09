@@ -33,6 +33,7 @@ import soot.jimple.IntConstant;
 import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
 import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
+import z3.ConstantArgs;
 
 public class ValueToExpression {
 
@@ -128,7 +129,9 @@ public class ValueToExpression {
 			break;
 		}
 		String resName = "Abs-" + tp + "#" + (data.absIter++);
-		System.err.println(v.getClass().getSimpleName() + " - Unhandled case - will abstract to: " + resName + "\n");
+		if (ConstantArgs.DEBUG_MODE)
+			System.err
+					.println(v.getClass().getSimpleName() + " - Unhandled case - will abstract to: " + resName + "\n");
 		Expression defResult = new UnknownExp(resName, -1);
 		data.addExp(new FakeJimpleLocal(resName, null, null), defResult);
 		return defResult;
