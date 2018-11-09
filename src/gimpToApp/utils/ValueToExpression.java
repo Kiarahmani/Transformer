@@ -21,6 +21,7 @@ import soot.Unit;
 import soot.Value;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GCastExpr;
 import soot.grimp.internal.GEqExpr;
 import soot.grimp.internal.GGeExpr;
 import soot.grimp.internal.GGtExpr;

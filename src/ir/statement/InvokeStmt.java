@@ -21,7 +21,7 @@ public class InvokeStmt extends Statement {
 
 	public String toString() {
 		String firstPart = this.type + " (" + this.query + ")";
-		String whiteSpace = String.format("%0" + Math.max((144 - firstPart.length()), 10) + "d", 0).replace("0", " ");
+		String whiteSpace = String.format("%0" + Math.max((214 - firstPart.length()), 10) + "d", 0).replace("0", " ");
 		return firstPart + whiteSpace + "[PATH CONDITION: " + super.getPathCond() + "]";
 	}
 

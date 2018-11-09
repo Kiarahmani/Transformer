@@ -264,8 +264,8 @@ public class SEATS {
 						f_stmt2.setInt(1, flightResults1.getInt("F_AL_ID"));
 						ResultSet flightResults2 = f_stmt2.executeQuery();
 						flightResults2.next();
-				//		String al_name = flightResults2.getString("AL_NAME");
-/*
+						String al_name = flightResults2.getString("AL_NAME");
+
 						Object row[] = new Object[13];
 						int r = 0;
 
@@ -280,11 +280,12 @@ public class SEATS {
 						ai_stmt1.setLong(1, f_depart_airport);
 						ResultSet ai_results1 = ai_stmt1.executeQuery();
 						ai_results1.next();
+						int countryId = ai_results1.getInt("AP_CO_ID");
 						PreparedStatement ai_stmt2 = connect.prepareStatement(
 								"SELECT CO_ID, CO_NAME, CO_CODE_2, CO_CODE_3 " + " FROM COUNTRY WHERE CO_ID = ?");
-						ai_stmt2.setLong(1, ai_results1.getLong("AP_CO_ID"));
+						ai_stmt2.setLong(1,countryId );
 						ResultSet ai_results2 = ai_stmt2.executeQuery();
-						// save the results
+					/*	// save the results
 						boolean adv = ai_results2.next();
 						row[r++] = flightResults1.getInt("F_DEPART_TIME"); // [03] DEPART_TIME
 						row[r++] = ai_results1.getString("AP_CODE"); // [04] DEPART_AP_CODE
