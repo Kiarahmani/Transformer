@@ -115,6 +115,8 @@ public class Z3Driver {
 		objs.addSort("Bool", ctx.mkBoolSort());
 		objs.addSort("Int", ctx.mkIntSort());
 		objs.addSort("BitVec", ctx.mkBitVecSort(ConstantArgs._MAX_VERSIONS_));
+		objs.addSort("LoopBitVec", ctx.mkBitVecSort(ConstantArgs._MAX_LOOP_UNROLL));
+		objs.addSort("RowBitVec", ctx.mkBitVecSort(ConstantArgs._MAX_ROWS_SIZE));
 		objs.addSort("String", ctx.mkStringSort());
 		objs.addSort("Real", ctx.mkRealSort());
 
