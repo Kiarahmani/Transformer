@@ -144,7 +144,6 @@ public class UnitHandler {
 			// for all rowSets calls found so far, map them to the appropriate expression
 
 			for (Value LastRowSet : LastRowSets) {
-				// System.out.println("~"+LastRowSet);
 				int index = unitsWithNextCall.get(LastRowSet).indexOf(u);
 				if (index != -1) {// if you are one of the .next() calls
 					if (data.getLoopNo(u) == -1) {// if you are outside of loops

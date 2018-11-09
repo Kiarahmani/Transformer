@@ -259,8 +259,8 @@ public class SEATS {
 					while (flightResults1.next()) {
 						int f_depart_airport = flightResults1.getInt("F_DEPART_AP_ID");
 						int f_arrive_airport = flightResults1.getInt("F_ARRIVE_AP_ID");
-						PreparedStatement f_stmt2 = connect.prepareStatement(
-								"SELECT AL_NAME, AL_IATTR00, AL_IATTR01 FROM AIRLINE WHERE AL_ID=?");
+						PreparedStatement f_stmt2 = connect
+								.prepareStatement("SELECT AL_NAME, AL_IATTR00, AL_IATTR01 FROM AIRLINE WHERE AL_ID=?");
 						f_stmt2.setInt(1, flightResults1.getInt("F_AL_ID"));
 						ResultSet flightResults2 = f_stmt2.executeQuery();
 						flightResults2.next();
@@ -281,19 +281,40 @@ public class SEATS {
 						ResultSet ai_results1 = ai_stmt1.executeQuery();
 						ai_results1.next();
 						int countryId = ai_results1.getInt("AP_CO_ID");
-					PreparedStatement ai_stmt2 = connect.prepareStatement(
+						PreparedStatement ai_stmt2 = connect.prepareStatement(
 								"SELECT CO_ID, CO_NAME, CO_CODE_2, CO_CODE_3 " + " FROM COUNTRY WHERE CO_ID = ?");
-						ai_stmt2.setInt(1,countryId);
+						ai_stmt2.setInt(1, countryId);
 						ResultSet ai_results2 = ai_stmt2.executeQuery();
-					// save the results
-	/*				boolean adv = ai_results2.next();
+						// save the results
+						boolean adv = ai_results2.next();
 						row[r++] = flightResults1.getInt("F_DEPART_TIME"); // [03] DEPART_TIME
 						row[r++] = ai_results1.getString("AP_CODE"); // [04] DEPART_AP_CODE
 						row[r++] = ai_results1.getString("AP_NAME"); // [05] DEPART_AP_NAME
 						row[r++] = ai_results1.getString("AP_CITY"); // [06] DEPART_AP_CITY
 						row[r++] = ai_results2.getString("CO_NAME"); // [07] DEPART_AP_COUNTRY
-*/
-					} 
+
+						// ARRIVAL AIRPORT
+						PreparedStatement ai_stmt3 = connect.prepareStatement(
+								"SELECT AP_CODE, AP_NAME, AP_CITY, AP_LONGITUDE, AP_LATITUDE, AP_CO_ID "
+										+ " FROM AIRPORT WHERE AP_ID = ? ");
+						ai_stmt3.setInt(1, f_arrive_airport);
+						ResultSet ai_results3 = ai_stmt3.executeQuery();
+						ai_results3.next();
+
+						int countryId2 = ai_results3.getInt("AP_CO_ID");
+						PreparedStatement ai_stmt4 = connect.prepareStatement(
+								"SELECT CO_ID, CO_NAME, CO_CODE_2, CO_CODE_3 " + " FROM COUNTRY WHERE CO_ID = ?");
+						ai_stmt4.setInt(1, countryId2);
+						ResultSet ai_results4 = ai_stmt4.executeQuery();
+						ai_results4.next();
+						row[r++] = flightResults1.getDate(7); // [08] ARRIVE_TIME
+						row[r++] = ai_results3.getString("AP_CODE"); // [09] ARRIVE_AP_CODE
+						row[r++] = ai_results3.getString("AP_NAME"); // [10] ARRIVE_AP_NAME
+						row[r++] = ai_results3.getString("AP_CITY"); // [11] ARRIVE_AP_CITY
+						row[r++] = ai_results4.getString("CO_NAME"); // [12] ARRIVE_AP_COUNTRY
+						finalResults.add(row);
+
+					}
 
 				}
 
