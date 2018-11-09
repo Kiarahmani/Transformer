@@ -260,9 +260,8 @@ public class SEATS {
 						long f_depart_airport = flightResults1.getLong("F_DEPART_AP_ID");
 						long f_arrive_airport = flightResults1.getLong("F_ARRIVE_AP_ID");
 						PreparedStatement f_stmt2 = connect.prepareStatement(
-								"SELECT AL_NAME, AL_IATTR00, AL_IATTR01 FROM AIRLINE WHERE AL_ID=? AND F_ARRIVE_AP_ID < ?");
+								"SELECT AL_NAME, AL_IATTR00, AL_IATTR01 FROM AIRLINE WHERE AL_ID=?");
 						f_stmt2.setInt(1, flightResults1.getInt("F_AL_ID"));
-						f_stmt2.setInt(2, 4);
 						ResultSet flightResults2 = f_stmt2.executeQuery();
 						flightResults2.next();
 				//		String al_name = flightResults2.getString("AL_NAME");

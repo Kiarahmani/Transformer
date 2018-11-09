@@ -62,15 +62,15 @@ public class Z3Util {
 		case "ProjVarExp":
 			ProjVarExp pv = (ProjVarExp) cond;
 			FuncDecl projFunc = objs.getfuncs(pv.getRVar().getTable().getName() + "_PROJ_" + pv.getColumn().toString());
-			FuncDecl rowFunc = objs.getfuncs(txnName+"_"+pv.getName());
-			//System.out.println("\n\n\n\n\n\n\n\n\n==========="+  +"\n\n\n\n\n\n\n\n\n\n");
+			Expr rowVar = irCondToZ3Expr(txnName, txn, row, o1, pv.getRVar());
 			return ctx.mkApp(projFunc, irCondToZ3Expr(txnName, txn, row, o1, pv.getRVar()),
-					ctx.mkApp(objs.getfuncs(pv.getRVar().getTable().getName() + "_VERSION"), ctx.mkApp(rowFunc,txn), o1));
+					ctx.mkApp(objs.getfuncs(pv.getRVar().getTable().getName() + "_VERSION"), rowVar, o1));
+
 		case "RowSetVarExp":
 			break;
 		case "RowVarExp":
 			RowVarExp ve = (RowVarExp) cond;
-			rowFunc = objs.getfuncs(txnName + "_" + ve.getName());
+			FuncDecl rowFunc = objs.getfuncs(txnName + "_" + ve.getName());
 			return ctx.mkApp(rowFunc, txn);
 		case "RowVarLoopExp":
 			RowVarLoopExp vle = (RowVarLoopExp) cond;
@@ -79,7 +79,7 @@ public class Z3Util {
 		case "UnknownExp":
 			UnknownExp ue = (UnknownExp) cond;
 			return ctx.mkApp(objs.getfuncs("abs_integer"), ctx.mkInt(absIntCount++));
-			
+
 		case "BinOpExp":
 			BinOpExp boe = (BinOpExp) cond; {
 			switch (boe.op) {
