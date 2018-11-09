@@ -257,8 +257,8 @@ public class SEATS {
 					flightResults1.next();
 
 					while (flightResults1.next()) {
-						long f_depart_airport = flightResults1.getLong("F_DEPART_AP_ID");
-						long f_arrive_airport = flightResults1.getLong("F_ARRIVE_AP_ID");
+						int f_depart_airport = flightResults1.getInt("F_DEPART_AP_ID");
+						int f_arrive_airport = flightResults1.getInt("F_ARRIVE_AP_ID");
 						PreparedStatement f_stmt2 = connect.prepareStatement(
 								"SELECT AL_NAME, AL_IATTR00, AL_IATTR01 FROM AIRLINE WHERE AL_ID=?");
 						f_stmt2.setInt(1, flightResults1.getInt("F_AL_ID"));
@@ -269,23 +269,23 @@ public class SEATS {
 						Object row[] = new Object[13];
 						int r = 0;
 
-						row[r++] = flightResults1.getLong("F_ID"); // [00] F_ID
-						row[r++] = flightResults1.getLong("SEATS_LEFT"); // [01] SEATS_LEFT
+						row[r++] = flightResults1.getInt("F_ID"); // [00] F_ID
+						row[r++] = flightResults1.getInt("SEATS_LEFT"); // [01] SEATS_LEFT
 						row[r++] = flightResults2.getString("AL_NAME"); // [02] AL_NAME
 
 						// DEPARTURE AIRPORT
 						PreparedStatement ai_stmt1 = connect.prepareStatement(
 								"SELECT AP_CODE, AP_NAME, AP_CITY, AP_LONGITUDE, AP_LATITUDE, AP_CO_ID "
 										+ " FROM AIRPORT WHERE AP_ID = ? ");
-						ai_stmt1.setLong(1, f_depart_airport);
+						ai_stmt1.setInt(1, f_depart_airport);
 						ResultSet ai_results1 = ai_stmt1.executeQuery();
 						ai_results1.next();
 						int countryId = ai_results1.getInt("AP_CO_ID");
-						PreparedStatement ai_stmt2 = connect.prepareStatement(
+					PreparedStatement ai_stmt2 = connect.prepareStatement(
 								"SELECT CO_ID, CO_NAME, CO_CODE_2, CO_CODE_3 " + " FROM COUNTRY WHERE CO_ID = ?");
-						ai_stmt2.setLong(1,countryId );
+						ai_stmt2.setInt(1,countryId );
 						ResultSet ai_results2 = ai_stmt2.executeQuery();
-					/*	// save the results
+		/*				// save the results
 						boolean adv = ai_results2.next();
 						row[r++] = flightResults1.getInt("F_DEPART_TIME"); // [03] DEPART_TIME
 						row[r++] = ai_results1.getString("AP_CODE"); // [04] DEPART_AP_CODE
