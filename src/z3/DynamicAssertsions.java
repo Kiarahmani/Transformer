@@ -161,7 +161,7 @@ public class DynamicAssertsions {
 
 	public BoolExpr mk_row_var_loop_props(String txnName, String valueName, RowSetVarExp setVar) {
 		Expr tsort = ctx.mkFreshConst("t", objs.getSort("T"));
-		Expr isort = ctx.mkFreshConst("i", objs.getSort("Int"));
+		Expr isort = ctx.mkFreshConst("i", objs.getSort("BitVec"));
 		Quantifier x = null;
 		String sVarName = txnName + "_" + setVar.getName();
 		String rowVarName = txnName + "_" + valueName;

@@ -15,6 +15,8 @@ public class ConstantArgs {
 	public static int _MAX_NUM_PARTS = 1;
 	// size of the bit vectors representing integers
 	public static int _MAX_VERSIONS_ = 4;
+	// size of the bit vectors representing integers
+	public static int _MAX_LOOP_UNROLL = 4;
 	// maximum number of transaction instances in the anomaly (-1 for no constraint)
 	public static int _MAX_TXN_INSTANCES = -1;
 	// should Z3 extract transaction parameters as well?
