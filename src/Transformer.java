@@ -102,7 +102,7 @@ public class Transformer extends BodyTransformer {
 
 		long endZ3 = System.currentTimeMillis();
 		// print stats
-		printStats(seenAnmls.size(), ((endZ3 - endTables) / iter), (endTables - start), (endApp - endTables),
+		printStats(seenAnmls.size(), ((endZ3 - endApp) / (iter - 1)), (endTables - start), (endApp - endTables),
 				(endZ3 - endTables));
 
 	}

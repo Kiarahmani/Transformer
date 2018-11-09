@@ -175,16 +175,13 @@ public class UnitHandler {
 
 						data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRLVar);
 
-						System.out.println("\n\n=======" + map);
 						for (Unit x : data.getAllUnitsFromLoop(data.getLoopNo(u))) {
 							Map<Value, Expression> oldMap = data.getUTSEs().get(x);
-							System.out.println("~" + oldMap);
 							if (oldMap == null)
 								map = new HashMap<Value, Expression>();
 							map.put(LastRowSet, newRLVar);
 							data.addMapUTSE(x, map);
 						}
-						System.out.println("--------------------------------------");
 					}
 
 				}

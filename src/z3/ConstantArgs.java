@@ -24,7 +24,7 @@ public class ConstantArgs {
 	// should Z3 exclue anomalies already found from the analysis?
 	public static boolean _ENFORCE_EXCLUSION = true;
 	// additional constraints on the anomalies
-	public static boolean _NO_WW = false;
+	public static boolean _NO_WW = true;
 	public static boolean _NO_WR = false;
 	public static boolean _NO_RW = false;
 
@@ -41,6 +41,6 @@ public class ConstantArgs {
 	public static final boolean DEBUG_MODE = false;
 	public static final boolean EXTRACT_ONLY = false;
 	public static boolean _FIND_CORE = false;
-	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "deleteReservation");
+	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "deleteRewservation");
 
 }

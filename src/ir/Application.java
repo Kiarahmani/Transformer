@@ -21,6 +21,7 @@ public class Application {
 
 	public void printApp() {
 		System.out.println("=============================\n===	APPLICATION");
+		System.out.println();
 		for (Transaction t : txns)
 			t.printTxn();
 		System.out.println("========================================================================\n\n");
