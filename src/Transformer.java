@@ -62,7 +62,6 @@ public class Transformer extends BodyTransformer {
 		} catch (UnknownUnitException e) {
 			e.printStackTrace();
 		}
-
 		app.printApp();
 		long endApp = System.currentTimeMillis();
 
