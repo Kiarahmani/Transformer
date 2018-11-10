@@ -10,7 +10,7 @@ public class ConstantArgs {
 	public static String _DDL_FILE = "ddl_seats.sql";
 	public static String _BENCHMARK_NAME = "SEATS";
 	// maximum length of anomalous cycles looked for
-	public static int _MAX_CYCLE_LENGTH = 3;
+	public static int _MAX_CYCLE_LENGTH = 4;
 	// maxim number of partitions
 	public static int _MAX_NUM_PARTS = 1;
 	// size of the bit vectors representing integers
@@ -41,6 +41,6 @@ public class ConstantArgs {
 	public static final boolean DEBUG_MODE = false;
 	public static final boolean EXTRACT_ONLY = false;
 	public static boolean _FIND_CORE = false;
-	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "delete Reservation");
+	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "deleteReservation");
 
 }

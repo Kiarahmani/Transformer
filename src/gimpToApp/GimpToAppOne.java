@@ -70,12 +70,10 @@ public class GimpToAppOne extends GimpToApp {
 				e.printStackTrace();
 			}
 		}
-		
-		
+
 		unitHandler.InitialAnalysis();
 		unitHandler.extractStatements();
-		System.out.println("\n\n\n");
-		
+
 		// craft the output transaction from the extracted data
 		for (Statement s : unitHandler.data.getStmts()) {
 			txn.addStmt(s);
