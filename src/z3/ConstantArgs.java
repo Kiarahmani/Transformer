@@ -5,12 +5,12 @@ import java.util.List;
 
 public class ConstantArgs {
 
-	// file under analysis
-	public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
-	public static String _DDL_FILE = "ddl_seats.sql";
-	public static String _BENCHMARK_NAME = "SEATS";
+	// application under analysis
+	public static String _TESTS_OR_BENCHMARKS = "tests.";
+	public static String _DDL_FILE = "ddl.sql";
+	public static String _BENCHMARK_NAME = "SampleApp";
 	// maximum length of anomalous cycles looked for
-	public static int _MAX_CYCLE_LENGTH = 4;
+	public static int _MAX_CYCLE_LENGTH = 6;
 	// maxim number of partitions
 	public static int _MAX_NUM_PARTS = 1;
 	// size of the bit vectors representing integers

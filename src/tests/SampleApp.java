@@ -64,32 +64,7 @@ public class SampleApp {
 
 	}
 
-	public void select(int key1, int key2) throws Exception {
-		try {
-
-			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
-			System.out.println("connecting...");
-			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			System.out.println("connected: " + connect);
-			// if (key != 12) {
-			PreparedStatement preparedStatement = connect.prepareStatement("select * from A where id =?");
-			preparedStatement.setInt(1, key1);
-			ResultSet rs = preparedStatement.executeQuery();
-			rs.next();
-			int id = rs.getInt("id");
-			int balance = rs.getInt("balance");
-
-			PreparedStatement preparedStatement1 = connect.prepareStatement("select * from B where id =?");
-			preparedStatement1.setInt(1, key2);
-			ResultSet rs1 = preparedStatement1.executeQuery();
-			rs1.next();
-
-		} catch (Exception e) {
-			throw e;
-		} finally {
-		}
-	}
-
+	
 	public void select2(int key1, int key2) throws Exception {
 		try {
 
@@ -99,11 +74,6 @@ public class SampleApp {
 			System.out.println("connected: " + connect);
 			// if (key != 12) {
 
-			PreparedStatement preparedStatement1 = connect.prepareStatement("select * from B where id =?");
-			preparedStatement1.setInt(1, key2);
-			ResultSet rs1 = preparedStatement1.executeQuery();
-			rs1.next();
-
 			PreparedStatement preparedStatement = connect.prepareStatement("select * from A where id =?");
 			preparedStatement.setInt(1, key1);
 			ResultSet rs = preparedStatement.executeQuery();
@@ -111,11 +81,29 @@ public class SampleApp {
 			int id = rs.getInt("id");
 			int balance = rs.getInt("balance");
 
+			PreparedStatement preparedStatement1 = connect.prepareStatement("update A set balance=? where id =?");
+			preparedStatement1.setInt(1, balance);
+			preparedStatement1.setInt(2, key1);
+			preparedStatement1.executeUpdate();
+			
+			PreparedStatement preparedStatement2 = connect.prepareStatement("select * from B where id =?");
+			preparedStatement2.setInt(1, key2);
+			ResultSet rs2 = preparedStatement2.executeQuery();
+			rs2.next();
+			String name = rs2.getString("name");
+			
+			PreparedStatement preparedStatement3 = connect.prepareStatement("update B set name=? where id =?");
+			preparedStatement3.setString(1, name);
+			preparedStatement3.setInt(2, key1);
+			preparedStatement3.executeUpdate();
+
 		} catch (Exception e) {
 			throw e;
 		} finally {
 		}
 
 	}
+
+
 
 }
