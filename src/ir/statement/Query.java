@@ -332,7 +332,7 @@ public class Query {
 		String wc = this.whereClause.toString();
 		switch (this.kind) {
 		case SELECT:
-			String c = this.s_columns.toString();
+			String c = "...";//this.s_columns.toString();
 			return k + "[" + t + ":" + c + "] " + " <<" + wc + ">>";
 		case INSERT:
 			String v = this.getI_values().toString();

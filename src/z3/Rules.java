@@ -173,7 +173,7 @@ public class Rules {
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar,version),
-									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, vo2,
+									z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 											q2.getI_values().get(iter++)));
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, pathCond1,
@@ -391,7 +391,7 @@ public class Rules {
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
-									z3Util.irCondToZ3Expr(txn1.getName(), rowVar, vt1, vo1,
+									z3Util.irCondToZ3Expr(txn1.getName(), vt1 , rowVar, vo1,
 											q1.getI_values().get(iter++)));
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);

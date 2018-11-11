@@ -41,6 +41,7 @@ public class ConstantArgs {
 	public static final boolean DEBUG_MODE = false;
 	public static final boolean EXTRACT_ONLY = false;
 	public static boolean _FIND_CORE = false;
-	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "delete Reservation", "find OpenSeats", "find Flights");
+	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "delete Reservation", "find OpenSeats",
+			"find Flights", "new Reservation", "update Customer");
 
 }
