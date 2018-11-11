@@ -33,6 +33,8 @@ public enum Type {
 			return REAL;
 		case "long":
 			return INT;
+		case "int[]":
+			return Type.STRING;
 		default:
 			throw new SqlTypeNotFoundException(
 					"Type.java.fromJavaTypes : --- unhandled java type (" + v.toString() + ")");

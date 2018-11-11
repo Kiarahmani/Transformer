@@ -38,7 +38,6 @@ public class SEATS {
 			// If we weren't given the customer id, then look it up
 			if (cidGiven == 0) {
 				boolean has_al_id = false;
-				long extracted_c_id;
 				// Use the customer's id as a string
 				if (c_id_str != "" && c_id_str.length() > 0) {
 
@@ -47,87 +46,12 @@ public class SEATS {
 					ResultSet results1 = stmt1.executeQuery();
 
 					if (results1.next()) {
-						extracted_c_id = results1.getLong(0);
+						given_c_id = results1.getLong(0);
 						if (has_al_id)
 							ff_al_id = results1.getLong(1);
-						PreparedStatement stmt2 = connect.prepareStatement(
-								"SELECT C_SATTR00, C_SATTR02, C_SATTR04, C_IATTR00, C_IATTR02, C_IATTR04, C_IATTR06, C_BALANCE, C_IATTR10, C_IATTR11 FROM CUSTOMER WHERE C_ID = ?");
-						stmt2.setLong(1, extracted_c_id);
-						ResultSet results2 = stmt2.executeQuery();
-						results2.next();
-						int oldBal = results2.getInt("C_BALANCE");
-						int oldAttr10 = results2.getInt("C_IATTR10");
-						int oldAttr11 = results2.getInt("C_IATTR11");
-						long c_iattr00 = results2.getLong(0) + 1;
 
-						if (!results2.next()) {
-							results2.close();
-						}
-						// select flight
-						PreparedStatement stmt31 = connect
-								.prepareStatement("SELECT F_SEATS_LEFT FROM FLIGHT WHERE F_ID = ? ");
-						stmt31.setLong(1, f_id);
-						ResultSet results3 = stmt31.executeQuery();
-						results3.next();
-						int seats_left = results3.getInt(0);
-
-						// select reservation
-						PreparedStatement stmt32 = connect.prepareStatement(
-								"SELECT R_ID, R_SEAT, R_PRICE, R_IATTR00 FROM RESERVATION WHERE R_C_ID = ? ");
-						stmt32.setLong(1, extracted_c_id);
-						ResultSet results4 = stmt32.executeQuery();
-						if (!results4.next() || !results3.next())
-							return;
-						results4.next();
-						long r_id = results4.getLong(0);
-						double r_price = results4.getDouble(2);
-						results4.close();
-						int updated = 0;
-						// Now delete all of the flights that they have on this flight
-						PreparedStatement stmt4 = connect.prepareStatement(
-								"DELETE FROM RESERVATION WHERE R_ID = ? AND R_C_ID = ? AND R_F_ID = ?");
-						stmt4.setLong(1, r_id);
-						stmt4.setLong(2, extracted_c_id);
-						stmt4.setLong(3, f_id);
-						updated = stmt4.executeUpdate();
-
-						PreparedStatement stmt52 = connect
-								.prepareStatement("UPDATE FLIGHT SET F_SEATS_LEFT = ?" + " WHERE F_ID = ? ");
-						stmt52.setInt(1, seats_left + 1);
-						stmt52.setLong(2, f_id);
-						updated = stmt52.executeUpdate();
-
-						// Update Customer's Balance
-						PreparedStatement stmt6 = connect.prepareStatement(
-								"UPDATE CUSTOMER SET C_BALANCE = ?, C_IATTR00 = ?, C_IATTR10 = ?,  C_IATTR11 = ? WHERE C_ID = ? ");
-						stmt6.setLong(1, oldBal + (long) (-1 * r_price));
-						stmt6.setLong(2, c_iattr00);
-						stmt6.setLong(3, oldAttr10 - 1);
-						stmt6.setLong(4, oldAttr11 - 1);
-						stmt6.setLong(5, extracted_c_id);
-						updated = stmt6.executeUpdate();
-
-						// Update Customer's Frequent Flyer Information (Optional)
-						if (ff_al_id != -1) {
-							PreparedStatement stmt71 = connect.prepareStatement("SELECT FF_IATTR10 FROM FREQUENT_FLYER "
-									+ " WHERE FF_C_ID = ? " + "   AND FF_AL_ID = ?");
-							stmt71.setLong(1, extracted_c_id);
-							stmt71.setLong(2, ff_al_id);
-							ResultSet results5 = stmt71.executeQuery();
-							results5.next();
-							int olAttr10 = results5.getInt(0);
-							PreparedStatement stmt72 = connect
-									.prepareStatement("UPDATE FREQUENT_FLYER SET FF_IATTR10 = ?" + " WHERE FF_C_ID = ? "
-											+ "   AND FF_AL_ID = ?");
-							stmt72.setLong(1, olAttr10 - 1);
-							stmt72.setLong(2, extracted_c_id);
-							stmt72.setLong(3, ff_al_id);
-							updated = stmt72.executeUpdate();
-						}
 					}
 				}
-			} else {
-				// Use the customer's id as a string
 				PreparedStatement stmt2 = connect.prepareStatement(
 						"SELECT C_SATTR00, C_SATTR02, C_SATTR04, C_IATTR00, C_IATTR02, C_IATTR04, C_IATTR06, C_BALANCE, C_IATTR10, C_IATTR11 FROM CUSTOMER WHERE C_ID = ?");
 				stmt2.setLong(1, given_c_id);
@@ -199,12 +123,13 @@ public class SEATS {
 					stmt72.setLong(2, given_c_id);
 					stmt72.setLong(3, ff_al_id);
 					updated = stmt72.executeUpdate();
-
 				}
-
 			}
+
 			connect.commit();
-		} catch (Exception e) {
+		} catch (
+
+		Exception e) {
 			throw e;
 		} finally {
 
@@ -394,20 +319,126 @@ public class SEATS {
 	 * (4) NEW RESERVATION
 	 * 
 	 */
-	/*
-	 * public void newReservation() throws Exception { try {
-	 * 
-	 * Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
-	 * System.out.println("connecting..."); connect =
-	 * DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID +
-	 * "/testks");
-	 * 
-	 * } catch (Exception e) { throw e; } finally {
-	 * 
-	 * }
-	 * 
-	 * }
-	 */
+
+	public void newReservation(int r_id, int c_id, int f_id, int seatnum, int price, int attrs[]) throws Exception {
+		try {
+
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+			// Flight Information
+			PreparedStatement stmt11 = connect
+					.prepareStatement("SELECT F_AL_ID, F_SEATS_LEFT FROM FLIGHT WHERE F_ID = ?");
+			stmt11.setInt(1, f_id);
+			ResultSet rs1 = stmt11.executeQuery();
+			boolean found1 = rs1.next();
+			// Airline Information
+			PreparedStatement stmt12 = connect.prepareStatement("SELECT * FROM AIRLINE WHERE AL_ID = ?");
+			stmt12.setInt(1, f_id);
+			ResultSet rs2 = stmt12.executeQuery();
+			boolean found2 = rs2.next();
+			if (!found1 || !found2) {
+				System.out.println("Invalid flight");
+			}
+			int airline_id = rs1.getInt("F_AL_ID");
+			int seats_left = rs1.getInt("F_SEATS_LEFT");
+			rs.close();
+			if (seats_left <= 0) {
+				System.out.println(" No more seats available for flight");
+			}
+			// Check if Seat is Available
+			PreparedStatement stmt2 = connect
+					.prepareStatement("SELECT R_ID FROM RESERVATION WHERE R_F_ID = ? and R_SEAT = ?");
+			stmt2.setInt(1, f_id);
+			stmt2.setInt(2, seatnum);
+			ResultSet rs3 = stmt2.executeQuery();
+			boolean found3 = rs3.next();
+			if (found3)
+				throw new Exception(String.format(" Seat %d is already reserved on flight #%d", seatnum, f_id));
+
+			// Check if the Customer already has a seat on this flight
+			PreparedStatement stmt3 = connect
+					.prepareStatement("SELECT R_ID " + "  FROM RESERVATION WHERE R_F_ID = ? AND R_C_ID = ?");
+			stmt3.setInt(1, f_id);
+			stmt3.setInt(2, c_id);
+			ResultSet rs4 = stmt3.executeQuery();
+			boolean found4 = rs4.next();
+			if (found4)
+				throw new Exception(
+						String.format(" Customer %d already owns on a reservations on flight #%d", c_id, f_id));
+
+			// Get Customer Information
+			PreparedStatement stmt4 = connect.prepareStatement(
+					"SELECT C_BASE_AP_ID, C_BALANCE, C_SATTR00, C_IATTR10, C_IATTR11 FROM CUSTOMER WHERE C_ID = ? ");
+			stmt4.setInt(1, c_id);
+			ResultSet rs5 = stmt4.executeQuery();
+			int oldAttr10 = rs5.getInt("C_IATTR10");
+			int oldAttr11 = rs5.getInt("C_IATTR11");
+			boolean found5 = rs5.next();
+			if (found5 == false) {
+				throw new Exception(String.format(" Invalid customer id: %d / %s", c_id, c_id));
+			}
+			PreparedStatement stmt5 = connect.prepareStatement(
+					"INSERT INTO RESERVATION (R_ID, R_C_ID, R_F_ID, R_SEAT, R_PRICE, R_IATTR00, R_IATTR01, "
+							+ "   R_IATTR02, R_IATTR03, R_IATTR04, R_IATTR05, R_IATTR06, R_IATTR07, R_IATTR08) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+			stmt5.setInt(1, r_id);
+			stmt5.setInt(2, c_id);
+			stmt5.setInt(3, f_id);
+			stmt5.setInt(4, seatnum);
+			stmt5.setInt(5, 2);
+			stmt5.setInt(6, attrs[0]);
+			stmt5.setInt(7, attrs[1]);
+			stmt5.setInt(8, attrs[2]);
+			stmt5.setInt(9, attrs[3]);
+			stmt5.executeUpdate();
+			//
+			PreparedStatement stmt6 = connect
+					.prepareStatement("UPDATE FLIGHT SET F_SEATS_LEFT = ? " + " WHERE F_ID = ? ");
+			stmt6.setInt(1, seats_left - 1);
+			stmt6.setInt(2, f_id);
+			stmt6.executeUpdate();
+			// update customer
+			PreparedStatement stmt7 = connect.prepareStatement(
+					"UPDATE CUSTOMER SET C_IATTR10 = ?, C_IATTR11 = ?, C_IATTR12 = ?, C_IATTR13 = ?, C_IATTR14 = ?, C_IATTR15 = ?"
+							+ "  WHERE C_ID = ? ");
+
+			stmt7.setInt(1, oldAttr10 + 1);
+			stmt7.setInt(2, oldAttr11 + 1);
+			stmt7.setInt(3, attrs[0]);
+			stmt7.setInt(4, attrs[1]);
+			stmt7.setInt(5, attrs[2]);
+			stmt7.setInt(6, attrs[3]);
+			stmt7.setInt(7, c_id);
+			stmt7.executeUpdate();
+			// update frequent flyer
+			PreparedStatement stmt81 = connect
+					.prepareStatement("SELECT FF_IATTR10 FROM FREQUENT_FLYER WHERE FF_C_ID = ? AND FF_AL_ID = ?");
+			ResultSet rs6 = stmt81.executeQuery();
+			stmt81.setInt(1, c_id);
+			stmt81.setInt(2, airline_id);
+			rs6.next();
+			int oldFFAttr10 = rs6.getInt("FF_IATTR10");
+
+			PreparedStatement stmt82 = connect.prepareStatement(
+					"UPDATE FREQUENT_FLYER SET FF_IATTR10 = ?, FF_IATTR11 = ?, FF_IATTR12 = ?, FF_IATTR13 = ?, FF_IATTR14 = ? "
+							+ " WHERE FF_C_ID = ? " + "   AND FF_AL_ID = ?");
+			stmt82.setInt(1, oldFFAttr10 + 1);
+			stmt82.setInt(2, attrs[4]);
+			stmt82.setInt(3, attrs[5]);
+			stmt82.setInt(4, attrs[6]);
+			stmt82.setInt(5, attrs[7]);
+			stmt82.setInt(6, c_id);
+			stmt82.setInt(7, airline_id);
+			stmt82.executeUpdate();
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+
+		}
+
+	}
+
 	/*
 	 * 
 	 * (5) UPDATE CUSTOMER

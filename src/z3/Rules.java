@@ -113,9 +113,10 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo2);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
 									z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 											q2.getI_values().get(iter++)));
 
@@ -168,9 +169,10 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo2);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar,version),
 									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, vo2,
 											q2.getI_values().get(iter++)));
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
@@ -187,10 +189,11 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo2);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, vo2,
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
+									z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 											q2.getI_values().get(iter++)));
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
 						Expr body = ctx.mkAnd(rowConflictCond, rowConflictCond, otypeCond1, otypeCond2, whereClause1,
@@ -323,11 +326,13 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
-						for (Column c : table.getColumns())
+						for (Column c : table.getColumns()) {
+							Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
 									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,
 											q1.getI_values().get(iter++)));
+						}
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause2, pathCond1,
@@ -382,9 +387,10 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
 									z3Util.irCondToZ3Expr(txn1.getName(), rowVar, vt1, vo1,
 											q1.getI_values().get(iter++)));
 
@@ -401,10 +407,11 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn1.getName(), rowVar, vt1, vo1,
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
+									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,
 											q1.getI_values().get(iter++)));
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);

@@ -19,6 +19,7 @@ import soot.grimp.internal.GIfStmt;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
 import soot.grimp.internal.GLeExpr;
+import soot.grimp.internal.GLtExpr;
 import soot.grimp.internal.GNeExpr;
 import z3.ConstantArgs;
 import ir.expression.BinOpExp;
@@ -225,6 +226,17 @@ public class UnitData {
 			result.addAll(extractInvokedValues(ge.getOp2()));
 			return result;
 
+		case "GLengthExpr":
+			return result;
+
+		case "GLtExpr":
+			GLtExpr gle = (GLtExpr) v;
+			result.addAll(extractInvokedValues(gle.getOp1()));
+			result.addAll(extractInvokedValues(gle.getOp2()));
+			return result;
+		case "GCmpExpr":
+			return result;
+
 		case "GInterfaceInvokeExpr":
 			GInterfaceInvokeExpr iie = (GInterfaceInvokeExpr) v;
 			result.add(iie.getBase());
@@ -237,6 +249,9 @@ public class UnitData {
 			result.add(v);
 			return result;
 			
+		case "StaticFieldRef":
+			return result;
+
 		}
 		if (ConstantArgs.DEBUG_MODE)
 			System.err.println("---- UnitDAta.java.extractInvokedValues: value extraction case not handled yet: "

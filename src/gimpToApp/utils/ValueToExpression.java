@@ -116,9 +116,14 @@ public class ValueToExpression {
 			String mName = iie.getMethod().getName();
 			Expression result;
 			if (mName.equals("getInt") || mName.equals("getString") || mName.equals("getLong")) {
-				RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
-				result = projectRow(rSet, iie.getArgs());
-				data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
+				try {
+					RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
+					result = projectRow(rSet, iie.getArgs());
+					data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
+				} catch (NullPointerException e) {
+					System.out.println("----ValueToExpression.java:"+e);
+					break;
+				}
 				return result;
 			} else if (mName.equals("next")) {
 				NullExp rSet = new NullExp(iie.getBase());
