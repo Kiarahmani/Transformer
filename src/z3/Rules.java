@@ -3,6 +3,7 @@ package z3;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BitVecExpr;
@@ -52,8 +53,8 @@ public class Rules {
 	// RW THEN
 	//
 	////////////////////////
-	public List<BoolExpr> return_conditions_rw_then(FuncDecl t1, FuncDecl t2, Expr vo1, Expr vo2, Expr vt1, Expr vt2)
-			throws UnexoectedOrUnhandledConditionalExpression {
+	public List<BoolExpr> return_conditions_rw_then(FuncDecl t1, FuncDecl t2, Expr vo1, Expr vo2, Expr vt1, Expr vt2,
+			Set<Table> includedTables) throws UnexoectedOrUnhandledConditionalExpression {
 		Transaction txn1 = app.getTxnByName(t1.getName().toString());
 		Transaction txn2 = app.getTxnByName(t2.getName().toString());
 		List<BoolExpr> result = new ArrayList<BoolExpr>();
@@ -69,7 +70,7 @@ public class Rules {
 				Query q2 = ((InvokeStmt) o2).getQuery();
 
 				// add the conditions if there is a common table between statements
-				if (q1.getTable().equals(q2.getTable())) {
+				if (q1.getTable().equals(q2.getTable()) && includedTables.contains(q1.getTable())) {
 					String tableName = q1.getTable().getName();
 					Sort rowSort = objs.getSort(tableName);
 					Expr rowVar = ctx.mkFreshConst("r", rowSort);
@@ -113,9 +114,10 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo2);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
 									z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 											q2.getI_values().get(iter++)));
 
@@ -168,10 +170,11 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo2);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, vo2,
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
+									z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 											q2.getI_values().get(iter++)));
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, pathCond1,
@@ -187,10 +190,11 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo2);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn2.getName(), rowVar, vt2, vo2,
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
+									z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 											q2.getI_values().get(iter++)));
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
 						Expr body = ctx.mkAnd(rowConflictCond, rowConflictCond, otypeCond1, otypeCond2, whereClause1,
@@ -262,8 +266,8 @@ public class Rules {
 	// WR THEN
 	//
 	////////////////////////
-	public List<BoolExpr> return_conditions_wr_then(FuncDecl t1, FuncDecl t2, Expr vo1, Expr vo2, Expr vt1, Expr vt2)
-			throws UnexoectedOrUnhandledConditionalExpression {
+	public List<BoolExpr> return_conditions_wr_then(FuncDecl t1, FuncDecl t2, Expr vo1, Expr vo2, Expr vt1, Expr vt2,
+			Set<Table> includedTables) throws UnexoectedOrUnhandledConditionalExpression {
 		Transaction txn1 = app.getTxnByName(t1.getName().toString());
 		Transaction txn2 = app.getTxnByName(t2.getName().toString());
 		List<BoolExpr> result = new ArrayList<BoolExpr>();
@@ -278,8 +282,9 @@ public class Rules {
 				Query q1 = ((InvokeStmt) o1).getQuery();
 				Query q2 = ((InvokeStmt) o2).getQuery();
 
-				// add the conditions if there is a common table between statements
-				if (q1.getTable().equals(q2.getTable())) {
+				// add the conditions if there is a common table between statements which is
+				// included at the current iteration
+				if (q1.getTable().equals(q2.getTable()) && includedTables.contains(q1.getTable())) {
 					String tableName = q1.getTable().getName();
 					Table table = tables.stream().filter(t -> t.getName().equals(tableName)).findAny().get();
 					Sort rowSort = objs.getSort(tableName);
@@ -323,11 +328,13 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
-						for (Column c : table.getColumns())
+						for (Column c : table.getColumns()) {
+							Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
 									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,
 											q1.getI_values().get(iter++)));
+						}
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause2, pathCond1,
@@ -382,10 +389,11 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn1.getName(), rowVar, vt1, vo1,
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
+									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,
 											q1.getI_values().get(iter++)));
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
@@ -401,10 +409,11 @@ public class Rules {
 								rowVar, vo1, vo2);
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
+						Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
 						for (Column c : table.getColumns())
 							insertedRowConds[iter] = ctx.mkEq(
-									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar),
-									z3Util.irCondToZ3Expr(txn1.getName(), rowVar, vt1, vo1,
+									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
+									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,
 											q1.getI_values().get(iter++)));
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);
@@ -418,8 +427,8 @@ public class Rules {
 		return result;
 	}
 
-	public List<BoolExpr> return_conditions_ww_then(FuncDecl t1, FuncDecl t2, Expr vo1, Expr vo2, Expr vt1, Expr vt2)
-			throws UnexoectedOrUnhandledConditionalExpression {
+	public List<BoolExpr> return_conditions_ww_then(FuncDecl t1, FuncDecl t2, Expr vo1, Expr vo2, Expr vt1, Expr vt2,
+			Set<Table> includedTables) throws UnexoectedOrUnhandledConditionalExpression {
 		Transaction txn1 = app.getTxnByName(t1.getName().toString());
 		Transaction txn2 = app.getTxnByName(t2.getName().toString());
 		List<BoolExpr> result = new ArrayList<BoolExpr>();
@@ -434,7 +443,7 @@ public class Rules {
 				Query q2 = ((InvokeStmt) o2).getQuery();
 
 				// add the conditions if there is a common table between statements
-				if (q1.getTable().equals(q2.getTable())) {
+				if (q1.getTable().equals(q2.getTable()) && includedTables.contains(q1.getTable())) {
 					String tableName = q1.getTable().getName();
 					Sort rowSort = objs.getSort(tableName);
 					Expr rowVar = ctx.mkFreshConst("r", rowSort);

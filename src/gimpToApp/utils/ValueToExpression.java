@@ -21,6 +21,7 @@ import soot.Unit;
 import soot.Value;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GCastExpr;
 import soot.grimp.internal.GEqExpr;
 import soot.grimp.internal.GGeExpr;
 import soot.grimp.internal.GGtExpr;
@@ -33,6 +34,7 @@ import soot.jimple.IntConstant;
 import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
 import soot.jimple.toolkits.infoflow.FakeJimpleLocal;
+import z3.ConstantArgs;
 
 public class ValueToExpression {
 
@@ -114,9 +116,14 @@ public class ValueToExpression {
 			String mName = iie.getMethod().getName();
 			Expression result;
 			if (mName.equals("getInt") || mName.equals("getString") || mName.equals("getLong")) {
-				RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
-				result = projectRow(rSet, iie.getArgs());
-				data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
+				try {
+					RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
+					result = projectRow(rSet, iie.getArgs());
+					data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
+				} catch (NullPointerException e) {
+					System.out.println("----ValueToExpression.java:"+e);
+					break;
+				}
 				return result;
 			} else if (mName.equals("next")) {
 				NullExp rSet = new NullExp(iie.getBase());
@@ -128,7 +135,9 @@ public class ValueToExpression {
 			break;
 		}
 		String resName = "Abs-" + tp + "#" + (data.absIter++);
-		System.err.println(v.getClass().getSimpleName() + " - Unhandled case - will abstract to: " + resName + "\n");
+		if (ConstantArgs.DEBUG_MODE)
+			System.err
+					.println(v.getClass().getSimpleName() + " - Unhandled case - will abstract to: " + resName + "\n");
 		Expression defResult = new UnknownExp(resName, -1);
 		data.addExp(new FakeJimpleLocal(resName, null, null), defResult);
 		return defResult;

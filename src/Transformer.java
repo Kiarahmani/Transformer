@@ -1,6 +1,14 @@
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Tables;
+
 import anomaly.Anomaly;
 import exceptions.UnknownUnitException;
 import gimpToApp.GimpToApp;
@@ -62,10 +70,11 @@ public class Transformer extends BodyTransformer {
 		} catch (UnknownUnitException e) {
 			e.printStackTrace();
 		}
-
 		app.printApp();
 		long endApp = System.currentTimeMillis();
 
+		if (ConstantArgs.EXTRACT_ONLY)
+			return;
 		/*
 		 * generate the anomaly given the IR
 		 */
@@ -73,34 +82,44 @@ public class Transformer extends BodyTransformer {
 		Anomaly anml = null;
 		int iter = 1;
 		List<Anomaly> seenAnmls = new ArrayList<>();
+		// partitions
 		while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
-			ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
-			do {
-				long loopBegin = System.currentTimeMillis();
-				System.out.println(runHeader(iter++));
-				zdr = new Z3Driver(app, tables, false);
-				anml = zdr.analyze(seenAnmls);
-				if (anml != null) {
-					seenAnmls.add(anml);
-					anml.announce(false, seenAnmls.size());
-					anml.closeCtx();
-				} else
-					zdr.closeCtx();
-				System.out.println(runTimeFooter(loopBegin));
-				// update global variables for the next round
-				if (ConstantArgs._ENFORCE_EXCLUSION) {
-					if (anml == null) // keep the length unchanged untill all of this length is found
-						ConstantArgs._Current_Cycle_Length++;
-				} else
-					ConstantArgs._Current_Cycle_Length++;
+			// row instances
+			int currentRowInstLimit = 0;
+			while (currentRowInstLimit <= ConstantArgs._MAX_ROW_INSTANCES) {
+				currentRowInstLimit = ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS ? currentRowInstLimit : tables.size();
+				for (Set<Table> includedTables : getAllTablesPerms(tables, currentRowInstLimit)) {
+					ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
+					// cycle length
+					do {
+						long loopBegin = System.currentTimeMillis();
+						System.out.println(runHeader(iter++, includedTables));
+						zdr = new Z3Driver(app, tables, false);
+						anml = zdr.analyze(seenAnmls, includedTables);
+						if (anml != null) {
+							seenAnmls.add(anml);
+							anml.announce(false, seenAnmls.size());
+							anml.closeCtx();
+						} else
+							zdr.closeCtx();
+						System.out.println(runTimeFooter(loopBegin));
+						// update global variables for the next round
+						if (ConstantArgs._ENFORCE_EXCLUSION) {
+							if (anml == null) // keep the length unchanged untill all of this length is found
+								ConstantArgs._Current_Cycle_Length++;
+						} else
+							ConstantArgs._Current_Cycle_Length++;
 
-			} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_CYCLE_LENGTH);
+					} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_CYCLE_LENGTH);
+				}
+				currentRowInstLimit++;
+			}
 			ConstantArgs._current_partition_size++;
 		}
 
 		long endZ3 = System.currentTimeMillis();
 		// print stats
-		printStats(seenAnmls.size(), ((endZ3 - endTables) / iter), (endTables - start), (endApp - endTables),
+		printStats(seenAnmls.size(), ((endZ3 - endApp) / (iter - 1)), (endTables - start), (endApp - endTables),
 				(endZ3 - endTables));
 
 	}
@@ -112,20 +131,53 @@ public class Transformer extends BodyTransformer {
 	 * 
 	 * 
 	 */
+	/*
+	 * 
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
+	private static List<Set<Table>> getAllTablesPerms(ArrayList<Table> tables, int r) {
+		List<Set<Table>> result = new ArrayList<>();
+		Table[] arr = tables.toArray(new Table[tables.size()]);
+		int n = arr.length;
+		Table data[] = new Table[r];
+		combinationUtil(arr, n, r, 0, data, 0, result);
+		return result;
+	}
+
+	public static void combinationUtil(Table arr[], int n, int r, int index, Table data[], int i,
+			List<Set<Table>> resList) {
+		if (index == r) {
+			Set<Table> resSet = new HashSet<>();
+			for (int j = 0; j < r; j++)
+				resSet.add(data[j]);
+			resList.add(resSet);
+			return;
+		}
+		if (i >= n)
+			return;
+		data[index] = arr[i];
+		combinationUtil(arr, n, r, index + 1, data, i + 1, resList);
+		combinationUtil(arr, n, r, index, data, i + 1, resList);
+	}
+
 	private static String runTimeFooter(long beginTime) {
 		return ("----------------------------\n-- Extration time:  " + (System.currentTimeMillis() - beginTime) + " ms"
 				+ "\n----------------------------" + "\n\n");
 	}
 
-	private static String runHeader(int iter) {
-		String output = "\n~ " + String.format("%0" + 73 + "d", 0).replace("0", "=");
+	private static String runHeader(int iter, Set<Table> includedTables) {
+		String output = "\n~ " + String.format("%0" + 85 + "d", 0).replace("0", "=");
 		output += "\n~ RUN #" + iter;
 		output += "  [cycle length:" + ConstantArgs._Current_Cycle_Length + "]";
 		output += "  [partitions allowed:" + ConstantArgs._current_partition_size + "]";
 		output += "  [max txns allowed:"
 				+ ((ConstantArgs._MAX_TXN_INSTANCES == -1) ? "∞" : String.valueOf(ConstantArgs._MAX_TXN_INSTANCES))
-				+ "]";
-		output += "\n~ " + String.format("%0" + 73 + "d", 0).replace("0", "=");
+				+ "]  ";
+		output += includedTables.stream().map(t -> t.getName()).collect(Collectors.toList());
+		output += "\n~ " + String.format("%0" + 85 + "d", 0).replace("0", "=");
 		return output;
 	}
 

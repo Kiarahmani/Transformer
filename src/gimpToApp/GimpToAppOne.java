@@ -54,13 +54,13 @@ public class GimpToAppOne extends GimpToApp {
 		String name = b.getMethod().getName();
 		Transaction txn = new Transaction(name);
 		UnitHandler unitHandler = new UnitHandler(b, super.tables);
-
 		// INTERNAL ANALYSIS
 		// Parameter extraction
 		unitHandler.extractParams();
 		for (Local l : unitHandler.data.getParams().keySet()) {
 			Type t = Type.INT; // just to instanciate it, needed for calling the typing function
 			Value v = unitHandler.data.getParams().get(l);
+
 			try {
 				ParamValExp exp = (ParamValExp) new ParamValExp(l.toString(), t.fromJavaTypes(v), "to-do");
 				txn.addParam(l.toString(), exp);
@@ -73,13 +73,16 @@ public class GimpToAppOne extends GimpToApp {
 
 		unitHandler.InitialAnalysis();
 		unitHandler.extractStatements();
+
 		// craft the output transaction from the extracted data
 		for (Statement s : unitHandler.data.getStmts()) {
 			txn.addStmt(s);
 		}
 		txn.setExps(unitHandler.data.getExps());
 		txn.setTypes();
-		printExpressions(unitHandler);
+		if (ConstantArgs.DEBUG_MODE)
+			printExpressions(unitHandler);
+
 		return txn;
 
 	}
@@ -101,7 +104,6 @@ public class GimpToAppOne extends GimpToApp {
 		for (Value x : unitHandler.data.getExps().keySet()) {
 			System.out.println(x + " := " + unitHandler.data.getExps().get(x));
 		}
-		System.out.println("=============================");
 	}
 
 }

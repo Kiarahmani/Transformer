@@ -28,13 +28,16 @@ import soot.Unit;
 import soot.Value;
 import soot.grimp.internal.GAddExpr;
 import soot.grimp.internal.GAssignStmt;
+import soot.grimp.internal.GDivExpr;
 import soot.grimp.internal.GEqExpr;
 import soot.grimp.internal.GIfStmt;
 import soot.grimp.internal.GInterfaceInvokeExpr;
 import soot.grimp.internal.GInvokeStmt;
+import soot.grimp.internal.GMulExpr;
 import soot.grimp.internal.GNeExpr;
 import soot.grimp.internal.GNewInvokeExpr;
 import soot.grimp.internal.GStaticInvokeExpr;
+import soot.grimp.internal.GSubExpr;
 import soot.grimp.internal.GVirtualInvokeExpr;
 import soot.jimple.StringConstant;
 import soot.jimple.internal.JGotoStmt;
@@ -153,6 +156,7 @@ public class UnitHandler {
 						map = new HashMap<Value, Expression>();
 						map.put(LastRowSet, newRVar);
 						//
+
 						Unit nextU = body.getUnits().getSuccOf(u);
 						innerloop: for (int i = 0; i < body.getUnits().size(); i++) {
 							// System.out.println(unitsWithNextCall);
@@ -166,20 +170,24 @@ public class UnitHandler {
 							nextU = body.getUnits().getSuccOf(nextU);
 						}
 					} else {// if you are inside of a loop
-
+						// data.printMapUTSE();
 						RowSetVarExp oldRSVar = (RowSetVarExp) data.getExp(LastRowSet);
 						String newRVarName = LastRowSet.toString() + "-loopVar" + String.valueOf(data.getLoopNo(u));
 						RowVarLoopExp newRLVar = new RowVarLoopExp(newRVarName, oldRSVar.getTable(), oldRSVar);
+
 						data.addExp(new FakeJimpleLocal(newRVarName, null, null), newRLVar);
-						map = new HashMap<Value, Expression>();
-						map.put(LastRowSet, newRLVar);
 						for (Unit x : data.getAllUnitsFromLoop(data.getLoopNo(u))) {
+							Map<Value, Expression> oldMap = data.getUTSEs().get(x);
+							if (oldMap == null)
+								map = new HashMap<Value, Expression>();
+							map.put(LastRowSet, newRLVar);
 							data.addMapUTSE(x, map);
 						}
 					}
 
 				}
 			}
+
 		}
 		// loop #3
 		// patch the queries and the rSets
@@ -387,6 +395,15 @@ public class UnitHandler {
 			case "GAddExpr":
 				GAddExpr ae = (GAddExpr) v;
 				return isValueMethodCall(ae.getOp1(), s) || isValueMethodCall(ae.getOp2(), s);
+			case "GSubExpr":
+				GSubExpr se = (GSubExpr) v;
+				return isValueMethodCall(se.getOp1(), s) || isValueMethodCall(se.getOp2(), s);
+			case "GDivExpr":
+				GDivExpr de = (GDivExpr) v;
+				return isValueMethodCall(de.getOp1(), s) || isValueMethodCall(de.getOp2(), s);
+			case "GMulExpr":
+				GMulExpr me = (GMulExpr) v;
+				return isValueMethodCall(me.getOp1(), s) || isValueMethodCall(me.getOp2(), s);
 			case "IntConstant":
 				return false;
 			case "JimpleLocal":
@@ -408,6 +425,18 @@ public class UnitHandler {
 			case "GNewInvokeExpr":
 				return false;
 			case "StaticFieldRef":
+				return false;
+			case "GLengthExpr":
+				return false;
+			case "GArrayRef":
+				return false;
+			case "GCastExpr":
+				return false;
+			case "GNewArrayExpr":
+				return false;
+			case "LongConstant":
+				return false;
+			case "DoubleConstant":
 				return false;
 			default:
 				if (ConstantArgs.DEBUG_MODE)

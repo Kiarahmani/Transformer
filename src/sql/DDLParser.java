@@ -14,6 +14,7 @@ import ir.Type;
 import ir.schema.Column;
 import ir.schema.Table;
 import utils.Utils;
+import z3.ConstantArgs;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -30,7 +31,8 @@ public class DDLParser {
 		ArrayList<Table> tables = new ArrayList<Table>();
 		// pasre the file
 		try {
-			in = new BufferedReader(new FileReader("src/tests/ddl.sql"));
+			in = new BufferedReader(
+					new FileReader("src/ddl/"+ConstantArgs._DDL_FILE));
 			String read = null;
 			String iter_s = "";
 			while ((read = in.readLine()) != null) {
@@ -52,7 +54,7 @@ public class DDLParser {
 					CreateTable createStatement = (CreateTable) statement;
 					tables.add(createTable(createStatement));
 				} catch (java.lang.ClassCastException e) {
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 
 			}
