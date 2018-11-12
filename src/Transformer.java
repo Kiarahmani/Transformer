@@ -79,9 +79,10 @@ public class Transformer extends BodyTransformer {
 		Anomaly anml = null;
 		int iter = 1;
 		List<Anomaly> seenAnmls = new ArrayList<>();
+		Anomaly unVersionedAnml = null;
 		// partitions
 		while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
-			int currentRowInstLimit =  ConstantArgs._MIN_ROW_INSTANCES;
+			int currentRowInstLimit = ConstantArgs._MIN_ROW_INSTANCES;
 			// row instance limitation
 			while (currentRowInstLimit <= ConstantArgs._MAX_ROW_INSTANCES) {
 				currentRowInstLimit = ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS ? currentRowInstLimit : tables.size();
@@ -92,11 +93,17 @@ public class Transformer extends BodyTransformer {
 						long loopBegin = System.currentTimeMillis();
 						System.out.println(runHeader(iter++, includedTables));
 						zdr = new Z3Driver(app, tables, false);
-						anml = zdr.analyze(seenAnmls, includedTables);
+						// do the analysis twice (second time with enforced versioning)
+						ConstantArgs._ENFORCE_VERSIONING = true;
+						anml = zdr.analyze(seenAnmls, includedTables, null);
 						if (anml != null) {
-							seenAnmls.add(anml);
-							anml.announce(false, seenAnmls.size());
-							anml.closeCtx();
+							//ConstantArgs._ENFORCE_VERSIONING = true;
+							//anml = zdr.analyze(seenAnmls, includedTables, anml);
+							//if (anml != null) {
+								seenAnmls.add(anml);
+								anml.announce(false, seenAnmls.size());
+								anml.closeCtx();
+							//}
 						} else
 							zdr.closeCtx();
 						System.out.println(runTimeFooter(loopBegin));

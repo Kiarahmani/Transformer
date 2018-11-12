@@ -376,6 +376,39 @@ public class DynamicAssertsions {
 		Quantifier x = ctx.mkForall(Os, body, 1, null, null, null, null);
 		return x;
 	}
+
+	public BoolExpr mk_previous_anomaly_inclusion_(List<Tuple<String, String>> structure) {
+		// bound variables
+		Expr[] Os = new Expr[structure.size() * 2];
+		for (int i = 0; i < structure.size() * 2; i++)
+			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
+		// LHS
+		FuncDecl otypeFunc = objs.getfuncs("otype");
+		BoolExpr[] allLhs = new BoolExpr[structure.size()];
+		for (int i = 0; i < structure.size(); i++) {
+			String xs = structure.get(i).x;
+			String ys = structure.get(i).y;
+			FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
+			FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
+			BoolExpr lhsLoopX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i]), ctx.mkApp(cnstrX));
+			BoolExpr lhsLoopY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i + 1]), ctx.mkApp(cnstrY));
+			BoolExpr lhsLoop = ctx.mkAnd(lhsLoopX, lhsLoopY);
+			allLhs[i] = lhsLoop;
+		}
+		BoolExpr lhs = ctx.mkAnd(allLhs);
+		// RHS
+		FuncDecl dFunc = objs.getfuncs("D");
+		BoolExpr[] allRhs = new BoolExpr[structure.size()];
+		for (int i = 0; i < structure.size(); i++) {
+			Expr xl = Os[2 * i];
+			Expr yl = Os[2 * i + 1];
+			allRhs[i] = (BoolExpr) ctx.mkApp(dFunc, xl, yl);
+		}
+		BoolExpr rhs = ctx.mkAnd(allRhs);
+		Expr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(Os, body, 1, null, null, null, null);
+		return x;
+	}
 }
 
 /*

@@ -537,8 +537,10 @@ public class Z3Driver {
 	/*
 	 * public function called from main
 	 */
-	public Anomaly analyze(List<Anomaly> seenAnmls, Set<Table> includedTables) {
+	public Anomaly analyze(List<Anomaly> seenAnmls, Set<Table> includedTables, Anomaly unVersionedAnml) {
 		ctxInitialize();
+		if (unVersionedAnml != null)
+			includeAnomaly(unVersionedAnml);
 		int iter530 = 0;
 		for (Anomaly anml : seenAnmls)
 			excludeAnomaly(anml, iter530++);
@@ -565,6 +567,13 @@ public class Z3Driver {
 		HeaderZ3("previous anomalies exclusion");
 		List<Tuple<String, String>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
+	}
+	
+	private void includeAnomaly(Anomaly anml) {
+		System.out.println("===="+anml.getCycleStructure());
+		HeaderZ3("previously found anomaly");
+		List<Tuple<String, String>> structure = anml.getCycleStructure();
+		addAssertion("previous_anomaly_inclusion_" , dynamicAssertions.mk_previous_anomaly_inclusion_(structure));
 	}
 
 }
