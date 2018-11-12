@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.microsoft.z3.*;
@@ -445,12 +446,13 @@ public class Z3Driver {
 	// ---------------------------------------------------------------------------
 	// functions adding assertions for every pair of operations that 'potentially'
 	// create the edge
-	private void RWthen() throws UnexoectedOrUnhandledConditionalExpression {
+	private void RWthen(Set<Table> includedTables) throws UnexoectedOrUnhandledConditionalExpression {
 
 		Map<String, FuncDecl> Ts = objs.getAllTTypes();
 		for (FuncDecl t1 : Ts.values())
 			for (FuncDecl t2 : Ts.values()) {
-				List<BoolExpr> conditions = ruleGenerator.return_conditions_rw_then(t1, t2, vo1, vo2, vt1, vt2);
+				List<BoolExpr> conditions = ruleGenerator.return_conditions_rw_then(t1, t2, vo1, vo2, vt1, vt2,
+						includedTables);
 				conditions.add(ctx.mkFalse());
 				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
 				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
@@ -471,11 +473,12 @@ public class Z3Driver {
 
 	}
 
-	private void WRthen() throws UnexoectedOrUnhandledConditionalExpression {
+	private void WRthen(Set<Table> includedTables) throws UnexoectedOrUnhandledConditionalExpression {
 		Map<String, FuncDecl> Ts = objs.getAllTTypes();
 		for (FuncDecl t1 : Ts.values())
 			for (FuncDecl t2 : Ts.values()) {
-				List<BoolExpr> conditions = ruleGenerator.return_conditions_wr_then(t1, t2, vo1, vo2, vt1, vt2);
+				List<BoolExpr> conditions = ruleGenerator.return_conditions_wr_then(t1, t2, vo1, vo2, vt1, vt2,
+						includedTables);
 				conditions.add(ctx.mkFalse());
 				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
 				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
@@ -495,11 +498,12 @@ public class Z3Driver {
 			}
 	}
 
-	private void WWthen() throws UnexoectedOrUnhandledConditionalExpression {
+	private void WWthen(Set<Table> includedTables) throws UnexoectedOrUnhandledConditionalExpression {
 		Map<String, FuncDecl> Ts = objs.getAllTTypes();
 		for (FuncDecl t1 : Ts.values())
 			for (FuncDecl t2 : Ts.values()) {
-				List<BoolExpr> conditions = ruleGenerator.return_conditions_ww_then(t1, t2, vo1, vo2, vt1, vt2);
+				List<BoolExpr> conditions = ruleGenerator.return_conditions_ww_then(t1, t2, vo1, vo2, vt1, vt2,
+						includedTables);
 				conditions.add(ctx.mkFalse());
 				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
 				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
@@ -520,12 +524,12 @@ public class Z3Driver {
 
 	}
 
-	private void thenWR() {
+	private void thenWR(Set<Table> includedTables) {
 		// TODO Auto-generated method stub
 
 	}
 
-	private void thenWW() {
+	private void thenWW(Set<Table> includedTables) {
 		// TODO Auto-generated method stub
 
 	}
@@ -533,7 +537,7 @@ public class Z3Driver {
 	/*
 	 * public function called from main
 	 */
-	public Anomaly analyze(List<Anomaly> seenAnmls) {
+	public Anomaly analyze(List<Anomaly> seenAnmls, Set<Table> includedTables) {
 		ctxInitialize();
 		int iter530 = 0;
 		for (Anomaly anml : seenAnmls)
@@ -541,15 +545,15 @@ public class Z3Driver {
 		try {
 			// rules
 			HeaderZ3(" ->WW ");
-			thenWW();
+			thenWW(includedTables);
 			HeaderZ3(" ->WR ");
-			thenWR();
+			thenWR(includedTables);
 			HeaderZ3(" WW-> ");
-			WWthen();
+			WWthen(includedTables);
 			HeaderZ3(" WR-> ");
-			WRthen();
+			WRthen(includedTables);
 			HeaderZ3(" RW-> ");
-			RWthen();
+			RWthen(includedTables);
 		} catch (UnexoectedOrUnhandledConditionalExpression e) {
 			e.printStackTrace();
 		}
