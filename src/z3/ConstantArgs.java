@@ -18,8 +18,8 @@ public class ConstantArgs {
 	public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
 	public static String _DDL_FILE = "ddl_seats.sql";
 	public static String _BENCHMARK_NAME = "SEATS";
-	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "deleteReservation", "findOpenSeats",
-			"find Flights", "newReservation", "update Customer");
+	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "dele teReservation", "findOp enSeats",
+			"find Flights", "newReserv ation", "update Customer");
 
 	/*
 	 * 
