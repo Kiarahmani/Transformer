@@ -1,13 +1,9 @@
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.Tables;
 
 import anomaly.Anomaly;
 import exceptions.UnknownUnitException;
@@ -45,6 +41,7 @@ public class Transformer extends BodyTransformer {
 
 	////// MAIN
 	public static void main(String[] args) {
+		ConstantArgs ca = new ConstantArgs();
 		Initializer init = new Initializer();
 		String[] soot_args = init.initialize();
 		soot.Main.main(soot_args);
@@ -84,8 +81,8 @@ public class Transformer extends BodyTransformer {
 		List<Anomaly> seenAnmls = new ArrayList<>();
 		// partitions
 		while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
-			// row instances
-			int currentRowInstLimit = 0;
+			int currentRowInstLimit =  ConstantArgs._MIN_ROW_INSTANCES;
+			// row instance limitation
 			while (currentRowInstLimit <= ConstantArgs._MAX_ROW_INSTANCES) {
 				currentRowInstLimit = ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS ? currentRowInstLimit : tables.size();
 				for (Set<Table> includedTables : getAllTablesPerms(tables, currentRowInstLimit)) {
@@ -116,7 +113,6 @@ public class Transformer extends BodyTransformer {
 			}
 			ConstantArgs._current_partition_size++;
 		}
-
 		long endZ3 = System.currentTimeMillis();
 		// print stats
 		printStats(seenAnmls.size(), ((endZ3 - endApp) / (iter - 1)), (endTables - start), (endApp - endTables),
