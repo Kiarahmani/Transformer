@@ -63,7 +63,22 @@ public class Anomaly {
 		this.ctx.close();
 	}
 
-	private void generateCycleStructure() {
+	public void generateCycleStructure() {
+		Map<String, FuncDecl> functions = getFunctions();
+		conflictingRow = new HashMap<>();
+		parentChildPairs = getParentChild(functions.get("parent"));
+		WWPairs = getWWPairs(functions.get("WW_O"));
+		WRPairs = getWRPairs(functions.get("WR_O"));
+		RWPairs = getRWPairs(functions.get("RW_O"));
+		visPairs = getVisPairs(functions.get("vis"));
+		cycle = getCycle(functions.get("D"));
+		otypes = getOType(functions.get("otype"));
+		otimes = getOTime(functions.get("otime"));
+		opart = getOPart(functions.get("opart"));
+		ttypes = getTType(functions.get("ttype"));
+		isUpdate = getIsUpdate(functions.get("is_update"));
+		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
+
 		this.cycleStructure = new ArrayList<>();
 		FuncDecl otypeFunc = objs.getfuncs("otype");
 		for (Expr x : this.cycle.keySet()) {
@@ -83,22 +98,6 @@ public class Anomaly {
 			System.out.println("-------------\n--- Model --- ");
 		else
 			System.out.println("------------------\n--- Core Model --- ");
-
-		Map<String, FuncDecl> functions = getFunctions();
-		conflictingRow = new HashMap<>();
-		parentChildPairs = getParentChild(functions.get("parent"));
-		WWPairs = getWWPairs(functions.get("WW_O"));
-		WRPairs = getWRPairs(functions.get("WR_O"));
-		RWPairs = getRWPairs(functions.get("RW_O"));
-		visPairs = getVisPairs(functions.get("vis"));
-		cycle = getCycle(functions.get("D"));
-		otypes = getOType(functions.get("otype"));
-		otimes = getOTime(functions.get("otime"));
-		opart = getOPart(functions.get("opart"));
-		ttypes = getTType(functions.get("ttype"));
-		isUpdate = getIsUpdate(functions.get("is_update"));
-		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
-
 		// announce the non-core model
 		if (!isCore) {
 			System.out.println("{T}:       " + Ts);
@@ -158,7 +157,6 @@ public class Anomaly {
 					parentChildPairs, otypes, opart, conflictingRow);
 			av.createGraph("anomaly_" + anmlNo + ".dot");
 			// prepare it for the next analysis round to be excluded
-			generateCycleStructure();
 
 		}
 		// announce core model

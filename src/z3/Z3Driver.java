@@ -570,7 +570,6 @@ public class Z3Driver {
 	}
 	
 	private void includeAnomaly(Anomaly anml) {
-		System.out.println("===="+anml.getCycleStructure());
 		HeaderZ3("previously found anomaly");
 		List<Tuple<String, String>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_inclusion_" , dynamicAssertions.mk_previous_anomaly_inclusion_(structure));

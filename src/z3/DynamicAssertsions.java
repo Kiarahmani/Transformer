@@ -405,8 +405,8 @@ public class DynamicAssertsions {
 			allRhs[i] = (BoolExpr) ctx.mkApp(dFunc, xl, yl);
 		}
 		BoolExpr rhs = ctx.mkAnd(allRhs);
-		Expr body = ctx.mkImplies(lhs, rhs);
-		Quantifier x = ctx.mkForall(Os, body, 1, null, null, null, null);
+		Expr body = ctx.mkImplies(rhs,lhs);
+		Quantifier x = ctx.mkForall(Os, ctx.mkTrue(), 1, null, null, null, null);
 		return x;
 	}
 }

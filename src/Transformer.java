@@ -76,7 +76,7 @@ public class Transformer extends BodyTransformer {
 		 * generate the anomaly given the IR
 		 */
 		Z3Driver zdr = new Z3Driver(app, tables, false);
-		Anomaly anml = null;
+		Anomaly anml1 = null, anml2 = null;
 		int iter = 1;
 		List<Anomaly> seenAnmls = new ArrayList<>();
 		Anomaly unVersionedAnml = null;
@@ -90,26 +90,34 @@ public class Transformer extends BodyTransformer {
 					ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
 					// cycle length
 					do {
+						anml2 = null;
 						long loopBegin = System.currentTimeMillis();
 						System.out.println(runHeader(iter++, includedTables));
-						zdr = new Z3Driver(app, tables, false);
 						// do the analysis twice (second time with enforced versioning)
-						ConstantArgs._ENFORCE_VERSIONING = true;
-						anml = zdr.analyze(seenAnmls, includedTables, null);
-						if (anml != null) {
-							//ConstantArgs._ENFORCE_VERSIONING = true;
-							//anml = zdr.analyze(seenAnmls, includedTables, anml);
-							//if (anml != null) {
-								seenAnmls.add(anml);
-								anml.announce(false, seenAnmls.size());
-								anml.closeCtx();
-							//}
+						// Analysis Step 1
+						zdr = new Z3Driver(app, tables, false);
+						ConstantArgs._ENFORCE_VERSIONING = false;
+						anml1 = zdr.analyze(seenAnmls, includedTables, null);
+						if (anml1 != null) {
+							anml1.generateCycleStructure();
+							//anml1.announce(false, seenAnmls.size());
+							// Analysis Step 2
+							ConstantArgs._ENFORCE_VERSIONING = true;
+							zdr = new Z3Driver(app, tables, false);
+							anml2 = zdr.analyze(seenAnmls, includedTables, anml1);
+							if (anml2 != null) {
+								anml2.generateCycleStructure();
+								seenAnmls.add(anml2);
+								anml2.announce(false, seenAnmls.size());
+								anml1.closeCtx();
+								anml2.closeCtx();
+							}
 						} else
 							zdr.closeCtx();
 						System.out.println(runTimeFooter(loopBegin));
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {
-							if (anml == null) // keep the length unchanged untill all of this length is found
+							if (anml2 == null) // keep the length unchanged untill all of this length is found
 								ConstantArgs._Current_Cycle_Length++;
 						} else
 							ConstantArgs._Current_Cycle_Length++;
