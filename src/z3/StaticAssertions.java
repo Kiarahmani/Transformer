@@ -168,31 +168,7 @@ public class StaticAssertions {
 		return x;
 	}
 
-	// the final assertion, generating a cycle on the dependency graph
-	public BoolExpr mk_cycle(boolean findCore) {
 
-		int length = ConstantArgs._Current_Cycle_Length;
-		Expr[] Os = new Expr[length];
-		for (int i = 0; i < length; i++)
-			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
-
-		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
-		int iter = 0;
-		for (int i = 0; i < length - 1; i++)
-			for (int j = i + 1; j < length; j++)
-				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(Os[i], Os[j]));
-
-		BoolExpr depExprs[] = new BoolExpr[length];
-		for (int i = 1; i < length - 1; i++)
-			depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]);
-		depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);
-		depExprs[0] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[0], Os[1]);
-
-		BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
-		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
-		return x;
-
-	}
 
 	public Quantifier mk_otime_props() {
 		ArithExpr o1T = (ArithExpr) ctx.mkApp(objs.getfuncs("otime"), o1);

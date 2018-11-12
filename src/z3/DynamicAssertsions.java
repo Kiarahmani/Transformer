@@ -377,6 +377,74 @@ public class DynamicAssertsions {
 		return x;
 	}
 
+	// the final assertion, generating a cycle on the dependency graph
+	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, String>> structure) {
+
+		int length = ConstantArgs._Current_Cycle_Length;
+		Expr[] Os = new Expr[length];
+		for (int i = 0; i < length; i++)
+			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
+
+		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
+		int iter = 0;
+		for (int i = 0; i < length - 1; i++)
+			for (int j = i + 1; j < length; j++)
+				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(Os[i], Os[j]));
+
+		// constraints regarding previously found (unversioned) anomaly
+		BoolExpr prevAnmlExprs[] = null;
+		if (structure != null) {
+			prevAnmlExprs = new BoolExpr[structure.size()*2];
+			iter = 0;
+			FuncDecl otypeFunc = objs.getfuncs("otype");
+			for (int i = 0; i < structure.size() - 1; i++) {
+				String xs = structure.get(i).x;
+				String ys = structure.get(i).y;
+				FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
+				FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
+				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2*i]), ctx.mkApp(cnstrX));
+				BoolExpr lhsY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2*i + 1]), ctx.mkApp(cnstrY));
+				prevAnmlExprs[iter++] = lhsX;
+				prevAnmlExprs[iter++] = lhsY;
+			}
+			// last iteration (no need to add y element for odd lengths)
+			if (length % 2 != 0) {
+				String xs = structure.get(structure.size() - 1).x;
+				FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
+				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[length - 1]), ctx.mkApp(cnstrX));
+				prevAnmlExprs[iter++] = lhsX;
+				prevAnmlExprs[iter++] = ctx.mkTrue();
+			} else {
+				String xs = structure.get(structure.size() - 1).x;
+				FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
+				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[length - 2]), ctx.mkApp(cnstrX));
+				prevAnmlExprs[iter++] = lhsX;
+
+				String ys = structure.get(structure.size() - 1).y;
+				FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
+				BoolExpr lhsY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[length - 1]), ctx.mkApp(cnstrY));
+				prevAnmlExprs[iter++] = lhsY;
+			}
+			//System.out.println("---->>>" + structure);
+			//System.out.println("\n\n\n\n\n\n\n=============================");
+			//for (int i = 0; i < length; i++)
+			//	System.out.println("--" + prevAnmlExprs[i]);
+			//System.out.println("=============================\n\n\n\n\n\n\n");
+		}
+
+		BoolExpr depExprs[] = new BoolExpr[length];
+		for (int i = 1; i < length - 1; i++)
+			depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]);
+		depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);
+		depExprs[0] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[0], Os[1]);
+		BoolExpr body = (structure != null)
+				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
+				: ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
+		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
+		return x;
+
+	}
+
 	public BoolExpr mk_previous_anomaly_inclusion_(List<Tuple<String, String>> structure) {
 		// bound variables
 		Expr[] Os = new Expr[structure.size() * 2];
@@ -405,8 +473,9 @@ public class DynamicAssertsions {
 			allRhs[i] = (BoolExpr) ctx.mkApp(dFunc, xl, yl);
 		}
 		BoolExpr rhs = ctx.mkAnd(allRhs);
-		Expr body = ctx.mkImplies(rhs,lhs);
-		Quantifier x = ctx.mkForall(Os, ctx.mkTrue(), 1, null, null, null, null);
+		Expr body = ctx.mkImplies(rhs, lhs);
+		Quantifier x = ctx.mkForall(Os, ctx.mkFalse(), 1, null, null, null, null);
+		System.out.println("----" + structure);
 		return x;
 	}
 }

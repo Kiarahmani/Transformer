@@ -91,7 +91,8 @@ public class Transformer extends BodyTransformer {
 					// cycle length
 					do {
 						anml2 = null;
-						long loopBegin = System.currentTimeMillis();
+						long step1Begin = System.currentTimeMillis();
+						long step2Begin = step1Begin;
 						System.out.println(runHeader(iter++, includedTables));
 						// do the analysis twice (second time with enforced versioning)
 						// Analysis Step 1
@@ -102,6 +103,7 @@ public class Transformer extends BodyTransformer {
 							anml1.generateCycleStructure();
 							//anml1.announce(false, seenAnmls.size());
 							// Analysis Step 2
+							step2Begin = System.currentTimeMillis();
 							ConstantArgs._ENFORCE_VERSIONING = true;
 							zdr = new Z3Driver(app, tables, false);
 							anml2 = zdr.analyze(seenAnmls, includedTables, anml1);
@@ -114,7 +116,7 @@ public class Transformer extends BodyTransformer {
 							}
 						} else
 							zdr.closeCtx();
-						System.out.println(runTimeFooter(loopBegin));
+						System.out.println(runTimeFooter(step2Begin,step1Begin));
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {
 							if (anml2 == null) // keep the length unchanged untill all of this length is found
@@ -174,9 +176,10 @@ public class Transformer extends BodyTransformer {
 		combinationUtil(arr, n, r, index, data, i + 1, resList);
 	}
 
-	private static String runTimeFooter(long beginTime) {
-		return ("----------------------------\n-- Extration time:  " + (System.currentTimeMillis() - beginTime) + " ms"
-				+ "\n----------------------------" + "\n\n");
+	private static String runTimeFooter(long beginTime,  long step2Begin) {
+		return ("--------------------------------\nExtration time -- step1 " + (System.currentTimeMillis() - beginTime) + " ms"
+				+ "\n               -- step2 "+(beginTime - step2Begin) + " ms" 
+				+ "\n--------------------------------" + "\n\n");
 	}
 
 	private static String runHeader(int iter, Set<Table> includedTables) {

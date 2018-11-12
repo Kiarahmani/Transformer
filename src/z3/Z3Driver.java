@@ -128,7 +128,7 @@ public class Z3Driver {
 	}
 
 	@SuppressWarnings("unused")
-	private void ctxInitialize() {
+	private void ctxInitialize(Anomaly unVersionedAnml) {
 		LogZ3(";data types");
 		objs.addDataType("TType", mkDataType("TType", app.getAllTxnNames()));
 		objs.addDataType("OType", mkDataType("OType", app.getAllStmtTypes()));
@@ -391,7 +391,10 @@ public class Z3Driver {
 		// dependency assertions
 		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
 		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
-		addAssertion("cycle", staticAssrtions.mk_cycle(findCore));
+		List<Tuple<String, String>> structure = null;
+		if (unVersionedAnml != null)
+			structure = unVersionedAnml.getCycleStructure();
+		addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, structure));
 
 	}
 
@@ -538,9 +541,7 @@ public class Z3Driver {
 	 * public function called from main
 	 */
 	public Anomaly analyze(List<Anomaly> seenAnmls, Set<Table> includedTables, Anomaly unVersionedAnml) {
-		ctxInitialize();
-		if (unVersionedAnml != null)
-			includeAnomaly(unVersionedAnml);
+		ctxInitialize(unVersionedAnml);
 		int iter530 = 0;
 		for (Anomaly anml : seenAnmls)
 			excludeAnomaly(anml, iter530++);
@@ -567,12 +568,6 @@ public class Z3Driver {
 		HeaderZ3("previous anomalies exclusion");
 		List<Tuple<String, String>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
-	}
-	
-	private void includeAnomaly(Anomaly anml) {
-		HeaderZ3("previously found anomaly");
-		List<Tuple<String, String>> structure = anml.getCycleStructure();
-		addAssertion("previous_anomaly_inclusion_" , dynamicAssertions.mk_previous_anomaly_inclusion_(structure));
 	}
 
 }
