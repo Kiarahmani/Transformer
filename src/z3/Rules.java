@@ -19,6 +19,7 @@ import exceptions.UnexoectedOrUnhandledConditionalExpression;
 import ir.Application;
 import ir.Transaction;
 import ir.expression.Expression;
+import ir.expression.vals.ConstValExp;
 import ir.expression.vars.RowSetVarExp;
 import ir.schema.Column;
 import ir.schema.Table;
@@ -329,7 +330,7 @@ public class Rules {
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
 						for (Column c : table.getColumns()) {
-							Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
+							Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);							
 							insertedRowConds[iter] = ctx.mkEq(
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
 									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,

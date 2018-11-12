@@ -560,7 +560,7 @@ public class Z3Driver {
 		} catch (UnexoectedOrUnhandledConditionalExpression e) {
 			e.printStackTrace();
 		}
-
+		HeaderZ3("EOF");
 		return checkSAT();
 	}
 
