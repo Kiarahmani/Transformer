@@ -94,7 +94,7 @@ public class Rules {
 								vo2);
 						// realte the updating velues to the next version
 						// ZZZ
-						BoolExpr versionCond2 = ConstantArgs._ENFORCE_VERSIONING
+						BoolExpr versionCond2 = ConstantArgs._current_version_enforcement
 								? ctx.mkAnd(getVersionCondsRW(txn2, vt2, vo2, vo1, q2, rowVar))
 								: ctx.mkTrue();
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
@@ -309,7 +309,7 @@ public class Rules {
 						BoolExpr notNullCond = (BoolExpr) ctx
 								.mkApp(objs.getfuncs(txn2.getName() + "_" + lhsVarName + "_isNull"), vo2);
 						// ZZZ
-						BoolExpr versionCond1 = ConstantArgs._ENFORCE_VERSIONING
+						BoolExpr versionCond1 = ConstantArgs._current_version_enforcement
 								? ctx.mkAnd(getVersionCondsWR(txn1, vt1, vo1, q1, rowVar))
 								: ctx.mkTrue();
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,

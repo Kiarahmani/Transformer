@@ -97,26 +97,31 @@ public class Transformer extends BodyTransformer {
 						// do the analysis twice (second time with enforced versioning)
 						// Analysis Step 1
 						zdr = new Z3Driver(app, tables, false);
-						ConstantArgs._ENFORCE_VERSIONING = false;
+						ConstantArgs._current_version_enforcement = false;
 						anml1 = zdr.analyze(seenAnmls, includedTables, null);
 						if (anml1 != null) {
 							anml1.generateCycleStructure();
-							//anml1.announce(false, seenAnmls.size());
-							// Analysis Step 2
-							step2Begin = System.currentTimeMillis();
-							ConstantArgs._ENFORCE_VERSIONING = true;
-							zdr = new Z3Driver(app, tables, false);
-							anml2 = zdr.analyze(seenAnmls, includedTables, anml1);
-							if (anml2 != null) {
-								anml2.generateCycleStructure();
-								seenAnmls.add(anml2);
-								anml2.announce(false, seenAnmls.size());
+							if (!ConstantArgs._ENFORCE_VERSIONING) {
+								seenAnmls.add(anml1);
+								anml1.announce(false, seenAnmls.size());
 								anml1.closeCtx();
-								anml2.closeCtx();
+							} else {
+								// Analysis Step 2
+								step2Begin = System.currentTimeMillis();
+								ConstantArgs._current_version_enforcement = true;
+								zdr = new Z3Driver(app, tables, false);
+								anml2 = zdr.analyze(seenAnmls, includedTables, anml1);
+								if (anml2 != null) {
+									anml2.generateCycleStructure();
+									seenAnmls.add(anml2);
+									anml2.announce(false, seenAnmls.size());
+									anml1.closeCtx();
+									anml2.closeCtx();
+								}
 							}
 						} else
 							zdr.closeCtx();
-						System.out.println(runTimeFooter(step2Begin,step1Begin));
+						System.out.println(runTimeFooter(step2Begin, step1Begin));
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {
 							if (anml2 == null) // keep the length unchanged untill all of this length is found
@@ -176,9 +181,9 @@ public class Transformer extends BodyTransformer {
 		combinationUtil(arr, n, r, index, data, i + 1, resList);
 	}
 
-	private static String runTimeFooter(long beginTime,  long step2Begin) {
-		return ("--------------------------------\nExtration time -- step1 " + (System.currentTimeMillis() - beginTime) + " ms"
-				+ "\n               -- step2 "+(beginTime - step2Begin) + " ms" 
+	private static String runTimeFooter(long beginTime, long step2Begin) {
+		return ("--------------------------------\nExtration time -- step1 " + (System.currentTimeMillis() - beginTime)
+				+ " ms" + "\n               -- step2 " + (beginTime - step2Begin) + " ms"
 				+ "\n--------------------------------" + "\n\n");
 	}
 

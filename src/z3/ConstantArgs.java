@@ -15,11 +15,11 @@ public class ConstantArgs {
 	 * 
 	 * 
 	 */
-	public static String _TESTS_OR_BENCHMARKS = "tests.";
-	public static String _DDL_FILE = "ddl.sql";
-	public static String _BENCHMARK_NAME = "SampleApp";
-	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "deleteR eservation", "find OpenSeats",
-			"find Flights", "new Reservation", "update Customer");
+	public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
+	public static String _DDL_FILE = "ddl_seats.sql";
+	public static String _BENCHMARK_NAME = "SEATS";
+	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize", "deleteReservation", "findOpenSeats",
+			"find Flights", "newReservation", "update Customer");
 
 	/*
 	 * 
@@ -43,6 +43,7 @@ public class ConstantArgs {
 			ConstantArgs._MAX_ROW_INSTANCES = Integer.parseInt(prop.getProperty("_MAX_ROW_INSTANCES", "3"));
 			ConstantArgs._MIN_ROW_INSTANCES = Integer.parseInt(prop.getProperty("_MIN_ROW_INSTANCES", "1"));
 			ConstantArgs._ENFORCE_VERSIONING = Boolean.parseBoolean(prop.getProperty("_ENFORCE_VERSIONING", "false"));
+			ConstantArgs._current_version_enforcement = _ENFORCE_VERSIONING;
 			ConstantArgs._ENFORCE_EXCLUSION = Boolean.parseBoolean(prop.getProperty("_ENFORCE_EXCLUSION", "true"));
 			ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS = Boolean
 					.parseBoolean(prop.getProperty("_ENFORCE_ROW_INSTANCE_LIMITS", "true"));
@@ -81,6 +82,7 @@ public class ConstantArgs {
 	public static int _MAX_ROW_INSTANCES;
 	public static int _MIN_ROW_INSTANCES;
 	public static boolean _ENFORCE_VERSIONING;
+	public static boolean _current_version_enforcement;
 	public static boolean _ENFORCE_EXCLUSION;
 	public static boolean _ENFORCE_ROW_INSTANCE_LIMITS;
 	public static boolean _NO_WW = true;
