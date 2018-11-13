@@ -96,7 +96,7 @@ public class Rules {
 						// realte the updating velues to the next version
 						// ZZZ
 						BoolExpr versionCond2 = ConstantArgs._current_version_enforcement
-								? ctx.mkAnd(getVersionCondsRW(txn2, vt2, vo2, vo1, q2, rowVar))
+								? ctx.mkAnd(getVersionCondsRW(txn1, vt1, vo2, vo1, q2, rowVar))
 								: ctx.mkTrue();
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
 								versionCond2, pathCond1, pathCond2, aliveCond, rwOnTableCond);
@@ -222,24 +222,24 @@ public class Rules {
 			case STRING:
 				SeqExpr lhsValolderVersion = (SeqExpr) ctx.mkApp(projFunc, rowVar,
 						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
-				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.MkConcat(lhsValolderVersion, ctx.MkString("'"))));
+				versionConds[iter96++] = (ctx.mkNot(ctx.mkEq(lhsVal,lhsValolderVersion)));
 				break;
 			case INT:
 				ArithExpr lhsValolderVersion1 = (ArithExpr) ctx.mkApp(projFunc, rowVar,
 						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
-				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion1, ctx.mkInt(1))));
+				versionConds[iter96++] = (ctx.mkNot(ctx.mkEq(lhsVal,lhsValolderVersion1)));
 				break;
 			case REAL:
 				ArithExpr lhsValolderVersion2 = (ArithExpr) ctx.mkApp(projFunc, rowVar,
 						(BitVecExpr) ctx.mkApp(verFunc, rowVar, oldO));
-				versionConds[iter96++] = (ctx.mkEq(lhsVal, ctx.mkAdd(lhsValolderVersion2, ctx.mkInt(1))));
+				versionConds[iter96++] = (ctx.mkNot(ctx.mkEq(lhsVal,lhsValolderVersion2)));
 				break;
 			default:
 				System.out.println("----- case not handled yet: " + c.type);
 			}
 
 			Expression rhsVal = updateFuncs.get(c);
-			versionConds[iter96++] = (ctx.mkEq(z3Util.irCondToZ3Expr(txn.getName(), t, rowVar, o, rhsVal), lhsVal));
+			versionConds[iter96++] = (ctx.mkEq(z3Util.irCondToZ3Expr(txn.getName(), t, rowVar, oldO, rhsVal), lhsVal));
 
 		}
 
