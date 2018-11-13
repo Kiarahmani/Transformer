@@ -121,6 +121,7 @@ public class Transformer extends BodyTransformer {
 							}
 						} else
 							zdr.closeCtx();
+						
 						System.out.println(runTimeFooter(step2Begin, step1Begin));
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {

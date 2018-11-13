@@ -277,8 +277,9 @@ public class Z3Driver {
 		HeaderZ3("VERSIONING PROPS");
 		int iter = 0;
 		if (ConstantArgs._current_version_enforcement)
-			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
+			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables)) {
 				addAssertion("versioning_props" + (iter++), ass);
+			}
 
 		// =====================================================================================================================================================
 

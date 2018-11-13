@@ -139,7 +139,7 @@ public class Transaction {
 		}
 
 		paramList += ")";
-		System.out.println("TXN_" + name + paramList);
+		System.out.println("\nTXN_" + name + paramList);
 		for (Statement stmt : stmts)
 			try {
 				System.out.println(" ++ " + ((InvokeStmt) stmt).toString());
