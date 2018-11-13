@@ -30,7 +30,7 @@ public class NonRepeatableRead {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			PreparedStatement ps = connect.prepareStatement("update A set balance= ? where id=1");
-			ps.setInt(1, bal1);
+			ps.setInt(1, 133);
 			ps.executeUpdate();
 		} catch (Exception e) {
 			throw e;
@@ -40,7 +40,7 @@ public class NonRepeatableRead {
 
 	}
 
-	public void readBalance(int key) throws Exception {
+	public void readBalance() throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");

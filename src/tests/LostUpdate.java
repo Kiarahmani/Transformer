@@ -19,7 +19,7 @@ public class LostUpdate {
 		p.setProperty("ID", String.valueOf(insID));
 	}
 
-	public void updateBalance(int incVal) throws Exception {
+	public void updateBalance() throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
@@ -33,7 +33,7 @@ public class LostUpdate {
 
 			ps = connect.prepareStatement("update A set balance = ? where id=?");
 			int balance = rs.getInt("balance");
-			ps.setInt(1, incVal + balance);
+			ps.setInt(1,  balance +100);
 			ps.setInt(2, 1);
 
 			ps.executeUpdate();

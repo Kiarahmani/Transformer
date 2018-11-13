@@ -15,9 +15,9 @@ public class ConstantArgs {
 	 * 
 	 * 
 	 */
-	public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
-	public static String _DDL_FILE = "ddl_twitter.sql";
-	public static String _BENCHMARK_NAME = "TWITTER";
+	public static String _TESTS_OR_BENCHMARKS = "tests.";
+	public static String _DDL_FILE = "ddl.sql";
+	public static String _BENCHMARK_NAME = "LostUpdate";
 	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize");
 
 	/*
