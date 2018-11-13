@@ -31,7 +31,7 @@ public class LostUpdate {
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 
-			ps = connect.prepareStatement("update A set balance = ? where id=?");
+			ps = connect.prepareStatement("insert into A values (5,10)");
 			int balance = rs.getInt("balance");
 			ps.setInt(1,  balance + incVal);
 			ps.setInt(2, 1);
