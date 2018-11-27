@@ -33,7 +33,7 @@ public class LostUpdate {
 
 			ps = connect.prepareStatement("update A set balance = ? where id=?");
 			int balance = rs.getInt("balance");
-			ps.setInt(1,  balance );
+			ps.setInt(1,  balance + 10 );
 			ps.setInt(2, 1);
 
 			ps.executeUpdate();

@@ -389,7 +389,7 @@ public class Z3Driver {
 		LogZ3(";" + name);
 		objs.addAssertion(name, ass);
 		slv.add(ass);
-		System.out.println("add#: " + this.globalIter++ + ":  " + name);
+		//System.out.println("add#: " + this.globalIter++ + ":  " + name);
 	}
 
 	/*
