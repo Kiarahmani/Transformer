@@ -129,13 +129,13 @@ public class Z3Driver {
 
 	@SuppressWarnings("unused")
 	private void ctxInitialize(Anomaly unVersionedAnml) {
+
 		LogZ3(";data types");
 		objs.addDataType("TType", mkDataType("TType", app.getAllTxnNames()));
 		objs.addDataType("OType", mkDataType("OType", app.getAllStmtTypes()));
 
 		// =====================================================================================================================================================
 		HeaderZ3("STATIC FUNCTIONS & PROPS");
-
 		SubHeaderZ3(";declarations");
 
 		objs.addFunc("abs_integer", ctx.mkFuncDecl("abs_integer", objs.getSort("Int"), objs.getSort("Int")));
@@ -166,7 +166,17 @@ public class Z3Driver {
 		objs.addFunc("X",
 				ctx.mkFuncDecl("X", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
 
-		SubHeaderZ3("properties");
+		//
+		HeaderZ3("CYCLE ASSERTIONS");
+		// dependency assertions
+		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
+		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
+		List<Tuple<String, Tuple<String, String>>> structure = null;
+		if (unVersionedAnml != null)
+			structure = unVersionedAnml.getCycleStructure();
+		addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, structure));
+
+		HeaderZ3("properties");
 		// assertions
 		addAssertion("par_then_sib", staticAssrtions.mk_par_then_sib());
 		addAssertion("sib_then_par", staticAssrtions.mk_sib_then_par());
@@ -388,15 +398,6 @@ public class Z3Driver {
 			}
 		}
 
-		HeaderZ3("CYCLE ASSERTIONS");
-		// dependency assertions
-		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
-		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
-		List<Tuple<String, String>> structure = null;
-		if (unVersionedAnml != null)
-			structure = unVersionedAnml.getCycleStructure();
-		addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, structure));
-
 	}
 
 	private void addAssertion(String name, BoolExpr ass) {
@@ -567,7 +568,7 @@ public class Z3Driver {
 
 	private void excludeAnomaly(Anomaly anml, int iter) {
 		HeaderZ3("previous anomalies exclusion");
-		List<Tuple<String, String>> structure = anml.getCycleStructure();
+		List<Tuple<String, Tuple<String, String>>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
 	}
 

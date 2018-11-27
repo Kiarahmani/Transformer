@@ -42,7 +42,7 @@ public class Anomaly {
 	public Map<Expr, Expr> otimes;
 	public Map<Expr, Expr> opart;
 	public List<Expr> isUpdate;
-	private List<Tuple<String, String>> cycleStructure;
+	private List<Tuple<String, Tuple<String, String>>> cycleStructure;
 	private Application app;
 	private boolean isCore;
 
@@ -85,11 +85,19 @@ public class Anomaly {
 			Expr y = this.cycle.get(x);
 			Tuple<String, String> newTuple = new Tuple<String, String>(model.eval(otypeFunc.apply(x), true).toString(),
 					model.eval(otypeFunc.apply(y), true).toString());
-			this.cycleStructure.add(newTuple);
+			if (RWPairs.get(x) != null && RWPairs.get(x).contains(y))
+				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("RW", newTuple));
+			else if (RWPairs.get(x) != null && WRPairs.get(x).contains(y))
+				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WR", newTuple));
+			else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
+				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
+			else
+				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling", newTuple));
+
 		}
 	}
 
-	public List<Tuple<String, String>> getCycleStructure() {
+	public List<Tuple<String, Tuple<String, String>>> getCycleStructure() {
 		return this.cycleStructure;
 	}
 

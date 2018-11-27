@@ -344,7 +344,7 @@ public class DynamicAssertsions {
 		return result;
 	}
 
-	public BoolExpr mk_previous_anomaly_exclusion(List<Tuple<String, String>> structure) {
+	public BoolExpr mk_previous_anomaly_exclusion(List<Tuple<String, Tuple<String, String>>> structure) {
 		// bound variables
 		Expr[] Os = new Expr[structure.size() * 2];
 		for (int i = 0; i < structure.size() * 2; i++)
@@ -353,8 +353,8 @@ public class DynamicAssertsions {
 		FuncDecl otypeFunc = objs.getfuncs("otype");
 		BoolExpr[] allLhs = new BoolExpr[structure.size()];
 		for (int i = 0; i < structure.size(); i++) {
-			String xs = structure.get(i).x;
-			String ys = structure.get(i).y;
+			String xs = structure.get(i).y.x;
+			String ys = structure.get(i).y.y;
 			FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
 			FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
 			BoolExpr lhsLoopX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i]), ctx.mkApp(cnstrX));
@@ -378,7 +378,7 @@ public class DynamicAssertsions {
 	}
 
 	// the final assertion, generating a cycle on the dependency graph
-	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, String>> structure) {
+	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
 
 		int length = ConstantArgs._Current_Cycle_Length;
 		Expr[] Os = new Expr[length];
@@ -394,42 +394,52 @@ public class DynamicAssertsions {
 		// constraints regarding previously found (unversioned) anomaly
 		BoolExpr prevAnmlExprs[] = null;
 		if (structure != null) {
-			prevAnmlExprs = new BoolExpr[structure.size()*2];
+			prevAnmlExprs = new BoolExpr[structure.size() * 3];
 			iter = 0;
 			FuncDecl otypeFunc = objs.getfuncs("otype");
+
 			for (int i = 0; i < structure.size() - 1; i++) {
-				String xs = structure.get(i).x;
-				String ys = structure.get(i).y;
+				String xs = structure.get(i).y.x;
+				String ys = structure.get(i).y.y;
+				String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
+
 				FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
 				FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
-				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2*i]), ctx.mkApp(cnstrX));
-				BoolExpr lhsY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2*i + 1]), ctx.mkApp(cnstrY));
+				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i]), ctx.mkApp(cnstrX));
+				BoolExpr lhsY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i + 1]), ctx.mkApp(cnstrY));
 				prevAnmlExprs[iter++] = lhsX;
 				prevAnmlExprs[iter++] = lhsY;
+				prevAnmlExprs[iter++] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[2 * i], Os[2 * i + 1]);
+
+				// prevAnmlExprs[iter++] = ctx.mkApp(objs.getfuncs(key), arg1);
 			}
 			// last iteration (no need to add y element for odd lengths)
 			if (length % 2 != 0) {
-				String xs = structure.get(structure.size() - 1).x;
+				String xs = structure.get(structure.size() - 1).y.x;
+				String op = structure.get(structure.size() - 1).x.equals("sibling") ? "sibling"
+						: structure.get(structure.size() - 1).x + "_O";
 				FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
 				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[length - 1]), ctx.mkApp(cnstrX));
 				prevAnmlExprs[iter++] = lhsX;
 				prevAnmlExprs[iter++] = ctx.mkTrue();
+				prevAnmlExprs[iter++] = ctx.mkTrue();
 			} else {
-				String xs = structure.get(structure.size() - 1).x;
+
+				String xs = structure.get(structure.size() - 1).y.x;
 				FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
 				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[length - 2]), ctx.mkApp(cnstrX));
 				prevAnmlExprs[iter++] = lhsX;
 
-				String ys = structure.get(structure.size() - 1).y;
+				String ys = structure.get(structure.size() - 1).y.y;
+				String op = structure.get(structure.size() - 1).x.equals("sibling") ? "sibling"
+						: structure.get(structure.size() - 1).x + "_O";
+
 				FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
 				BoolExpr lhsY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[length - 1]), ctx.mkApp(cnstrY));
 				prevAnmlExprs[iter++] = lhsY;
+				prevAnmlExprs[iter++] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[length - 2], Os[length - 1]);
+
 			}
-			//System.out.println("---->>>" + structure);
-			//System.out.println("\n\n\n\n\n\n\n=============================");
-			//for (int i = 0; i < length; i++)
-			//	System.out.println("--" + prevAnmlExprs[i]);
-			//System.out.println("=============================\n\n\n\n\n\n\n");
 		}
 
 		BoolExpr depExprs[] = new BoolExpr[length];
@@ -445,7 +455,6 @@ public class DynamicAssertsions {
 
 	}
 
-	
 }
 
 /*

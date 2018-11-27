@@ -81,7 +81,7 @@ public class Transformer extends BodyTransformer {
 		List<Anomaly> seenAnmls = new ArrayList<>();
 		Anomaly unVersionedAnml = null;
 		// partitions
-		while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
+		outerMostLoop: while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
 			int currentRowInstLimit = ConstantArgs._MIN_ROW_INSTANCES;
 			// row instance limitation
 			while (currentRowInstLimit <= ConstantArgs._MAX_ROW_INSTANCES) {
@@ -108,9 +108,10 @@ public class Transformer extends BodyTransformer {
 								anml1.closeCtx();
 							} else {
 								// Analysis Step 2
-								long step2Begin = System.currentTimeMillis();
+
 								ConstantArgs._current_version_enforcement = true;
 								zdr = new Z3Driver(app, tables, false);
+								long step2Begin = System.currentTimeMillis();
 								anml2 = zdr.analyze(seenAnmls, includedTables, anml1);
 								step2Time = System.currentTimeMillis() - step2Begin;
 								if (anml2 != null) {
@@ -120,6 +121,7 @@ public class Transformer extends BodyTransformer {
 									anml1.closeCtx();
 									anml2.closeCtx();
 								}
+								// break outerMostLoop;
 							}
 						} else
 							zdr.closeCtx();
