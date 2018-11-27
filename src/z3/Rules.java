@@ -98,7 +98,7 @@ public class Rules {
 						// relate the updated velues to the projected values at the next version
 						// ZZZ
 						BoolExpr versionCond2 = ConstantArgs._current_version_enforcement
-								? ctx.mkAnd(getVersionCondsRW(txn1, vt1, vo2, vo1, q2, rowVar))
+								? ctx.mkAnd(getVersionCondsRW(txn2, vt2, vo2, vo1, q2, rowVar))
 								: ctx.mkTrue();
 						Expr body = ctx.mkAnd(rowConflictCond, otypeCond1, otypeCond2, whereClause1, whereClause2,
 								versionCond2, pathCond1, pathCond2, aliveCond, rwOnTableCond);

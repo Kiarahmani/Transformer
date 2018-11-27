@@ -23,18 +23,18 @@ public class DirtyRead {
 		p.setProperty("ID", String.valueOf(insID));
 	}
 
-	public void updateBalance(int bal1, int bal2) throws Exception {
+	public void updateBalance(int value1, int value2) throws Exception {
 		try {
-
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			PreparedStatement ps = connect.prepareStatement("update A set balance= ? where id=1");
-			ps.setInt(1, bal1);
-			ps.executeUpdate();
-			PreparedStatement ps2 = connect.prepareStatement("update A set balance= ? where id=1");
-			ps2.setInt(1, bal2);
-			ps2.executeUpdate();
+			
+			PreparedStatement preparedStatement = connect.prepareStatement("update A set balance= ? where id=1");
+			preparedStatement.setInt(1, value1);
+			preparedStatement.executeUpdate();
+			PreparedStatement preparedStatement2 = connect.prepareStatement("update A set balance= ? where id=1");
+			preparedStatement2.setInt(1, value2);
+			preparedStatement2.executeUpdate();
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -49,12 +49,13 @@ public class DirtyRead {
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
-			PreparedStatement ps = connect.prepareStatement("select * from A where id=1");
-			ResultSet rs2 = ps.executeQuery();
-			rs2.next();
-			int id = rs2.getInt("id");
-			int balance = rs2.getInt("balance");
-			System.out.println(id + balance);
+			PreparedStatement preparedStatement = connect.prepareStatement("select * from A where id=1");
+			ResultSet rs = preparedStatement.executeQuery();
+			int result = -1;
+			if (rs.next()) {
+				result = rs.getInt("balance");
+			}
+			System.out.println(result);
 		} catch (Exception e) {
 			throw e;
 		} finally {
