@@ -97,8 +97,8 @@ public class Transformer extends BodyTransformer {
 						// do the analysis twice (second time with enforced versioning)
 						// Analysis Step 1
 						zdr = new Z3Driver(app, tables, false);
-						ConstantArgs._current_version_enforcement = false;
-						anml1 = zdr.analyze(seenAnmls, includedTables, null);
+						ConstantArgs._current_version_enforcement = true;
+						anml1 = zdr.analyze(false, seenAnmls, includedTables, null);
 						step1Time = System.currentTimeMillis() - step1Begin;
 						if (anml1 != null) {
 							anml1.generateCycleStructure();
@@ -110,16 +110,16 @@ public class Transformer extends BodyTransformer {
 								// Analysis Step 2
 
 								ConstantArgs._current_version_enforcement = true;
-								zdr = new Z3Driver(app, tables, false);
+								// zdr = new Z3Driver(app, tables, false);
 								long step2Begin = System.currentTimeMillis();
-								anml2 = zdr.analyze(seenAnmls, includedTables, anml1);
+								anml2 = zdr.analyze(true, seenAnmls, includedTables, anml1);
 								step2Time = System.currentTimeMillis() - step2Begin;
 								if (anml2 != null) {
 									anml2.generateCycleStructure();
 									seenAnmls.add(anml2);
 									anml2.announce(false, seenAnmls.size());
 									anml1.closeCtx();
-									anml2.closeCtx();
+									//anml2.closeCtx();
 								}
 								// break outerMostLoop;
 							}

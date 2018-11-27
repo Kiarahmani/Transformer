@@ -166,16 +166,6 @@ public class Z3Driver {
 		objs.addFunc("X",
 				ctx.mkFuncDecl("X", new Sort[] { objs.getSort("O"), objs.getSort("O") }, objs.getSort("Bool")));
 
-		//
-		HeaderZ3("CYCLE ASSERTIONS");
-		// dependency assertions
-		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
-		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
-		List<Tuple<String, Tuple<String, String>>> structure = null;
-		if (unVersionedAnml != null)
-			structure = unVersionedAnml.getCycleStructure();
-		addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, structure));
-
 		HeaderZ3("properties");
 		// assertions
 		addAssertion("par_then_sib", staticAssrtions.mk_par_then_sib());
@@ -284,12 +274,6 @@ public class Z3Driver {
 
 		}
 		// =====================================================================================================================================================
-		HeaderZ3("VERSIONING PROPS");
-		int iter = 0;
-		if (ConstantArgs._current_version_enforcement)
-			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables)) {
-				addAssertion("versioning_props" + (iter++), ass);
-			}
 
 		// =====================================================================================================================================================
 
@@ -397,13 +381,13 @@ public class Z3Driver {
 
 			}
 		}
-
 	}
 
 	private void addAssertion(String name, BoolExpr ass) {
 		LogZ3(";" + name);
 		objs.addAssertion(name, ass);
 		slv.add(ass);
+		slv.push();
 	}
 
 	/*
@@ -542,28 +526,51 @@ public class Z3Driver {
 	/*
 	 * public function called from main
 	 */
-	public Anomaly analyze(List<Anomaly> seenAnmls, Set<Table> includedTables, Anomaly unVersionedAnml) {
-		ctxInitialize(unVersionedAnml);
-		int iter530 = 0;
-		for (Anomaly anml : seenAnmls)
-			excludeAnomaly(anml, iter530++);
-		try {
-			// rules
-			HeaderZ3(" ->WW ");
-			thenWW(includedTables);
-			HeaderZ3(" ->WR ");
-			thenWR(includedTables);
-			HeaderZ3(" WW-> ");
-			WWthen(includedTables);
-			HeaderZ3(" WR-> ");
-			WRthen(includedTables);
-			HeaderZ3(" RW-> ");
-			RWthen(includedTables);
-		} catch (UnexoectedOrUnhandledConditionalExpression e) {
-			e.printStackTrace();
+	public Anomaly analyze(boolean secondRound, List<Anomaly> seenAnmls, Set<Table> includedTables,
+			Anomaly unVersionedAnml) {
+		if (secondRound) {
+			HeaderZ3("VERSIONING PROPS");
+			int iter = 0;
+			System.out.println("----"+slv.getNumAssertions());
+			slv.pop(2);
+			List<Tuple<String, Tuple<String, String>>> structure = null;
+			structure = unVersionedAnml.getCycleStructure();
+			System.out.println("----"+slv.getNumAssertions());
+			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
+				addAssertion("versioning_props" + (iter++), ass);
+			System.out.println("----"+slv.getNumAssertions());
+			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
+			System.out.println("----"+slv.getNumAssertions());
+			return checkSAT();
+		} else {
+			ctxInitialize(unVersionedAnml);
+			int iter530 = 0;
+			for (Anomaly anml : seenAnmls)
+				excludeAnomaly(anml, iter530++);
+			try {
+				// rules
+				HeaderZ3(" ->WW ");
+				thenWW(includedTables);
+				HeaderZ3(" ->WR ");
+				thenWR(includedTables);
+				HeaderZ3(" WW-> ");
+				WWthen(includedTables);
+				HeaderZ3(" WR-> ");
+				WRthen(includedTables);
+				HeaderZ3(" RW-> ");
+				RWthen(includedTables);
+			} catch (UnexoectedOrUnhandledConditionalExpression e) {
+				e.printStackTrace();
+			}
+			//
+			HeaderZ3("CYCLE ASSERTIONS");
+			// dependency assertions
+			addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
+			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
+			addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, null));
+			HeaderZ3("EOF");
+			return checkSAT();
 		}
-		HeaderZ3("EOF");
-		return checkSAT();
 	}
 
 	private void excludeAnomaly(Anomaly anml, int iter) {
