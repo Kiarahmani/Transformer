@@ -48,9 +48,11 @@ public class Z3Driver {
 	PrintWriter printer;
 	Expr vo1, vo2, vt1, vt2;
 	private boolean findCore;
+	int globalIter = 1;
 
 	// constructor
 	public Z3Driver(Application app, ArrayList<Table> tables, boolean findCore) {
+
 		this.findCore = findCore;
 		this.app = app;
 		this.tables = tables;
@@ -387,7 +389,7 @@ public class Z3Driver {
 		LogZ3(";" + name);
 		objs.addAssertion(name, ass);
 		slv.add(ass);
-		slv.push();
+		System.out.println("add#: " + this.globalIter++ + ":  " + name);
 	}
 
 	/*
@@ -531,16 +533,36 @@ public class Z3Driver {
 		if (secondRound) {
 			HeaderZ3("VERSIONING PROPS");
 			int iter = 0;
-			System.out.println("----"+slv.getNumAssertions());
-			slv.pop(2);
+			System.out.println("----" + slv.getNumAssertions());
+			slv.pop();
+			System.out.println("---- Pop");
+			System.out.println("----" + slv.getNumAssertions());
+			try {
+				HeaderZ3(" ->WW ");
+				thenWW(includedTables);
+				HeaderZ3(" ->WR ");
+				thenWR(includedTables);
+				HeaderZ3(" WW-> ");
+				WWthen(includedTables);
+				HeaderZ3(" WR-> ");
+				WRthen(includedTables);
+				HeaderZ3(" RW-> ");
+				RWthen(includedTables);
+			} catch (UnexoectedOrUnhandledConditionalExpression e) {
+				e.printStackTrace();
+			}
 			List<Tuple<String, Tuple<String, String>>> structure = null;
 			structure = unVersionedAnml.getCycleStructure();
-			System.out.println("----"+slv.getNumAssertions());
+			System.out.println("----" + slv.getNumAssertions());
 			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
 				addAssertion("versioning_props" + (iter++), ass);
-			System.out.println("----"+slv.getNumAssertions());
+			System.out.println("----" + slv.getNumAssertions());
+			HeaderZ3("NEW CYCLE ASSERTIONS");
+			// dependency assertions
+			addAssertion("new-gen_dep", staticAssrtions.mk_gen_dep());
+			addAssertion("new-gen_depx", staticAssrtions.mk_gen_depx());
 			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
-			System.out.println("----"+slv.getNumAssertions());
+			System.out.println("----" + slv.getNumAssertions());
 			return checkSAT();
 		} else {
 			ctxInitialize(unVersionedAnml);
@@ -549,6 +571,7 @@ public class Z3Driver {
 				excludeAnomaly(anml, iter530++);
 			try {
 				// rules
+				slv.push();
 				HeaderZ3(" ->WW ");
 				thenWW(includedTables);
 				HeaderZ3(" ->WR ");

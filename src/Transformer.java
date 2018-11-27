@@ -97,7 +97,7 @@ public class Transformer extends BodyTransformer {
 						// do the analysis twice (second time with enforced versioning)
 						// Analysis Step 1
 						zdr = new Z3Driver(app, tables, false);
-						ConstantArgs._current_version_enforcement = true;
+						ConstantArgs._current_version_enforcement = false;
 						anml1 = zdr.analyze(false, seenAnmls, includedTables, null);
 						step1Time = System.currentTimeMillis() - step1Begin;
 						if (anml1 != null) {
