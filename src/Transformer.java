@@ -41,7 +41,7 @@ public class Transformer extends BodyTransformer {
 
 	////// MAIN
 	public static void main(String[] args) {
-		ConstantArgs ca = new ConstantArgs();
+		new ConstantArgs();
 		Initializer init = new Initializer();
 		String[] soot_args = init.initialize();
 		soot.Main.main(soot_args);
@@ -79,7 +79,6 @@ public class Transformer extends BodyTransformer {
 		Anomaly anml1 = null, anml2 = null;
 		int iter = 1;
 		List<Anomaly> seenAnmls = new ArrayList<>();
-		Anomaly unVersionedAnml = null;
 		// partitions
 		outerMostLoop: while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
 			int currentRowInstLimit = ConstantArgs._MIN_ROW_INSTANCES;
@@ -93,7 +92,8 @@ public class Transformer extends BodyTransformer {
 						anml2 = null;
 						long step1Begin = System.currentTimeMillis();
 						long step1Time = -100000, step2Time = 0;
-						System.out.println(runHeader(iter++, includedTables));
+						String config = runHeader(iter++, includedTables);
+						System.out.println(config);
 						// do the analysis twice (second time with enforced versioning)
 						// Analysis Step 1
 						zdr = new Z3Driver(app, tables, false);
@@ -103,7 +103,9 @@ public class Transformer extends BodyTransformer {
 						if (anml1 != null) {
 							anml1.generateCycleStructure();
 							if (!ConstantArgs._ENFORCE_VERSIONING) {
+								anml1.setExtractionTime(step1Time, 0);
 								seenAnmls.add(anml1);
+								anml1.addData("\\l" + config + "\\l");
 								anml1.announce(false, seenAnmls.size());
 								anml1.closeCtx();
 							} else {
@@ -116,10 +118,11 @@ public class Transformer extends BodyTransformer {
 								step2Time = System.currentTimeMillis() - step2Begin;
 								if (anml2 != null) {
 									anml2.generateCycleStructure();
+									anml2.setExtractionTime(step1Time, step2Time);
 									seenAnmls.add(anml2);
+									anml2.addData("\\l" + config + "\\l");
 									anml2.announce(false, seenAnmls.size());
 									anml1.closeCtx();
-									//anml2.closeCtx();
 								}
 								// break outerMostLoop;
 							}

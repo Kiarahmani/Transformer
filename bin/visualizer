@@ -7,7 +7,7 @@ key="$1"
 case $key in
     -g|--generate)
     DIR="$2"
-    for filename in $DIR/*.dot; do
+    for filename in $DIR/*/*.dot; do
       dot -Tpng  $filename -o "${filename}.png" 
     done
     echo "${DIR} successfully generated" 
@@ -17,7 +17,20 @@ case $key in
     -o|--open)
     DIR="$2"
     ANMLNO="$3"
-    for filename in "${DIR}/*_${ANMLNO}.dot.png"; do
+    for filename in "${DIR}/anomaly\#${ANMLNO}/*_${ANMLNO}.dot.png"; do
+      open $filename
+    done
+    shift # past argument
+    shift # past value
+    ;;
+    -go|--genop)
+    DIR="$2"
+    ANMLNO="$3"
+    for filename in $DIR/*/*.dot; do
+      dot -Tpng  $filename -o "${filename}.png" 
+    done
+    echo "${DIR} successfully generated" 
+    for filename in "${DIR}/anomaly\#${ANMLNO}/*_${ANMLNO}.dot.png"; do
       open $filename
     done
     shift # past argument

@@ -14,7 +14,6 @@ import com.microsoft.z3.BitVecNum;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import com.microsoft.z3.FuncDecl;
-import com.microsoft.z3.IntNum;
 import com.microsoft.z3.Model;
 
 import ir.Application;
@@ -25,9 +24,10 @@ import z3.ConstantArgs;
 import z3.DeclaredObjects;
 
 public class Anomaly {
-
+	private String rawData = "";
 	private String name;
 	private Model model;
+	long stepOneTime, stepTwoTime;
 	private Context ctx;
 	DeclaredObjects objs;
 	public Map<Expr, ArrayList<Expr>> visPairs;
@@ -91,8 +91,9 @@ public class Anomaly {
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WR", newTuple));
 			else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
-			//else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
-		//		this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling", newTuple));
+			// else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
+			// this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling",
+			// newTuple));
 
 		}
 	}
@@ -143,28 +144,43 @@ public class Anomaly {
 
 			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
-				System.out.print(t.toString().replaceAll("!val!", "") + ": ");
+				String tVal = t.toString().replaceAll("!val!", "") + ": ";
+				System.out.print(tVal);
+				addData(tVal);
 				Expr ttype = model.eval(objs.getfuncs("ttype").apply(t), true);
 				System.out.print(ttype + "(");
+				addData(ttype + "(");
 				Transaction txn = app.getTxnByName(ttype.toString());
 				String delim = "";
 				for (String pm : txn.getParams().keySet()) {
 					System.out.print(delim + pm + "=");
-					System.out.print(model.eval(ctx.mkApp(objs.getfuncs(ttype.toString() + "_PARAM_" + pm), t), true));
+					addData(delim + pm + "=");
+					String modelVal = (model.eval(ctx.mkApp(objs.getfuncs(ttype.toString() + "_PARAM_" + pm), t), true))
+							.toString();
+					System.out.print(modelVal);
+					addData(modelVal);
 
 					delim = ", ";
 				}
 				System.out.println(")");
+				addData(")" + "\\l");
 			}
 
-			// visualize records
+			// visualize records (this should go before the rest of the visualization steps
+			// since it clears the previous data)
 			RecordsVisualizer rv = new RecordsVisualizer(ctx, model, objs, tables, conflictingRow);
-			rv.createGraph("records_" + anmlNo + ".dot", anmlNo);
+			rv.createGraph("anomaly#" + anmlNo + "/records_" + anmlNo + ".dot", anmlNo);
+			// visualize the raw data
+			addData("\\l---------------------------------------------------------");
+			addData("\\l primitive anomaly extraction: " + String.valueOf(stepOneTime) + "ms");
+			addData("\\l annotated anomaly extraction: " + String.valueOf(stepTwoTime) + "ms");
+			addData("\\l");
+			RawDataVisualizer dv = new RawDataVisualizer(this.rawData);
+			dv.createGraph("anomaly#" + anmlNo + "/data_" + anmlNo + ".dot");
 			// visualize the cycle
 			AnomalyVisualizer av = new AnomalyVisualizer(WWPairs, WRPairs, RWPairs, visPairs, cycle, model, objs,
 					parentChildPairs, otypes, opart, conflictingRow);
-			av.createGraph("anomaly_" + anmlNo + ".dot");
-			// prepare it for the next analysis round to be excluded
+			av.createGraph("anomaly#" + anmlNo + "/anomaly_" + anmlNo + ".dot");
 
 		}
 		// announce core model
@@ -462,6 +478,11 @@ public class Anomaly {
 		// System.out.println("--------------------------------------");
 	}
 
+	public void setExtractionTime(long step1, long step2) {
+		this.stepOneTime = step1;
+		this.stepTwoTime = step2;
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -500,6 +521,10 @@ public class Anomaly {
 
 	public void setCore(boolean isCore) {
 		this.isCore = isCore;
+	}
+
+	public void addData(String s) {
+		this.rawData += (s);
 	}
 
 }

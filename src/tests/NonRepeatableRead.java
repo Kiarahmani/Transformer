@@ -68,5 +68,34 @@ public class NonRepeatableRead {
 		}
 
 	}
+	
+	public void readBalance2() throws Exception {
+		try {
+
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+			PreparedStatement ps = connect.prepareStatement("select * from A where id=999");
+			ResultSet rs2 = ps.executeQuery();
+			rs2.next();
+			int id = rs2.getInt("id");
+			int balance = rs2.getInt("balance");
+			System.out.println(id + balance);
+
+			PreparedStatement ps1 = connect.prepareStatement("select * from A where id=999");
+			ResultSet rs3 = ps1.executeQuery();
+			rs3.next();
+			int id1 = rs3.getInt("id");
+			int balance1 = rs3.getInt("balance");
+			System.out.println(id1 + balance1);
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+
+		}
+
+	}
+
 
 }
