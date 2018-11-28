@@ -399,6 +399,14 @@ public class DynamicAssertsions {
 			FuncDecl otypeFunc = objs.getfuncs("otype");
 
 			for (int i = 0; i < structure.size() - 1; i++) {
+				//System.out.println("i: " + i);
+				//System.out.println("Os length: " + Os.length);
+				//System.out.println("structure length: " + structure.size());
+				//System.out.println("structure: " + structure);
+				//System.out.println("prevAnmlExprs: " + prevAnmlExprs.length);
+				//System.out.println("iter: " + iter);
+				//System.out.println();
+
 				String xs = structure.get(i).y.x;
 				String ys = structure.get(i).y.y;
 				String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
@@ -407,6 +415,7 @@ public class DynamicAssertsions {
 				FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
 				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i]), ctx.mkApp(cnstrX));
 				BoolExpr lhsY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i + 1]), ctx.mkApp(cnstrY));
+
 				prevAnmlExprs[iter++] = lhsX;
 				prevAnmlExprs[iter++] = lhsY;
 				prevAnmlExprs[iter++] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[2 * i], Os[2 * i + 1]);
@@ -416,8 +425,6 @@ public class DynamicAssertsions {
 			// last iteration (no need to add y element for odd lengths)
 			if (length % 2 != 0) {
 				String xs = structure.get(structure.size() - 1).y.x;
-				String op = structure.get(structure.size() - 1).x.equals("sibling") ? "sibling"
-						: structure.get(structure.size() - 1).x + "_O";
 				FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
 				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[length - 1]), ctx.mkApp(cnstrX));
 				prevAnmlExprs[iter++] = lhsX;

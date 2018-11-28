@@ -533,10 +533,7 @@ public class Z3Driver {
 		if (secondRound) {
 			HeaderZ3("VERSIONING PROPS");
 			int iter = 0;
-			System.out.println("----" + slv.getNumAssertions());
 			slv.pop();
-			System.out.println("---- Pop");
-			System.out.println("----" + slv.getNumAssertions());
 			try {
 				HeaderZ3(" ->WW ");
 				thenWW(includedTables);
@@ -551,18 +548,14 @@ public class Z3Driver {
 			} catch (UnexoectedOrUnhandledConditionalExpression e) {
 				e.printStackTrace();
 			}
-			List<Tuple<String, Tuple<String, String>>> structure = null;
-			structure = unVersionedAnml.getCycleStructure();
-			System.out.println("----" + slv.getNumAssertions());
+			List<Tuple<String, Tuple<String, String>>> structure = unVersionedAnml.getCycleStructure();
 			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
 				addAssertion("versioning_props" + (iter++), ass);
-			System.out.println("----" + slv.getNumAssertions());
 			HeaderZ3("NEW CYCLE ASSERTIONS");
 			// dependency assertions
 			addAssertion("new-gen_dep", staticAssrtions.mk_gen_dep());
 			addAssertion("new-gen_depx", staticAssrtions.mk_gen_depx());
 			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
-			System.out.println("----" + slv.getNumAssertions());
 			return checkSAT();
 		} else {
 			ctxInitialize(unVersionedAnml);

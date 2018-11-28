@@ -91,8 +91,8 @@ public class Anomaly {
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WR", newTuple));
 			else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
-			else
-				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling", newTuple));
+			//else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
+		//		this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling", newTuple));
 
 		}
 	}
