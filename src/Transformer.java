@@ -187,7 +187,7 @@ public class Transformer extends BodyTransformer {
 	}
 
 	private static String runTimeFooter(long step1Time, long step2Time) {
-		return ("--------------------------------\nExtration time -- step1 " + step1Time + " ms"
+		return ("--------------------------------\nExtraction time -- step1 " + step1Time + " ms"
 				+ "\n               -- step2 " + step2Time + " ms" + "\n--------------------------------" + "\n\n");
 	}
 
