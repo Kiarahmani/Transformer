@@ -23,7 +23,7 @@ public class NonRepeatableRead {
 		p.setProperty("ID", String.valueOf(insID));
 	}
 
-	public void updateBalance(int key, int bal) throws Exception {
+	public void updateBalance(String zahremar, int key, int bal) throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");

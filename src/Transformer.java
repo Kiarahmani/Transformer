@@ -105,7 +105,7 @@ public class Transformer extends BodyTransformer {
 							if (!ConstantArgs._ENFORCE_VERSIONING) {
 								anml1.setExtractionTime(step1Time, 0);
 								seenAnmls.add(anml1);
-								anml1.addData("\\l" + config + "\\l");
+								anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
 								anml1.announce(false, seenAnmls.size());
 								anml1.closeCtx();
 							} else {

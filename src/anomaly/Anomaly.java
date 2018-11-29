@@ -141,7 +141,7 @@ public class Anomaly {
 
 			if (ConstantArgs.DEBUG_MODE)
 				printAllVersions();
-
+// XXX
 			System.out.println("--- TXN Params --- ");
 			for (Expr t : Ts) {
 				String tVal = t.toString().replaceAll("!val!", "") + ": ";
@@ -159,20 +159,19 @@ public class Anomaly {
 							.toString();
 					System.out.print(modelVal);
 					addData(modelVal);
-
 					delim = ", ";
 				}
 				System.out.println(")");
 				addData(")" + "\\l");
 			}
-
+			this.rawData = this.rawData.replaceAll("\"", "\\\\\"");
 			// visualize records (this should go before the rest of the visualization steps
 			// since it clears the previous data)
 			RecordsVisualizer rv = new RecordsVisualizer(ctx, model, objs, tables, conflictingRow);
 			rv.createGraph("anomaly#" + anmlNo + "/records_" + anmlNo + ".dot", anmlNo);
 			// visualize the raw data
 			addData("\\l---------------------------------------------------------");
-			addData("\\l primitive anomaly extraction: " + String.valueOf(stepOneTime) + "ms");
+			addData("\\l primitive anomaly extraction:   " + String.valueOf(stepOneTime) + "ms");
 			addData("\\l annotated anomaly extraction: " + String.valueOf(stepTwoTime) + "ms");
 			addData("\\l");
 			RawDataVisualizer dv = new RawDataVisualizer(this.rawData);

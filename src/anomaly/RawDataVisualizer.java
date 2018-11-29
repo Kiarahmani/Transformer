@@ -28,7 +28,7 @@ public class RawDataVisualizer {
 
 		printer.append("digraph {" + node_style);
 		printer.append("1 [label=\"");
-		printer.append(this.text);
+		printer.append(this.text.replaceAll("\"", "\\\""));
 		printer.append("\"]");
 		printer.append("\n}");
 		printer.flush();
