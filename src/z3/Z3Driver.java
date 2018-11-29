@@ -533,34 +533,8 @@ public class Z3Driver {
 		// solution and once for the annotated (second call). In the second call certain
 		// constraints (e.g. rule constraints) must be popped and be replaced with
 		// annotated versions.
-		if (round == 2) {
-			HeaderZ3("VERSIONING PROPS");
-			int iter = 0;
-			slv.pop();
-			try {
-				HeaderZ3(" ->WW ");
-				thenWW(includedTables);
-				HeaderZ3(" ->WR ");
-				thenWR(includedTables);
-				HeaderZ3(" WW-> ");
-				WWthen(includedTables);
-				HeaderZ3(" WR-> ");
-				WRthen(includedTables);
-				HeaderZ3(" RW-> ");
-				RWthen(includedTables);
-			} catch (UnexoectedOrUnhandledConditionalExpression e) {
-				e.printStackTrace();
-			}
-			List<Tuple<String, Tuple<String, String>>> structure = unVersionedAnml.getCycleStructure();
-			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
-				addAssertion("versioning_props" + (iter++), ass);
-			HeaderZ3("NEW CYCLE ASSERTIONS");
-			// dependency assertions
-			addAssertion("new-gen_dep", staticAssrtions.mk_gen_dep());
-			addAssertion("new-gen_depx", staticAssrtions.mk_gen_depx());
-			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
-
-		} else if (round == 1) {
+		switch (round) {
+		case 1:
 			ctxInitialize(unVersionedAnml);
 			int iter530 = 0;
 			for (Anomaly anml : seenAnmls)
@@ -588,7 +562,47 @@ public class Z3Driver {
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, null));
 			HeaderZ3("EOF");
+			break;
+
+		case 2:
+			HeaderZ3("VERSIONING PROPS");
+			int iter = 0;
+			slv.pop();
+			try {
+				HeaderZ3(" ->WW ");
+				thenWW(includedTables);
+				HeaderZ3(" ->WR ");
+				thenWR(includedTables);
+				HeaderZ3(" WW-> ");
+				WWthen(includedTables);
+				HeaderZ3(" WR-> ");
+				WRthen(includedTables);
+				HeaderZ3(" RW-> ");
+				RWthen(includedTables);
+			} catch (UnexoectedOrUnhandledConditionalExpression e) {
+				e.printStackTrace();
+			}
+			List<Tuple<String, Tuple<String, String>>> structure = unVersionedAnml.getCycleStructure();
+			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
+				addAssertion("versioning_props" + (iter++), ass);
+			HeaderZ3("NEW CYCLE ASSERTIONS");
+			// dependency assertions
+			addAssertion("new-gen_dep", staticAssrtions.mk_gen_dep());
+			addAssertion("new-gen_depx", staticAssrtions.mk_gen_depx());
+			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
+			break;
+		case 3:
+			excludeAnomaly(unVersionedAnml, seenAnmls.size() + 1);
+			// also handle it (that is going to be the core)
+			break;
+		case 4:
+			excludeAnomaly(unVersionedAnml, seenAnmls.size() + 1);
+			break;
+
+		default:
+			break;
 		}
+
 		return checkSAT();
 	}
 
