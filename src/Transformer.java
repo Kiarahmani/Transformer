@@ -94,41 +94,43 @@ public class Transformer extends BodyTransformer {
 						long step1Time = -100000, step2Time = 0;
 						String config = runHeader(iter++, includedTables);
 						System.out.println(config);
-						// do the analysis twice (second time with enforced versioning)
-						// Analysis Step 1
-						zdr = new Z3Driver(app, tables, false);
-						ConstantArgs._current_version_enforcement = false;
-						anml1 = zdr.analyze(false, seenAnmls, includedTables, null);
-						step1Time = System.currentTimeMillis() - step1Begin;
-						if (anml1 != null) {
-							anml1.generateCycleStructure();
-							if (!ConstantArgs._ENFORCE_VERSIONING) {
-								anml1.setExtractionTime(step1Time, 0);
-								seenAnmls.add(anml1);
-								anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
-								anml1.announce(false, seenAnmls.size());
-								anml1.closeCtx();
-							} else {
-								// Analysis Step 2
-
-								ConstantArgs._current_version_enforcement = true;
-								// zdr = new Z3Driver(app, tables, false);
-								long step2Begin = System.currentTimeMillis();
-								anml2 = zdr.analyze(true, seenAnmls, includedTables, anml1);
-								step2Time = System.currentTimeMillis() - step2Begin;
-								if (anml2 != null) {
-									anml2.generateCycleStructure();
-									anml2.setExtractionTime(step1Time, step2Time);
-									seenAnmls.add(anml2);
-									anml2.addData("\\l" + config + "\\l");
-									anml2.announce(false, seenAnmls.size());
+						// iterations to push Z3 into finding similar anoamlies together
+						//optimizaitonLoop: do {
+							// do the analysis twice (second time with enforced versioning)
+							// Analysis Step 1
+							zdr = new Z3Driver(app, tables, false);
+							ConstantArgs._current_version_enforcement = false;
+							anml1 = zdr.analyze(1, seenAnmls, includedTables, null);
+							step1Time = System.currentTimeMillis() - step1Begin;
+							if (anml1 != null) {
+								anml1.generateCycleStructure();
+								if (!ConstantArgs._ENFORCE_VERSIONING) {
+									anml1.setExtractionTime(step1Time, 0);
+									seenAnmls.add(anml1);
+									anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
+									anml1.announce(false, seenAnmls.size());
 									anml1.closeCtx();
+								} else {
+									// Analysis Step 2
+									ConstantArgs._current_version_enforcement = true;
+									// zdr = new Z3Driver(app, tables, false);
+									long step2Begin = System.currentTimeMillis();
+									anml2 = zdr.analyze(2, seenAnmls, includedTables, anml1);
+									step2Time = System.currentTimeMillis() - step2Begin;
+									if (anml2 != null) {
+										anml2.generateCycleStructure();
+										anml2.setExtractionTime(step1Time, step2Time);
+										seenAnmls.add(anml2);
+										anml2.addData("\\l" + config + "\\l");
+										anml2.announce(false, seenAnmls.size());
+										anml1.closeCtx();
+									}
 								}
-								// break outerMostLoop;
+							} else {
+								zdr.closeCtx();
+								//break optimizaitonLoop;
 							}
-						} else
-							zdr.closeCtx();
-
+						//} while (false);
 						System.out.println(runTimeFooter(step1Time, step2Time));
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {

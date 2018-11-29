@@ -389,7 +389,7 @@ public class Z3Driver {
 		LogZ3(";" + name);
 		objs.addAssertion(name, ass);
 		slv.add(ass);
-		//System.out.println("add#: " + this.globalIter++ + ":  " + name);
+		// System.out.println("add#: " + this.globalIter++ + ": " + name);
 	}
 
 	/*
@@ -528,9 +528,12 @@ public class Z3Driver {
 	/*
 	 * public function called from main
 	 */
-	public Anomaly analyze(boolean secondRound, List<Anomaly> seenAnmls, Set<Table> includedTables,
-			Anomaly unVersionedAnml) {
-		if (secondRound) {
+	public Anomaly analyze(int round, List<Anomaly> seenAnmls, Set<Table> includedTables, Anomaly unVersionedAnml) {
+		// this function is called twice at each iteration: once for unannotated
+		// solution and once for the annotated (second call). In the second call certain
+		// constraints (e.g. rule constraints) must be popped and be replaced with
+		// annotated versions.
+		if (round == 2) {
 			HeaderZ3("VERSIONING PROPS");
 			int iter = 0;
 			slv.pop();
@@ -556,8 +559,8 @@ public class Z3Driver {
 			addAssertion("new-gen_dep", staticAssrtions.mk_gen_dep());
 			addAssertion("new-gen_depx", staticAssrtions.mk_gen_depx());
 			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
-			return checkSAT();
-		} else {
+
+		} else if (round == 1) {
 			ctxInitialize(unVersionedAnml);
 			int iter530 = 0;
 			for (Anomaly anml : seenAnmls)
@@ -585,8 +588,8 @@ public class Z3Driver {
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, null));
 			HeaderZ3("EOF");
-			return checkSAT();
 		}
+		return checkSAT();
 	}
 
 	private void excludeAnomaly(Anomaly anml, int iter) {
