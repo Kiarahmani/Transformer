@@ -47,7 +47,7 @@ public class Anomaly {
 	private Application app;
 	private boolean isCore;
 
-	public List<Expr> Ts;
+	public List<Expr> Ts, Os;
 	ArrayList<Table> tables;
 
 	public Anomaly(Model model, Context ctx, DeclaredObjects objs, ArrayList<Table> tables, Application app,
@@ -65,6 +65,7 @@ public class Anomaly {
 	}
 
 	public void generateCycleStructure() {
+		System.out.println();
 		Map<String, FuncDecl> functions = getFunctions();
 		conflictingRow = new HashMap<>();
 		parentChildPairs = getParentChild(functions.get("parent"));
@@ -79,24 +80,29 @@ public class Anomaly {
 		ttypes = getTType(functions.get("ttype"));
 		isUpdate = getIsUpdate(functions.get("is_update"));
 		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
+		this.Os = Arrays.asList(model.getSortUniverse(objs.getSort("O")));
 
 		this.cycleStructure = new ArrayList<>();
 		this.coreStructure = new HashMap<>();
 		FuncDecl ttypeFunc = objs.getfuncs("ttype");
 		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
-		for (Expr x : this.cycle.keySet()) {
-			Expr y = this.cycle.get(x);
-			Tuple<String, String> newTuple = new Tuple<String, String>(model.eval(otypeFunc.apply(x), true).toString(),
-					model.eval(otypeFunc.apply(y), true).toString());
-			if (RWPairs.get(x) != null && RWPairs.get(x).contains(y))
-				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("RW", newTuple));
-			else if (WRPairs.get(x) != null && WRPairs.get(x).contains(y))
-				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WR", newTuple));
-			else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
-				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
-
+		for (Expr x : Os) {
+			for (Expr y : Os)
+				System.out.println("===>>> " + x + " " + y + ": " + areSibling(functions, x, y));
+			/*
+			 * Tuple<String, String> newTuple = new Tuple<String,
+			 * String>(model.eval(otypeFunc.apply(x), true).toString(),
+			 * model.eval(otypeFunc.apply(y), true).toString()); if (RWPairs.get(x) != null
+			 * && RWPairs.get(x).contains(y)) this.cycleStructure.add(new Tuple<String,
+			 * Tuple<String, String>>("RW", newTuple)); else if (WRPairs.get(x) != null &&
+			 * WRPairs.get(x).contains(y)) this.cycleStructure.add(new Tuple<String,
+			 * Tuple<String, String>>("WR", newTuple)); else if (WWPairs.get(x) != null &&
+			 * WWPairs.get(x).contains(y)) this.cycleStructure.add(new Tuple<String,
+			 * Tuple<String, String>>("WW", newTuple));
+			 */
 		}
+
 		// generating the core for the innerloop iterations
 		for (Expr x : this.cycle.keySet()) {
 			Expr y = this.cycle.get(x);
@@ -117,9 +123,14 @@ public class Anomaly {
 					this.coreStructure.put("WW", new HashSet<>());
 				this.coreStructure.get("WW").add(newTupleCore);
 			}
-
 		}
-		System.out.println();
+	}
+
+	private boolean areSibling(Map<String, FuncDecl> functions, Expr o1, Expr o2) {
+		parentChildPairs = getParentChild(functions.get("parent"));
+		System.out.println(parentChildPairs.values());
+		return (!o1.equals(o2))
+				&& parentChildPairs.values().stream().anyMatch(set -> (set.contains(o1) && set.contains(o2)));
 
 	}
 

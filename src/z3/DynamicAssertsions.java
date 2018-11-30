@@ -346,6 +346,9 @@ public class DynamicAssertsions {
 
 	public BoolExpr mk_previous_anomaly_exclusion(List<Tuple<String, Tuple<String, String>>> structure) {
 		// bound variables
+		System.out.println("\n\n\n\n\n\n\n\n-----------------------------------");
+		System.out.println(structure);
+		System.out.println("-----------------------------------\n\n\n\n\n\n\n\n");
 		Expr[] Os = new Expr[structure.size() * 2];
 		for (int i = 0; i < structure.size() * 2; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));

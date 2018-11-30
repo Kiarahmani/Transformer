@@ -117,7 +117,7 @@ public class Transformer extends BodyTransformer {
 								anml2 = zdr.analyze(2, seenAnmls, includedTables, anml1);
 
 								if (anml2 != null) {
-									anml2.generateCycleStructure();
+									//anml2.generateCycleStructure();
 									anml2.setExtractionTime(step1Time, step2Time);
 									seenAnmls.add(anml2);
 									anml2.addData("\\l" + config + "\\l");
