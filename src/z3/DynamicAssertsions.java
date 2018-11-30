@@ -410,11 +410,11 @@ public class DynamicAssertsions {
 			for (int i = 0; i < length - 1; i++) {
 				String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
 				depExprs[i] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[i], Os[i + 1]),
-						(BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[i], Os[i + 1]));
+						(BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]));
 			}
 			String op = structure.get(length - 1).x.equals("sibling") ? "sibling" : structure.get(length - 1).x + "_O";
 			depExprs[length - 1] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[length - 1], Os[0]),
-					(BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0]));
+					(BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]));
 
 		} else {
 			for (int i = 1; i < length - 1; i++)
