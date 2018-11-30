@@ -115,26 +115,27 @@ public class Transformer extends BodyTransformer {
 								// zdr = new Z3Driver(app, tables, false);
 								long step2Begin = System.currentTimeMillis();
 								anml2 = zdr.analyze(2, seenAnmls, includedTables, anml1);
-
 								if (anml2 != null) {
-									// anml2.generateCycleStructure();
+
+									anml2.generateCycleStructure();
+									anml2.announce(false, seenAnmls.size());
+
 									anml2.setExtractionTime(step1Time, step2Time);
 									seenAnmls.add(anml2);
 									anml2.addData("\\l" + config + "\\l");
-									anml2.announce(false, seenAnmls.size());
+
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
-									Anomaly anml3 = zdr.analyze(3, seenAnmls, includedTables, anml2);
-									pause();
+									// Anomaly anml3 = zdr.analyze(3, seenAnmls, includedTables, anml2);
 
-									while (anml3 != null) {
-										seenAnmls.add(anml3);
-										anml3.generateCycleStructure();
-										anml3.announce(false, seenAnmls.size());
-										anml3.generateCycleStructure();
-										anml3 = zdr.analyze(4, seenAnmls, includedTables, anml3);
+									// while (anml3 != null) {
+									// seenAnmls.add(anml3);
+									// anml3.generateCycleStructure();
+									// anml3.announce(false, seenAnmls.size());
+									// anml3.generateCycleStructure();
+									// anml3 = zdr.analyze(4, seenAnmls, includedTables, anml3);
 
-									}
+									// }
 									step2Time = System.currentTimeMillis() - step2Begin;
 									anml1.closeCtx();
 								}

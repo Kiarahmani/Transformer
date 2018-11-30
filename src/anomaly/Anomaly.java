@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,25 +88,34 @@ public class Anomaly {
 		FuncDecl ttypeFunc = objs.getfuncs("ttype");
 		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
-		for (Expr x : Os) {
-			Expr y = this.cycle.get(x);
+		Expr e = Os.get(0);
+
+		for (int i = 0; i < Os.size(); i++) {
+			Expr y = this.cycle.get(e);
+			
+
 			if (y == null) {
-				y = Os.stream().filter(o -> areSibling(o, x) && cycle.keySet().contains(o)).findFirst().get();
+				// since there is no outgoing edge from this node, we should look for a sibling
+				// which is on the cycle
+				y = returnNextSibling(e);
+
 				Tuple<String, String> newTuple = new Tuple<String, String>(
-						model.eval(otypeFunc.apply(x), true).toString(),
+						model.eval(otypeFunc.apply(e), true).toString(),
 						model.eval(otypeFunc.apply(y), true).toString());
+
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling", newTuple));
 			} else {
 				Tuple<String, String> newTuple = new Tuple<String, String>(
-						model.eval(otypeFunc.apply(x), true).toString(),
+						model.eval(otypeFunc.apply(e), true).toString(),
 						model.eval(otypeFunc.apply(y), true).toString());
-				if (RWPairs.get(x) != null && RWPairs.get(x).contains(y))
+				if (RWPairs.get(e) != null && RWPairs.get(e).contains(y))
 					this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("RW", newTuple));
-				else if (WRPairs.get(x) != null && WRPairs.get(x).contains(y))
+				else if (WRPairs.get(e) != null && WRPairs.get(e).contains(y))
 					this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WR", newTuple));
-				else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
+				else if (WWPairs.get(e) != null && WWPairs.get(e).contains(y))
 					this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
 			}
+			e = y;
 		}
 
 		// generating the core for the innerloop iterations
@@ -129,6 +139,13 @@ public class Anomaly {
 				this.coreStructure.get("WW").add(newTupleCore);
 			}
 		}
+	}
+
+	private Expr returnNextSibling(Expr o1) {
+		for (Expr o2 : Os)
+			if (areSibling(o2, o1) && cycle.keySet().contains(o2))
+				return o2;
+		return null;
 	}
 
 	private boolean areSibling(Expr o1, Expr o2) {
