@@ -116,33 +116,39 @@ public class Transformer extends BodyTransformer {
 								// zdr = new Z3Driver(app, tables, false);
 								long step2Begin = System.currentTimeMillis();
 								anml2 = zdr.analyze(2, seenAnmls, includedTables, anml1);
+								step2Time = System.currentTimeMillis() - step2Begin;
 								if (anml2 != null) {
 									anml2.generateCycleStructure();
 									seenAnmls.add(anml2);
 									anml2.announce(false, seenAnmls.size());
 									anml2.setExtractionTime(step1Time, step2Time);
 									anml2.addData("\\l" + config + "\\l");
+									System.out.println(runTimeFooter(step1Time, step2Time));
 
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
-									// Anomaly anml3 = zdr.analyze(3, seenAnmls, includedTables, anml2);
+									long step3Begin = System.currentTimeMillis();
+									Anomaly anml3 = zdr.analyze(3, seenAnmls, includedTables, anml2);
+									while (anml3 != null) {
+										long step3Time = System.currentTimeMillis() - step3Begin;
+										anml3.setExtractionTime(step3Time, 0);
+										seenAnmls.add(anml3);
+										anml3.generateCycleStructure();
+										System.out.println(
+												"~ Searching for structurally simillar anomalies....\n");
+										anml3.announce(false, seenAnmls.size());
+										System.out.println(runTimeFooter(step3Time, 0));
+										step3Begin = System.currentTimeMillis();
+										anml3 = zdr.analyze(4, seenAnmls, includedTables, anml3);
+									}
 
-									// while (anml3 != null) {
-									// seenAnmls.add(anml3);
-									// anml3.generateCycleStructure();
-									// anml3.announce(false, seenAnmls.size());
-									// anml3.generateCycleStructure();
-									// anml3 = zdr.analyze(4, seenAnmls, includedTables, anml3);
-
-									// }
-									step2Time = System.currentTimeMillis() - step2Begin;
 									anml1.closeCtx();
 								}
 							}
 						} else
 							zdr.closeCtx();
 
-						System.out.println(runTimeFooter(step1Time, step2Time));
+						
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {
 							if (anml2 == null) // keep the length unchanged untill all of this length is found
@@ -214,7 +220,7 @@ public class Transformer extends BodyTransformer {
 
 	private static String runTimeFooter(long step1Time, long step2Time) {
 		return ("--------------------------------\nExtraction time -- step1 " + step1Time + " ms"
-				+ "\n               -- step2 " + step2Time + " ms" + "\n--------------------------------" + "\n\n");
+				+ "\n               -- step2 " + step2Time + " ms" + "\n--------------------------------" );
 	}
 
 	private static String runHeader(int iter, Set<Table> includedTables) {

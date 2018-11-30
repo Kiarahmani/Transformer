@@ -42,6 +42,7 @@ public class ConstantArgs {
 			ConstantArgs._MAX_ROW_INSTANCES = Integer.parseInt(prop.getProperty("_MAX_ROW_INSTANCES", "3"));
 			ConstantArgs._MIN_ROW_INSTANCES = Integer.parseInt(prop.getProperty("_MIN_ROW_INSTANCES", "1"));
 			ConstantArgs._ENFORCE_VERSIONING = Boolean.parseBoolean(prop.getProperty("_ENFORCE_VERSIONING", "false"));
+			ConstantArgs._SHOULD_WRITE_ASSERTIONS_TO_FILE = Boolean.parseBoolean(prop.getProperty("_SHOULD_WRITE_ASSERTIONS_TO_FILE", "false"));
 			ConstantArgs._current_version_enforcement = _ENFORCE_VERSIONING;
 			ConstantArgs._ENFORCE_EXCLUSION = Boolean.parseBoolean(prop.getProperty("_ENFORCE_EXCLUSION", "true"));
 			ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS = Boolean
@@ -84,6 +85,7 @@ public class ConstantArgs {
 	public static boolean _current_version_enforcement;
 	public static boolean _ENFORCE_EXCLUSION;
 	public static boolean _ENFORCE_ROW_INSTANCE_LIMITS;
+	public static boolean _SHOULD_WRITE_ASSERTIONS_TO_FILE;
 	public static boolean _NO_WW = true;
 	public static boolean _NO_WR = false;
 	public static boolean _NO_RW = false;

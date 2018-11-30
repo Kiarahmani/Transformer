@@ -103,8 +103,10 @@ public class Z3Driver {
 	}
 
 	private void LogZ3(String s) {
-		printer.append(s + "\n");
-		printer.flush();
+		if (ConstantArgs._SHOULD_WRITE_ASSERTIONS_TO_FILE) {
+			printer.append(s + "\n");
+			printer.flush();
+		}
 	}
 
 	/*
@@ -424,7 +426,10 @@ public class Z3Driver {
 		} else {
 			// System.err.println("Failed to generate a counter example +++ bound: " +
 			// ConstantArgs._DEP_CYCLE_LENGTH);
+			System.out.println("--------");
 			System.out.println("--------\n-- UNSAT");
+			System.out.println("--------");
+			System.out.println("--------");
 			for (Expr e : slv.getUnsatCore())
 				System.out.println(e);
 			return null;
@@ -592,11 +597,15 @@ public class Z3Driver {
 			// dependency assertions
 			addAssertion("new-gen_dep", staticAssrtions.mk_gen_dep());
 			addAssertion("new-gen_depx", staticAssrtions.mk_gen_depx());
+			slv.push();
 			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
 			break;
 		case 3:
+			slv.pop();
+			HeaderZ3("ROUND 3: newly pushed");
+			List<Tuple<String, Tuple<String, String>>> structure3 = unVersionedAnml.getCycleStructure();
+			addAssertion("loose-cycle", dynamicAssertions.mk_loose_cycle(findCore, structure3));
 			excludeAnomaly(unVersionedAnml, seenAnmls.size() + 1);
-			limitSearchSpace(unVersionedAnml);
 
 			break;
 		case 4:
@@ -615,12 +624,6 @@ public class Z3Driver {
 		List<Tuple<String, Tuple<String, String>>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
 	}
-
-	private void limitSearchSpace(Anomaly coreAnomaly) {
-		System.out.println("====>>>" + coreAnomaly.getCoreCycleStructure());
-		addAssertion("kos e morgh", ctx.mkTrue());
-	}
-
 }
 
 //
