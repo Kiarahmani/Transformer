@@ -567,7 +567,10 @@ public class Z3Driver {
 		case 2:
 			HeaderZ3("VERSIONING PROPS");
 			int iter = 0;
+			// pop the old unversioned encodings
 			slv.pop();
+			// because the global variable _current_version_enforcement has changed, the
+			// following rules will add versioned encodings
 			try {
 				HeaderZ3(" ->WW ");
 				thenWW(includedTables);
@@ -614,7 +617,7 @@ public class Z3Driver {
 	}
 
 	private void limitSearchSpace(Anomaly coreAnomaly) {
-		System.out.println("====>>>"+coreAnomaly.getCoreCycleStructure());
+		System.out.println("====>>>" + coreAnomaly.getCoreCycleStructure());
 		addAssertion("kos e morgh", ctx.mkTrue());
 	}
 

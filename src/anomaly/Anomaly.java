@@ -88,19 +88,24 @@ public class Anomaly {
 		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
 		for (Expr x : Os) {
-			for (Expr y : Os)
-				System.out.println("===>>> " + x + " " + y + ": " + areSibling(functions, x, y));
-			/*
-			 * Tuple<String, String> newTuple = new Tuple<String,
-			 * String>(model.eval(otypeFunc.apply(x), true).toString(),
-			 * model.eval(otypeFunc.apply(y), true).toString()); if (RWPairs.get(x) != null
-			 * && RWPairs.get(x).contains(y)) this.cycleStructure.add(new Tuple<String,
-			 * Tuple<String, String>>("RW", newTuple)); else if (WRPairs.get(x) != null &&
-			 * WRPairs.get(x).contains(y)) this.cycleStructure.add(new Tuple<String,
-			 * Tuple<String, String>>("WR", newTuple)); else if (WWPairs.get(x) != null &&
-			 * WWPairs.get(x).contains(y)) this.cycleStructure.add(new Tuple<String,
-			 * Tuple<String, String>>("WW", newTuple));
-			 */
+			Expr y = this.cycle.get(x);
+			if (y == null) {
+				y = Os.stream().filter(o -> areSibling(o, x) && cycle.keySet().contains(o)).findFirst().get();
+				Tuple<String, String> newTuple = new Tuple<String, String>(
+						model.eval(otypeFunc.apply(x), true).toString(),
+						model.eval(otypeFunc.apply(y), true).toString());
+				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling", newTuple));
+			} else {
+				Tuple<String, String> newTuple = new Tuple<String, String>(
+						model.eval(otypeFunc.apply(x), true).toString(),
+						model.eval(otypeFunc.apply(y), true).toString());
+				if (RWPairs.get(x) != null && RWPairs.get(x).contains(y))
+					this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("RW", newTuple));
+				else if (WRPairs.get(x) != null && WRPairs.get(x).contains(y))
+					this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WR", newTuple));
+				else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
+					this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
+			}
 		}
 
 		// generating the core for the innerloop iterations
@@ -126,11 +131,9 @@ public class Anomaly {
 		}
 	}
 
-	private boolean areSibling(Map<String, FuncDecl> functions, Expr o1, Expr o2) {
-		parentChildPairs = getParentChild(functions.get("parent"));
-		System.out.println(parentChildPairs.values());
+	private boolean areSibling(Expr o1, Expr o2) {
 		return (!o1.equals(o2))
-				&& parentChildPairs.values().stream().anyMatch(set -> (set.contains(o1) && set.contains(o2)));
+				&& this.parentChildPairs.values().stream().anyMatch(set -> (set.contains(o1) && set.contains(o2)));
 
 	}
 
@@ -469,7 +472,7 @@ public class Anomaly {
 		List<Expr> Os = Arrays.asList(model.getSortUniverse(objs.getSort("O")));
 		for (Expr o1 : Os) {
 			for (Expr o2 : Os) {
-				if (areSib(o1, o2))
+				if (areSibling(o1, o2))
 					// check if set already exists
 					if (setIsCreated(result, o1) == null) {
 						newSet = new HashSet<>();
@@ -501,16 +504,6 @@ public class Anomaly {
 			if (set.contains(o1))
 				return set;
 		return null;
-	}
-
-	private boolean areSib(Expr o1, Expr o2) {
-		boolean result = false;
-		for (ArrayList<Expr> sb : this.parentChildPairs.values())
-			if (sb.contains(o1) && sb.contains(o2)) {
-				result = true;
-				break;
-			}
-		return result;
 	}
 
 	private void drawLine() {

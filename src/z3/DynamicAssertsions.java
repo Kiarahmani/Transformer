@@ -393,11 +393,12 @@ public class DynamicAssertsions {
 		for (int i = 0; i < length - 1; i++)
 			for (int j = i + 1; j < length; j++)
 				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(Os[i], Os[j]));
-
+		
 		// constraints regarding previously found (unversioned) anomaly
 		BoolExpr prevAnmlExprs[] = null;
 		try {
 			if (structure != null && structure.size() > 0) {
+				System.out.println("=======THE GIVEN STRUCTURE TO mk_cycle: "+structure);
 				prevAnmlExprs = new BoolExpr[structure.size() * 3];
 				iter = 0;
 				FuncDecl otypeFunc = objs.getfuncs("otype");
