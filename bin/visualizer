@@ -36,6 +36,20 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+     -oa|--openall)
+    DIR="$2"
+    No=1
+    for dir in "${DIR}/*/"; do
+      for dir2 in $dir; do
+        for filename in "${DIR}/anomaly\#${No}/*_${No}.dot.png"; do
+          open $filename
+          No=$((No + 1))
+        done 
+      done
+    done
+    shift # past argument
+    shift # past value
+    ;;
     --default)
     DEFAULT=YES
     shift # past argument

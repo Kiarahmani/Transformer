@@ -124,9 +124,10 @@ public class Transformer extends BodyTransformer {
 									anml2.announce(false, seenAnmls.size());
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
-									int iter133 = 0;
 									Anomaly anml3 = zdr.analyze(3, seenAnmls, includedTables, anml2);
-									//
+									System.out.println("-----####>"+anml3);
+									pause();
+
 									while (anml3 != null) {
 										seenAnmls.add(anml3);
 										anml3.generateCycleStructure();
@@ -170,6 +171,16 @@ public class Transformer extends BodyTransformer {
 	 * 
 	 * 
 	 */
+
+	private static void pause() {
+		try {
+			Thread.sleep(300000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	/*
 	 * 
 	 * 

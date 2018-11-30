@@ -43,6 +43,7 @@ public class Anomaly {
 	public Map<Expr, Expr> opart;
 	public List<Expr> isUpdate;
 	private List<Tuple<String, Tuple<String, String>>> cycleStructure;
+	private Map<String, Set<Tuple<String, String>>> coreStructure;
 	private Application app;
 	private boolean isCore;
 
@@ -80,6 +81,9 @@ public class Anomaly {
 		this.Ts = Arrays.asList(model.getSortUniverse(objs.getSort("T")));
 
 		this.cycleStructure = new ArrayList<>();
+		this.coreStructure = new HashMap<>();
+		FuncDecl ttypeFunc = objs.getfuncs("ttype");
+		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
 		for (Expr x : this.cycle.keySet()) {
 			Expr y = this.cycle.get(x);
@@ -87,19 +91,44 @@ public class Anomaly {
 					model.eval(otypeFunc.apply(y), true).toString());
 			if (RWPairs.get(x) != null && RWPairs.get(x).contains(y))
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("RW", newTuple));
-			else if (RWPairs.get(x) != null && WRPairs.get(x).contains(y))
+			else if (WRPairs.get(x) != null && WRPairs.get(x).contains(y))
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WR", newTuple));
 			else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
 				this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
-			// else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y))
-			// this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("sibling",
-			// newTuple));
 
 		}
+		// generating the core for the innerloop iterations
+		for (Expr x : this.cycle.keySet()) {
+			Expr y = this.cycle.get(x);
+			// System.out.println("---->>>>>"+x+"---"+y);
+			Tuple<String, String> newTupleCore = new Tuple<String, String>(
+					model.eval(ttypeFunc.apply(parentFunc.apply(x)), true).toString(),
+					model.eval(ttypeFunc.apply(parentFunc.apply(y)), true).toString());
+			if (RWPairs.get(x) != null && RWPairs.get(x).contains(y)) {
+				if (this.coreStructure.get("RW") == null)
+					this.coreStructure.put("RW", new HashSet<>());
+				this.coreStructure.get("RW").add(newTupleCore);
+			} else if (WRPairs.get(x) != null && WRPairs.get(x).contains(y)) {
+				if (this.coreStructure.get("WR") == null)
+					this.coreStructure.put("WR", new HashSet<>());
+				this.coreStructure.get("WR").add(newTupleCore);
+			} else if (WWPairs.get(x) != null && WWPairs.get(x).contains(y)) {
+				if (this.coreStructure.get("WW") == null)
+					this.coreStructure.put("WW", new HashSet<>());
+				this.coreStructure.get("WW").add(newTupleCore);
+			}
+
+		}
+		System.out.println();
+
 	}
 
 	public List<Tuple<String, Tuple<String, String>>> getCycleStructure() {
 		return this.cycleStructure;
+	}
+
+	public Map<String, Set<Tuple<String, String>>> getCoreCycleStructure() {
+		return this.coreStructure;
 	}
 
 	public void announce(boolean isCore, int anmlNo) {

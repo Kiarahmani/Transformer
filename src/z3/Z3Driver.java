@@ -593,7 +593,8 @@ public class Z3Driver {
 			break;
 		case 3:
 			excludeAnomaly(unVersionedAnml, seenAnmls.size() + 1);
-			// also handle it (that is going to be the core)
+			limitSearchSpace(unVersionedAnml);
+
 			break;
 		case 4:
 			excludeAnomaly(unVersionedAnml, seenAnmls.size() + 1);
@@ -610,6 +611,11 @@ public class Z3Driver {
 		HeaderZ3("previous anomalies exclusion");
 		List<Tuple<String, Tuple<String, String>>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
+	}
+
+	private void limitSearchSpace(Anomaly coreAnomaly) {
+		System.out.println("====>>>"+coreAnomaly.getCoreCycleStructure());
+		addAssertion("kos e morgh", ctx.mkTrue());
 	}
 
 }
