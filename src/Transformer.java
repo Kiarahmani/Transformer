@@ -100,6 +100,7 @@ public class Transformer extends BodyTransformer {
 						zdr = new Z3Driver(app, tables, false);
 						ConstantArgs._current_version_enforcement = false;
 						anml1 = zdr.analyze(1, seenAnmls, includedTables, null);
+
 						step1Time = System.currentTimeMillis() - step1Begin;
 						if (anml1 != null) {
 							anml1.generateCycleStructure();
@@ -116,11 +117,10 @@ public class Transformer extends BodyTransformer {
 								long step2Begin = System.currentTimeMillis();
 								anml2 = zdr.analyze(2, seenAnmls, includedTables, anml1);
 								if (anml2 != null) {
-
 									anml2.generateCycleStructure();
+									seenAnmls.add(anml2);
 									anml2.announce(false, seenAnmls.size());
 									anml2.setExtractionTime(step1Time, step2Time);
-									seenAnmls.add(anml2);
 									anml2.addData("\\l" + config + "\\l");
 
 									// inner iterations pushing Z3 into finding similar anoamlies together

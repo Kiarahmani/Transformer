@@ -345,35 +345,29 @@ public class DynamicAssertsions {
 	}
 
 	public BoolExpr mk_previous_anomaly_exclusion(List<Tuple<String, Tuple<String, String>>> structure) {
+		int length = structure.size();
 		// bound variables
-		System.out.println("\n\n\n\n\n\n\n\n-----------------------------------");
-		System.out.println(structure);
-		System.out.println("-----------------------------------\n\n\n\n\n\n\n\n");
-		Expr[] Os = new Expr[structure.size() * 2];
-		for (int i = 0; i < structure.size() * 2; i++)
+		Expr[] Os = new Expr[length];
+		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 		// LHS
 		FuncDecl otypeFunc = objs.getfuncs("otype");
-		BoolExpr[] allLhs = new BoolExpr[structure.size()];
-		for (int i = 0; i < structure.size(); i++) {
+		BoolExpr[] allLhs = new BoolExpr[length];
+		for (int i = 0; i < length; i++) {
 			String xs = structure.get(i).y.x;
-			String ys = structure.get(i).y.y;
 			FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
-			FuncDecl cnstrY = objs.getConstructor("OType", ys.substring(1, ys.length() - 1));
-			BoolExpr lhsLoopX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i]), ctx.mkApp(cnstrX));
-			BoolExpr lhsLoopY = ctx.mkEq(ctx.mkApp(otypeFunc, Os[2 * i + 1]), ctx.mkApp(cnstrY));
-			BoolExpr lhsLoop = ctx.mkAnd(lhsLoopX, lhsLoopY);
+			BoolExpr lhsLoop = ctx.mkEq(ctx.mkApp(otypeFunc, Os[i]), ctx.mkApp(cnstrX));
 			allLhs[i] = lhsLoop;
 		}
 		BoolExpr lhs = ctx.mkAnd(allLhs);
 		// RHS
-		FuncDecl dFunc = objs.getfuncs("D");
-		BoolExpr[] allRhs = new BoolExpr[structure.size()];
-		for (int i = 0; i < structure.size(); i++) {
-			Expr xl = Os[2 * i];
-			Expr yl = Os[2 * i + 1];
-			allRhs[i] = (BoolExpr) ctx.mkApp(dFunc, xl, yl);
+		BoolExpr[] allRhs = new BoolExpr[length];
+		for (int i = 0; i < length - 1; i++) {
+			String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
+			allRhs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[i], Os[i + 1]);
 		}
+		String op = structure.get(length - 1).x.equals("sibling") ? "sibling" : structure.get(length - 1).x + "_O";
+		allRhs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[length - 1], Os[0]);
 		BoolExpr rhs = ctx.mkAnd(allRhs);
 		Expr body = ctx.mkImplies(lhs, ctx.mkNot(rhs));
 		Quantifier x = ctx.mkForall(Os, body, 1, null, null, null, null);
@@ -394,7 +388,8 @@ public class DynamicAssertsions {
 			for (int j = i + 1; j < length; j++)
 				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(Os[i], Os[j]));
 
-		// constraints regarding previously found (unversioned) anomaly (equality)
+		// constraints regarding previously found (unversioned) anomaly (limit the
+		// solutions to equal ones (structurally))
 		BoolExpr prevAnmlExprs[] = null;
 		BoolExpr depExprs[] = new BoolExpr[length];
 		if (structure != null && structure.size() > 0 && structure.size() == Os.length) {

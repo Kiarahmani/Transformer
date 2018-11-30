@@ -92,7 +92,6 @@ public class Anomaly {
 
 		for (int i = 0; i < Os.size(); i++) {
 			Expr y = this.cycle.get(e);
-			
 
 			if (y == null) {
 				// since there is no outgoing edge from this node, we should look for a sibling
@@ -234,6 +233,7 @@ public class Anomaly {
 			addData("\\l primitive anomaly extraction:   " + String.valueOf(stepOneTime) + "ms");
 			addData("\\l annotated anomaly extraction: " + String.valueOf(stepTwoTime) + "ms");
 			addData("\\l");
+
 			RawDataVisualizer dv = new RawDataVisualizer(this.rawData);
 			dv.createGraph("anomaly#" + anmlNo + "/data_" + anmlNo + ".dot");
 			// visualize the cycle
