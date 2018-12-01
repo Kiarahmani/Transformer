@@ -88,16 +88,20 @@ public class Anomaly {
 		FuncDecl ttypeFunc = objs.getfuncs("ttype");
 		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
+		Os = Os.stream().filter(o -> cycle.keySet().contains(o) || cycle.values().contains(o))
+				.collect(Collectors.toList());
 		Expr e = Os.get(0);
-
 		for (int i = 0; i < Os.size(); i++) {
 			Expr y = this.cycle.get(e);
-
 			if (y == null) {
 				// since there is no outgoing edge from this node, we should look for a sibling
 				// which is on the cycle
 				y = returnNextSibling(e);
-
+				if (y==null) {
+					System.out.println("~~~~>>"+cycle);
+					System.out.println("~~~~>>"+y);
+					System.out.println("~~~~>>"+e);
+				}
 				Tuple<String, String> newTuple = new Tuple<String, String>(
 						model.eval(otypeFunc.apply(e), true).toString(),
 						model.eval(otypeFunc.apply(y), true).toString());
@@ -141,6 +145,8 @@ public class Anomaly {
 	}
 
 	private Expr returnNextSibling(Expr o1) {
+		// System.out.println("~~~" + o1);
+		// System.out.println("~~~" + cycle);
 		for (Expr o2 : Os)
 			if (areSibling(o2, o1) && cycle.keySet().contains(o2))
 				return o2;
@@ -300,6 +306,7 @@ public class Anomaly {
 	private Map<Expr, Expr> getCycle(FuncDecl x) {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		Map<Expr, Expr> result = new LinkedHashMap<>();
+
 		for (Expr o1 : Os)
 			for (Expr o2 : Os) {
 				if (model.eval(x.apply(o1, o2), true).toString().equals("true")) {

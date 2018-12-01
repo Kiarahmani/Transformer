@@ -290,6 +290,12 @@ public class DynamicAssertsions {
 		return null;
 	}
 
+	/*
+	 * 
+	 * 
+	 * 
+	 */
+
 	public List<BoolExpr> mk_versioning_props(ArrayList<Table> tables) {
 		List<BoolExpr> result = new ArrayList<>();
 		for (Table t : tables) {
@@ -335,16 +341,15 @@ public class DynamicAssertsions {
 			body = ctx.mkImplies(lhs, rhs);
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
 			result.add(x);
-
-			// versions are always positive
-			// x = ctx.mkForall(new Expr[] { r, o1 },
-			// ctx.mkBVSGE((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(0,
-			// ConstantArgs._MAX_VERSIONS_)), 1,
-			// null, null, null, null);
-			// result.add(x);
 		}
 		return result;
 	}
+
+	/*
+	 * 
+	 * 
+	 * 
+	 */
 
 	public BoolExpr mk_previous_anomaly_exclusion(List<Tuple<String, Tuple<String, String>>> structure) {
 		int length = structure.size();
@@ -366,15 +371,24 @@ public class DynamicAssertsions {
 		BoolExpr[] allRhs = new BoolExpr[length];
 		for (int i = 0; i < length - 1; i++) {
 			String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
-			allRhs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[i], Os[i + 1]);
+			allRhs[i] = /* op.equals("sibling") ? ctx.mkTrue() : */ (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i],
+					Os[i + 1]); // XXXXXXXXXXXXXXXXXXXXXX DONT FORGET THIS!
 		}
 		String op = structure.get(length - 1).x.equals("sibling") ? "sibling" : structure.get(length - 1).x + "_O";
-		allRhs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[length - 1], Os[0]);
+		allRhs[length - 1] = /*
+								 * op.equals("sibling") ? ctx.mkTrue() :
+								 */ (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);
 		BoolExpr rhs = ctx.mkAnd(allRhs);
 		Expr body = ctx.mkImplies(lhs, ctx.mkNot(rhs));
 		Quantifier x = ctx.mkForall(Os, body, 1, null, null, null, null);
 		return x;
 	}
+
+	/*
+	 * 
+	 * 
+	 * 
+	 */
 
 	// the final assertion, generating a cycle on the dependency graph
 	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
@@ -427,6 +441,12 @@ public class DynamicAssertsions {
 
 	}
 
+	/*
+	 * 
+	 * 
+	 * 
+	 */
+
 	public BoolExpr mk_loose_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
 
 		int length = ConstantArgs._Current_Cycle_Length;
@@ -460,14 +480,17 @@ public class DynamicAssertsions {
 			}
 			for (int i = 0; i < length - 1; i++) {
 				String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
-				depExprs[i] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[i], Os[i + 1]),
-						(BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]));
+				depExprs[i] = op.equals("sibling") ? ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1])) :
+						ctx.mkAnd(/*(BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[i], Os[i + 1]),*/
+						(BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[i], Os[i + 1]));
 			}
 			String op = structure.get(length - 1).x.equals("sibling") ? "sibling" : structure.get(length - 1).x + "_O";
-			depExprs[length - 1] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[length - 1], Os[0]),
-					(BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]));
+			depExprs[length - 1] = op.equals("sibling") ? ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0])) :
+					ctx.mkAnd(/*(BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[length - 1], Os[0]),*/
+					(BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0]));
 
 		} else {
+			System.err.println("--- something went wrong...");
 			for (int i = 1; i < length - 1; i++)
 				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]);
 			depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);

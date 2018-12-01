@@ -159,6 +159,17 @@ public class StaticAssertions {
 		return x;
 	}
 
+	public Quantifier mk_gen_dep_props() {
+		BoolExpr lhs = ctx.mkOr((BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), o1, o2),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), o1, o2),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), o1, o2),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), o1, o2));
+		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), o1, o2);
+		BoolExpr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { o1, o2 }, body, 1, null, null, null, null);
+		return x;
+	}
+
 	public Quantifier mk_gen_depx() {
 		BoolExpr lhs = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), o1, o2);
 		BoolExpr rhs1 = (BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), o1, o2);
@@ -168,7 +179,15 @@ public class StaticAssertions {
 		return x;
 	}
 
-
+	public Quantifier mk_gen_depx_props() {
+		BoolExpr lhs = ctx.mkOr((BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), o1, o2),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), o1, o2),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), o1, o2));
+		BoolExpr rhs = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), o1, o2);
+		BoolExpr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { o1, o2 }, body, 1, null, null, null, null);
+		return x;
+	}
 
 	public Quantifier mk_otime_props() {
 		ArithExpr o1T = (ArithExpr) ctx.mkApp(objs.getfuncs("otime"), o1);
@@ -200,8 +219,8 @@ public class StaticAssertions {
 	public Quantifier mk_opart_props() {
 		ArithExpr o1P = (ArithExpr) ctx.mkApp(objs.getfuncs("opart"), o1);
 		BoolExpr body = ctx.mkEq(o1P, ctx.mkInt(ConstantArgs._current_partition_size));
-		//BoolExpr body2 = ctx.mkGe(o1P, ctx.mkInt(1));
-		//BoolExpr body = ctx.mkAnd(body1, body2);
+		// BoolExpr body2 = ctx.mkGe(o1P, ctx.mkInt(1));
+		// BoolExpr body = ctx.mkAnd(body1, body2);
 		Quantifier x = ctx.mkForall(new Expr[] { o1 }, body, 1, null, null, null, null);
 		return x;
 	}

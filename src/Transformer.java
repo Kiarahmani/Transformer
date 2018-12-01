@@ -124,7 +124,8 @@ public class Transformer extends BodyTransformer {
 									anml2.setExtractionTime(step1Time, step2Time);
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
-
+									//pause();
+									
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
 									long step3Begin = System.currentTimeMillis();
