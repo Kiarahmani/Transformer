@@ -169,7 +169,7 @@ public class Anomaly {
 
 	public void announce(boolean isCore, int anmlNo) {
 		if (!isCore)
-			System.out.println("-------------\n--- Model --- ");
+			System.out.println("---------------\n--- Model #"+anmlNo+" -- ");
 		else
 			System.out.println("------------------\n--- Core Model --- ");
 		// announce the non-core model

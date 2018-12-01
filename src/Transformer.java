@@ -120,12 +120,12 @@ public class Transformer extends BodyTransformer {
 								if (anml2 != null) {
 									anml2.generateCycleStructure();
 									seenAnmls.add(anml2);
-									anml2.announce(false, seenAnmls.size());
 									anml2.setExtractionTime(step1Time, step2Time);
+									anml2.announce(false, seenAnmls.size());	
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
-									//pause();
-									
+									// pause();
+
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
 									long step3Begin = System.currentTimeMillis();
@@ -135,8 +135,7 @@ public class Transformer extends BodyTransformer {
 										anml3.setExtractionTime(step3Time, 0);
 										seenAnmls.add(anml3);
 										anml3.generateCycleStructure();
-										System.out.println(
-												"~ Searching for structurally simillar anomalies....\n");
+										System.out.println("~ Searching for structurally simillar anomalies....\n");
 										anml3.announce(false, seenAnmls.size());
 										System.out.println(runTimeFooter(step3Time, 0));
 										step3Begin = System.currentTimeMillis();
@@ -149,7 +148,6 @@ public class Transformer extends BodyTransformer {
 						} else
 							zdr.closeCtx();
 
-						
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {
 							if (anml2 == null) // keep the length unchanged untill all of this length is found
@@ -221,7 +219,7 @@ public class Transformer extends BodyTransformer {
 
 	private static String runTimeFooter(long step1Time, long step2Time) {
 		return ("--------------------------------\nExtraction time -- step1 " + step1Time + " ms"
-				+ "\n               -- step2 " + step2Time + " ms" + "\n--------------------------------" );
+				+ "\n               -- step2 " + step2Time + " ms" + "\n--------------------------------");
 	}
 
 	private static String runHeader(int iter, Set<Table> includedTables) {
