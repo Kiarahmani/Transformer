@@ -88,6 +88,7 @@ public class Anomaly {
 		FuncDecl ttypeFunc = objs.getfuncs("ttype");
 		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
+
 		Os = Os.stream().filter(o -> cycle.keySet().contains(o) || cycle.values().contains(o))
 				.collect(Collectors.toList());
 		Expr e = Os.get(0);

@@ -1,6 +1,8 @@
 package utils;
 
-public class Tuple<X, Y> {
+import java.io.Serializable;
+
+public class Tuple<X, Y> implements Serializable {
 	public final X x;
 	public final Y y;
 

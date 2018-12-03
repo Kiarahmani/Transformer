@@ -15,9 +15,9 @@ public class ConstantArgs {
 	 * 
 	 * 
 	 */
-	public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
-	public static String _DDL_FILE = "ddl_seats.sql";
-	public static String _BENCHMARK_NAME = "SEATS";
+	public static String _TESTS_OR_BENCHMARKS = "tests.";
+	public static String _DDL_FILE = "ddl.sql";
+	public static String _BENCHMARK_NAME = "TestApp";
 	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize");
 
 	/*
@@ -82,6 +82,7 @@ public class ConstantArgs {
 	public static int _MAX_ROW_INSTANCES;
 	public static int _MIN_ROW_INSTANCES;
 	public static boolean _ENFORCE_VERSIONING;
+	public static boolean _CONTINUED_ANALYSIS;
 	public static boolean _current_version_enforcement;
 	public static boolean _ENFORCE_EXCLUSION;
 	public static boolean _ENFORCE_ROW_INSTANCE_LIMITS;

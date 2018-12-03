@@ -56,7 +56,7 @@ public class RecordsVisualizer {
 
 	public void createGraph(String fileName, int anmlNo) {
 		try {
-			if (anmlNo == 1) {
+			if (anmlNo == 1 && !ConstantArgs._CONTINUED_ANALYSIS) {
 				File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME);
 				file.getParentFile().mkdirs();
 				FileUtils.deleteDirectory(file);

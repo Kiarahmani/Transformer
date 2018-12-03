@@ -564,9 +564,9 @@ public class Z3Driver {
 			HeaderZ3("CYCLE ASSERTIONS");
 			// dependency assertions
 			addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
-			addAssertion("gen_dep", staticAssrtions.mk_gen_dep_props());
+			// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
-			addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
+			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
 			addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, null));
 			HeaderZ3("EOF");
 			break;
@@ -598,9 +598,9 @@ public class Z3Driver {
 			HeaderZ3("NEW CYCLE ASSERTIONS");
 			// dependency assertions
 			addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
-			addAssertion("gen_dep", staticAssrtions.mk_gen_dep_props());
+			// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
-			addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
+			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
 			slv.push();
 			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
 			break;
@@ -628,6 +628,8 @@ public class Z3Driver {
 		List<Tuple<String, Tuple<String, String>>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
 	}
+	
+	
 }
 
 //

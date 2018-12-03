@@ -121,7 +121,8 @@ public class Transformer extends BodyTransformer {
 									anml2.generateCycleStructure();
 									seenAnmls.add(anml2);
 									anml2.setExtractionTime(step1Time, step2Time);
-									anml2.announce(false, seenAnmls.size());	
+									anml2.announce(false, seenAnmls.size());
+									
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
 									// pause();
