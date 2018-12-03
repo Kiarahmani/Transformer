@@ -501,6 +501,9 @@ public class DynamicAssertsions {
 
 		} else {
 			System.err.println("--- something went wrong...");
+			System.err.println("structure: " + structure);
+			System.out.println("Os: " + Os);
+
 			for (int i = 1; i < length - 1; i++)
 				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]);
 			depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);
