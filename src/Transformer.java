@@ -131,7 +131,7 @@ public class Transformer extends BodyTransformer {
 								seenAnmls.add(anml1);
 								seenStructures.add(anml1.getCycleStructure());
 								anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
-								anml1.announce(false, seenAnmls.size());
+								anml1.announce(false, seenStructures.size());
 								anml1.closeCtx();
 							} else {
 								// Analysis Step 2
@@ -145,7 +145,7 @@ public class Transformer extends BodyTransformer {
 									seenAnmls.add(anml2);
 									seenStructures.add(anml2.getCycleStructure());
 									anml2.setExtractionTime(step1Time, step2Time);
-									anml2.announce(false, seenAnmls.size());
+									anml2.announce(false, seenStructures.size());
 
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
@@ -162,7 +162,7 @@ public class Transformer extends BodyTransformer {
 										seenAnmls.add(anml3);
 										seenStructures.add(anml3.getCycleStructure());
 										System.out.println("~ Searching for structurally simillar anomalies....\n");
-										anml3.announce(false, seenAnmls.size());
+										anml3.announce(false, seenStructures.size());
 										System.out.println(runTimeFooter(step3Time, 0));
 										step3Begin = System.currentTimeMillis();
 										anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
