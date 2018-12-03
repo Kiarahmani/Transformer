@@ -432,10 +432,20 @@ public class DynamicAssertsions {
 							: (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0])));
 
 		} else {
-			for (int i = 1; i < length - 1; i++)
-				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]);
-			depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);
-			depExprs[0] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[0], Os[1]);
+			int next = 1;
+			String dep = "D";
+			for (int i = 0; i < length; i++) {
+				if (i == length - 1)
+					next = 0;
+				else
+					next = i + 1;
+				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[next]);
+				if (dep.equals("D"))
+					dep = "X";
+				else
+					dep = "D";
+
+			}
 		}
 		BoolExpr body = (structure != null && structure.size() > 0 && structure.size() == Os.length)
 				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
@@ -504,10 +514,20 @@ public class DynamicAssertsions {
 			System.err.println("structure: " + structure);
 			System.out.println("Os: " + Os);
 
-			for (int i = 1; i < length - 1; i++)
-				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[i], Os[i + 1]);
-			depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]);
-			depExprs[0] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[0], Os[1]);
+			int next = 1;
+			String dep = "D";
+			for (int i = 0; i < length; i++) {
+				if (i == length - 1)
+					next = 0;
+				else
+					next = i + 1;
+				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[next]);
+				if (dep.equals("D"))
+					dep = "X";
+				else
+					dep = "D";
+
+			}
 		}
 		BoolExpr body = (structure != null && structure.size() > 0 && structure.size() == Os.length)
 				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
