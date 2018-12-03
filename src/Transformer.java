@@ -1,3 +1,10 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +25,7 @@ import soot.Scene;
 import soot.jimple.JimpleBody;
 import soot.util.cfgcmd.CFGIntermediateRep;
 import sql.DDLParser;
+import utils.Tuple;
 import z3.ConstantArgs;
 import z3.Z3Driver;
 
@@ -78,7 +86,16 @@ public class Transformer extends BodyTransformer {
 		Z3Driver zdr = new Z3Driver(app, tables, false);
 		Anomaly anml1 = null, anml2 = null;
 		int iter = 1;
+		// the following two keep track of the found anomalies: seenAnmls for the
+		// analysis time and seenStructures for later analysises
 		List<Anomaly> seenAnmls = new ArrayList<>();
+		List<List<Tuple<String, Tuple<String, String>>>> seenStructures = new ArrayList<>();
+		if (ConstantArgs._CONTINUED_ANALYSIS) {
+			try {
+				seenStructures = load();
+			} catch (ClassNotFoundException | IOException e1) {
+			}
+		}
 		// partitions
 		outerMostLoop: while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
 			int currentRowInstLimit = ConstantArgs._MIN_ROW_INSTANCES;
@@ -89,6 +106,11 @@ public class Transformer extends BodyTransformer {
 					ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
 					// cycle length
 					do {
+						try {
+							save(seenStructures);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 						anml2 = null;
 						long step1Begin = System.currentTimeMillis();
 						long step1Time = -100000, step2Time = 0;
@@ -99,7 +121,7 @@ public class Transformer extends BodyTransformer {
 						// Analysis Step 1
 						zdr = new Z3Driver(app, tables, false);
 						ConstantArgs._current_version_enforcement = false;
-						anml1 = zdr.analyze(1, seenAnmls, includedTables, null);
+						anml1 = zdr.analyze(1, seenStructures, seenAnmls, includedTables, null);
 
 						step1Time = System.currentTimeMillis() - step1Begin;
 						if (anml1 != null) {
@@ -107,6 +129,7 @@ public class Transformer extends BodyTransformer {
 							if (!ConstantArgs._ENFORCE_VERSIONING) {
 								anml1.setExtractionTime(step1Time, 0);
 								seenAnmls.add(anml1);
+								seenStructures.add(anml1.getCycleStructure());
 								anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
 								anml1.announce(false, seenAnmls.size());
 								anml1.closeCtx();
@@ -115,14 +138,15 @@ public class Transformer extends BodyTransformer {
 								ConstantArgs._current_version_enforcement = true;
 								// zdr = new Z3Driver(app, tables, false);
 								long step2Begin = System.currentTimeMillis();
-								anml2 = zdr.analyze(2, seenAnmls, includedTables, anml1);
+								anml2 = zdr.analyze(2, null, seenAnmls, includedTables, anml1);
 								step2Time = System.currentTimeMillis() - step2Begin;
 								if (anml2 != null) {
 									anml2.generateCycleStructure();
 									seenAnmls.add(anml2);
+									seenStructures.add(anml2.getCycleStructure());
 									anml2.setExtractionTime(step1Time, step2Time);
 									anml2.announce(false, seenAnmls.size());
-									
+
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
 									// pause();
@@ -130,17 +154,18 @@ public class Transformer extends BodyTransformer {
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
 									long step3Begin = System.currentTimeMillis();
-									Anomaly anml3 = zdr.analyze(3, seenAnmls, includedTables, anml2);
+									Anomaly anml3 = zdr.analyze(3, null, seenAnmls, includedTables, anml2);
 									while (anml3 != null) {
 										long step3Time = System.currentTimeMillis() - step3Begin;
 										anml3.setExtractionTime(step3Time, 0);
-										seenAnmls.add(anml3);
 										anml3.generateCycleStructure();
+										seenAnmls.add(anml3);
+										seenStructures.add(anml3.getCycleStructure());
 										System.out.println("~ Searching for structurally simillar anomalies....\n");
 										anml3.announce(false, seenAnmls.size());
 										System.out.println(runTimeFooter(step3Time, 0));
 										step3Begin = System.currentTimeMillis();
-										anml3 = zdr.analyze(4, seenAnmls, includedTables, anml3);
+										anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
 									}
 
 									anml1.closeCtx();
@@ -169,13 +194,25 @@ public class Transformer extends BodyTransformer {
 
 	}
 
-	/*
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 */
+	private static List<List<Tuple<String, Tuple<String, String>>>> load() throws IOException, ClassNotFoundException {
+		FileInputStream streamIn = new FileInputStream(
+				"anomalies/" + ConstantArgs._BENCHMARK_NAME + "/previous_data.anomaly");
+		ObjectInputStream objectinputstream = new ObjectInputStream(streamIn);
+		List<List<Tuple<String, Tuple<String, String>>>> result = (List<List<Tuple<String, Tuple<String, String>>>>) objectinputstream
+				.readObject();
+		objectinputstream.close();
+		return result;
+	}
+
+	private static void save(List<List<Tuple<String, Tuple<String, String>>>> seenStructures) throws IOException {
+		File oldFile = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/previous_data.anomaly");
+		oldFile.delete();
+		FileOutputStream fout = new FileOutputStream(
+				"anomalies/" + ConstantArgs._BENCHMARK_NAME + "/previous_data.anomaly");
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(seenStructures);
+		oos.close();
+	}
 
 	private static void pause() {
 		try {

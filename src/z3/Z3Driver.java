@@ -533,7 +533,8 @@ public class Z3Driver {
 	/*
 	 * public function called from main
 	 */
-	public Anomaly analyze(int round, List<Anomaly> seenAnmls, Set<Table> includedTables, Anomaly unVersionedAnml) {
+	public Anomaly analyze(int round, List<List<Tuple<String, Tuple<String, String>>>> seenStructures,
+			List<Anomaly> seenAnmls, Set<Table> includedTables, Anomaly unVersionedAnml) {
 		// this function is called twice at each iteration: once for unannotated
 		// solution and once for the annotated (second call). In the second call certain
 		// constraints (e.g. rule constraints) must be popped and be replaced with
@@ -544,6 +545,10 @@ public class Z3Driver {
 			int iter530 = 0;
 			for (Anomaly anml : seenAnmls)
 				excludeAnomaly(anml, iter530++);
+			for (List<Tuple<String, Tuple<String, String>>> strc : seenStructures) {
+				excludeAnomalyFromStructure(strc, iter530++);
+				
+			}
 			try {
 				// rules
 				slv.push();
@@ -628,8 +633,12 @@ public class Z3Driver {
 		List<Tuple<String, Tuple<String, String>>> structure = anml.getCycleStructure();
 		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
 	}
-	
-	
+
+	private void excludeAnomalyFromStructure(List<Tuple<String, Tuple<String, String>>> structure, int iter) {
+		HeaderZ3("previous anomalies exclusion");
+		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
+	}
+
 }
 
 //
