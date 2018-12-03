@@ -87,19 +87,23 @@ public class Z3Driver {
 	}
 
 	private void HeaderZ3(String s) {
-		int line_length = 110;
-		int white_space_length = (line_length - s.length()) / 2;
-		String line = ";" + String.format("%0" + line_length + "d", 0).replace("0", "-");
-		String white_space = String.format("%0" + white_space_length + "d", 0).replace("0", " ");
-		LogZ3("\n" + line);
-		LogZ3(";" + white_space + s);
-		LogZ3(line);
-		printer.flush();
+		if (ConstantArgs._SHOULD_WRITE_ASSERTIONS_TO_FILE) {
+			int line_length = 110;
+			int white_space_length = (line_length - s.length()) / 2;
+			String line = ";" + String.format("%0" + line_length + "d", 0).replace("0", "-");
+			String white_space = String.format("%0" + white_space_length + "d", 0).replace("0", " ");
+			LogZ3("\n" + line);
+			LogZ3(";" + white_space + s);
+			LogZ3(line);
+			printer.flush();
+		}
 	}
 
 	private void SubHeaderZ3(String s) {
-		LogZ3("\n;" + s.toUpperCase());
-		printer.flush();
+		if (ConstantArgs._SHOULD_WRITE_ASSERTIONS_TO_FILE) {
+			LogZ3("\n;" + s.toUpperCase());
+			printer.flush();
+		}
 	}
 
 	private void LogZ3(String s) {
@@ -547,7 +551,7 @@ public class Z3Driver {
 				excludeAnomaly(anml, iter530++);
 			for (List<Tuple<String, Tuple<String, String>>> strc : seenStructures) {
 				excludeAnomalyFromStructure(strc, iter530++);
-				
+
 			}
 			try {
 				// rules

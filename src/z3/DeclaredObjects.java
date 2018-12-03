@@ -89,8 +89,10 @@ public class DeclaredObjects {
 	}
 
 	private void LogZ3(String s) {
-		printer.append(s + "\n");
-		printer.flush();
+		if (ConstantArgs._SHOULD_WRITE_ASSERTIONS_TO_FILE) {
+			printer.append(s + "\n");
+			printer.flush();
+		}
 	}
 
 	public DeclaredObjects(PrintWriter printer) {
