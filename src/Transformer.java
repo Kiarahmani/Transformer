@@ -96,47 +96,97 @@ public class Transformer extends BodyTransformer {
 			} catch (ClassNotFoundException | IOException e1) {
 			}
 		}
-		int someInt = 0;
 		// partitions
-		while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
+		outerMostLoop: while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
 			int currentRowInstLimit = ConstantArgs._MIN_ROW_INSTANCES;
 			// row instance limitation
+			while (currentRowInstLimit <= ConstantArgs._MAX_ROW_INSTANCES) {
+				currentRowInstLimit = ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS ? currentRowInstLimit : tables.size();
+				for (Set<Table> includedTables : getAllTablesPerms(tables, currentRowInstLimit)) {
+					ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
+					// cycle length
+					do {
+						try {
+							save(seenStructures);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						anml2 = null;
+						long step1Begin = System.currentTimeMillis();
+						long step1Time = -100000, step2Time = 0;
+						String config = runHeader(iter++, includedTables);
+						System.out.println(config);
 
-			currentRowInstLimit = ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS ? currentRowInstLimit : tables.size();
-			for (Set<Table> includedTables : getAllTablesPerms(tables, currentRowInstLimit)) {
-				ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
-				zdr = new Z3Driver(app, tables, false);
-				// cycle length
+						// do the analysis twice (second time with enforced versioning)
+						// Analysis Step 1
+						zdr = new Z3Driver(app, tables, false);
+						ConstantArgs._current_version_enforcement = false;
+						anml1 = zdr.analyze(1, seenStructures, seenAnmls, includedTables, null);
 
-				do {
-					System.out.println("~~~~" + zdr.slv.getNumAssertions());
-					try {
-						save(seenStructures);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+						step1Time = System.currentTimeMillis() - step1Begin;
+						if (anml1 != null) {
+							anml1.generateCycleStructure();
+							if (!ConstantArgs._ENFORCE_VERSIONING) {
+								anml1.setExtractionTime(step1Time, 0);
+								seenAnmls.add(anml1);
+								seenStructures.add(anml1.getCycleStructure());
+								anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
+								anml1.announce(false, seenStructures.size());
+								anml1.closeCtx();
+							} else {
+								// Analysis Step 2
+								ConstantArgs._current_version_enforcement = true;
+								// zdr = new Z3Driver(app, tables, false);
+								long step2Begin = System.currentTimeMillis();
+								anml2 = zdr.analyze(2, null, seenAnmls, includedTables, anml1);
+								step2Time = System.currentTimeMillis() - step2Begin;
+								if (anml2 != null) {
+									anml2.generateCycleStructure();
+									seenAnmls.add(anml2);
+									seenStructures.add(anml2.getCycleStructure());
+									anml2.setExtractionTime(step1Time, step2Time);
+									anml2.announce(false, seenStructures.size());
 
-					String config = runHeader(iter++, includedTables);
-					System.out.println(config);
+									anml2.addData("\\l" + config + "\\l");
+									System.out.println(runTimeFooter(step1Time, step2Time));
+									// pause();
 
-					ConstantArgs._current_version_enforcement = ConstantArgs._ENFORCE_VERSIONING;
-					anml1 = zdr.analyze(someInt, seenStructures, seenAnmls, includedTables, null);
-					if (someInt == 0)
-						someInt++;
-					if (anml1 != null) {
-						anml1.generateCycleStructure();
-						seenAnmls.add(anml1);
-						seenStructures.add(anml1.getCycleStructure());
-						anml1.announce(false, seenAnmls.size());
-					} else
-						ConstantArgs._Current_Cycle_Length++;
+									// inner iterations pushing Z3 into finding similar anoamlies together
+									// the core anomaly if this class:
+									long step3Begin = System.currentTimeMillis();
+									Anomaly anml3 = zdr.analyze(3, null, seenAnmls, includedTables, anml2);
+									while (anml3 != null) {
+										long step3Time = System.currentTimeMillis() - step3Begin;
+										anml3.setExtractionTime(step3Time, 0);
+										anml3.generateCycleStructure();
+										seenAnmls.add(anml3);
+										seenStructures.add(anml3.getCycleStructure());
+										System.out.println("~ Searching for structurally simillar anomalies....\n");
+										anml3.announce(false, seenStructures.size());
+										System.out.println(runTimeFooter(step3Time, 0));
+										step3Begin = System.currentTimeMillis();
+										anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
+									}
 
-				} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_CYCLE_LENGTH);
+									anml1.closeCtx();
+								}
+							}
+						} else
+							zdr.closeCtx();
+
+						// update global variables for the next round
+						if (ConstantArgs._ENFORCE_EXCLUSION) {
+							if (anml2 == null) // keep the length unchanged untill all of this length is found
+								ConstantArgs._Current_Cycle_Length++;
+						} else
+							ConstantArgs._Current_Cycle_Length++;
+
+					} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_CYCLE_LENGTH);
+				}
+				currentRowInstLimit++;
 			}
-			currentRowInstLimit++;
 			ConstantArgs._current_partition_size++;
 		}
-
 		long endZ3 = System.currentTimeMillis();
 		// print stats
 		printStats(seenAnmls.size(), ((endZ3 - endApp) / (iter - 1)), (endTables - start), (endApp - endTables),
