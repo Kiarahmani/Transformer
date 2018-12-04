@@ -350,7 +350,12 @@ public class DynamicAssertsions {
 	 * 
 	 * 
 	 */
-
+	/*
+	 * 
+	 * 
+	 * 
+	 */
+	// EXACT CYCLE EXCLUSION (2)
 	public BoolExpr mk_previous_anomaly_exclusion(List<Tuple<String, Tuple<String, String>>> structure) {
 		int length = structure.size();
 		// bound variables
@@ -383,12 +388,6 @@ public class DynamicAssertsions {
 		return x;
 	}
 
-	/*
-	 * 
-	 * 
-	 * 
-	 */
-
 	// the final assertion, generating a cycle on the dependency graph
 	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
 
@@ -407,6 +406,7 @@ public class DynamicAssertsions {
 		// solutions to equal ones (structurally))
 		BoolExpr prevAnmlExprs[] = null;
 		BoolExpr depExprs[] = new BoolExpr[length];
+		// EXACT CYCLE ENFORCEMENT (4)
 		if (structure != null && structure.size() > 0 && structure.size() == Os.length) {
 			prevAnmlExprs = new BoolExpr[structure.size()];
 			iter = 0;
@@ -431,6 +431,7 @@ public class DynamicAssertsions {
 					(op.equals("sibling") ? ctx.mkTrue()
 							: (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0])));
 
+			// BASE CYCLE CONSTRAINT (1)
 		} else {
 			int next = 1;
 			String dep = "D";
@@ -461,6 +462,7 @@ public class DynamicAssertsions {
 	 * 
 	 */
 
+	// LOOSE CYCLE ENFORCEMENT (4)
 	public BoolExpr mk_loose_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
 
 		int length = ConstantArgs._Current_Cycle_Length;

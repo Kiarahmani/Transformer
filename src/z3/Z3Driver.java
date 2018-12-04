@@ -576,7 +576,7 @@ public class Z3Driver {
 			// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
-			addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, null));
+			addAssertion("base_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, null));
 			HeaderZ3("EOF");
 			break;
 
@@ -611,13 +611,13 @@ public class Z3Driver {
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
 			slv.push();
-			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
+			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, structure));
 			break;
 		case 3:
 			slv.pop();
 			HeaderZ3("ROUND 3: newly pushed");
 			List<Tuple<String, Tuple<String, String>>> structure3 = unVersionedAnml.getCycleStructure();
-			addAssertion("loose-cycle", dynamicAssertions.mk_loose_cycle(findCore, structure3));
+			addAssertion("loose_cycle_constraint", dynamicAssertions.mk_loose_cycle(findCore, structure3));
 			excludeAnomaly(unVersionedAnml, seenAnmls.size() + 1);
 
 			break;
@@ -635,12 +635,12 @@ public class Z3Driver {
 	private void excludeAnomaly(Anomaly anml, int iter) {
 		HeaderZ3("previous anomalies exclusion");
 		List<Tuple<String, Tuple<String, String>>> structure = anml.getCycleStructure();
-		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
+		addAssertion("exact_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
 	}
 
 	private void excludeAnomalyFromStructure(List<Tuple<String, Tuple<String, String>>> structure, int iter) {
 		HeaderZ3("previous anomalies exclusion");
-		addAssertion("previous_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
+		addAssertion("exact_anomaly_exclusion_" + iter, dynamicAssertions.mk_previous_anomaly_exclusion(structure));
 	}
 
 }

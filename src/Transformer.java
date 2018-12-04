@@ -122,9 +122,11 @@ public class Transformer extends BodyTransformer {
 						zdr = new Z3Driver(app, tables, false);
 						ConstantArgs._current_version_enforcement = false;
 						anml1 = zdr.analyze(1, seenStructures, seenAnmls, includedTables, null);
+						// pause();
 
 						step1Time = System.currentTimeMillis() - step1Begin;
 						if (anml1 != null) {
+							anml2 = anml1;
 							anml1.generateCycleStructure();
 							if (!ConstantArgs._ENFORCE_VERSIONING) {
 								anml1.setExtractionTime(step1Time, 0);
@@ -132,6 +134,7 @@ public class Transformer extends BodyTransformer {
 								seenStructures.add(anml1.getCycleStructure());
 								anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
 								anml1.announce(false, seenStructures.size());
+								System.out.println(runTimeFooter(System.currentTimeMillis() - step1Begin, 0));
 								anml1.closeCtx();
 							} else {
 								// Analysis Step 2
@@ -180,7 +183,6 @@ public class Transformer extends BodyTransformer {
 								ConstantArgs._Current_Cycle_Length++;
 						} else
 							ConstantArgs._Current_Cycle_Length++;
-
 					} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_CYCLE_LENGTH);
 				}
 				currentRowInstLimit++;
