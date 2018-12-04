@@ -36,10 +36,7 @@ public class TestApp {
 			PreparedStatement preparedStatement2 = connect.prepareStatement("update A set balance= ? where id=1");
 			preparedStatement2.setInt(1, value2);
 			preparedStatement2.executeUpdate();
-			// update #3
-			PreparedStatement preparedStatement3 = connect.prepareStatement("update A set balance= ? where id=1");
-			preparedStatement3.setInt(1, value3);
-			preparedStatement3.executeUpdate();
+
 		} catch (Exception e) {
 			throw e;
 		} finally {
@@ -63,14 +60,13 @@ public class TestApp {
 			}
 			System.out.println(result);
 			// select #2
-			// PreparedStatement preparedStatement2 = connect.prepareStatement("select *
-			// from A where id=1");
-			// ResultSet rs2 = preparedStatement2.executeQuery();
-			// int result2 = -1;
-			// if (rs2.next()) {
-			// result2 = rs2.getInt("balance");
-			// }
-			//System.out.println(result2);
+			 PreparedStatement preparedStatement2 = connect.prepareStatement("select * from A where id=1");
+			 ResultSet rs2 = preparedStatement2.executeQuery();
+			 int result2 = -1;
+			 if (rs2.next()) {
+			 result2 = rs2.getInt("balance");
+			}
+			System.out.println(result2);
 		} catch (Exception e) {
 			throw e;
 		} finally {
