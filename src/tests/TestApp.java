@@ -60,11 +60,11 @@ public class TestApp {
 			}
 			System.out.println(result);
 			// select #2
-			 PreparedStatement preparedStatement2 = connect.prepareStatement("select * from A where id=1");
-			 ResultSet rs2 = preparedStatement2.executeQuery();
-			 int result2 = -1;
-			 if (rs2.next()) {
-			 result2 = rs2.getInt("balance");
+			PreparedStatement preparedStatement2 = connect.prepareStatement("select * from A where id=1");
+			ResultSet rs2 = preparedStatement2.executeQuery();
+			int result2 = -1;
+			if (rs2.next()) {
+				result2 = rs2.getInt("balance");
 			}
 			System.out.println(result2);
 		} catch (Exception e) {
