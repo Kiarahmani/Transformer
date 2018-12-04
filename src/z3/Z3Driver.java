@@ -36,7 +36,7 @@ public class Z3Driver {
 	Application app;
 	ArrayList<Table> tables;
 	Context ctx;
-	Solver slv;
+	public Solver slv;
 	Model model;
 	DeclaredObjects objs;
 	StaticAssertions staticAssrtions;
@@ -534,6 +534,30 @@ public class Z3Driver {
 
 	}
 
+	public void updateRules(Set<Table> includedTables) throws UnexoectedOrUnhandledConditionalExpression {
+		HeaderZ3(" ->WW ");
+		thenWW(includedTables);
+		HeaderZ3(" ->WR ");
+		thenWR(includedTables);
+		HeaderZ3(" WW-> ");
+		WWthen(includedTables);
+		HeaderZ3(" WR-> ");
+		WRthen(includedTables);
+		HeaderZ3(" RW-> ");
+		RWthen(includedTables);
+	}
+
+	public void updateCycle() {
+		HeaderZ3("CYCLE ASSERTIONS");
+		// dependency assertions
+		addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
+		// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
+		addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
+		// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
+		addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, null));
+		HeaderZ3("EOF");
+	}
+
 	/*
 	 * public function called from main
 	 */
@@ -544,74 +568,66 @@ public class Z3Driver {
 		// constraints (e.g. rule constraints) must be popped and be replaced with
 		// annotated versions.
 		switch (round) {
-		case 1:
+		case 0:
 			ctxInitialize(unVersionedAnml);
-			int iter530 = 0;
+			int iter573 = 0;
 			for (Anomaly anml : seenAnmls)
-				excludeAnomaly(anml, iter530++);
-			for (List<Tuple<String, Tuple<String, String>>> strc : seenStructures) {
-				excludeAnomalyFromStructure(strc, iter530++);
+				excludeAnomaly(anml, iter573++);
+			for (List<Tuple<String, Tuple<String, String>>> strc : seenStructures)
+				excludeAnomalyFromStructure(strc, iter573++);
 
-			}
 			try {
-				// rules
 				slv.push();
-				HeaderZ3(" ->WW ");
-				thenWW(includedTables);
-				HeaderZ3(" ->WR ");
-				thenWR(includedTables);
-				HeaderZ3(" WW-> ");
-				WWthen(includedTables);
-				HeaderZ3(" WR-> ");
-				WRthen(includedTables);
-				HeaderZ3(" RW-> ");
-				RWthen(includedTables);
+				updateRules(includedTables);
 			} catch (UnexoectedOrUnhandledConditionalExpression e) {
 				e.printStackTrace();
 			}
-			//
-			HeaderZ3("CYCLE ASSERTIONS");
-			// dependency assertions
-			addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
-			// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
-			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
-			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
-			addAssertion("cycle", dynamicAssertions.mk_cycle(findCore, null));
-			HeaderZ3("EOF");
+			slv.push();
+			updateCycle();
+			break;
+		case 1:
+			slv.pop();
+			int iter530 = 0;
+			for (Anomaly anml : seenAnmls)
+				excludeAnomaly(anml, iter530++);
+			for (List<Tuple<String, Tuple<String, String>>> strc : seenStructures)
+				excludeAnomalyFromStructure(strc, iter530++);
+
+			//try {
+				//slv.push();
+				//updateRules(includedTables);
+			//} catch (UnexoectedOrUnhandledConditionalExpression e) {
+			//	e.printStackTrace();
+			//}
+			slv.push();
+			updateCycle();
 			break;
 
 		case 2:
 			HeaderZ3("VERSIONING PROPS");
 			int iter = 0;
 			// pop the old unversioned encodings
-			slv.pop();
+			slv.pop(2);
 			// because the global variable _current_version_enforcement has changed, the
 			// following rules will add versioned encodings
 			try {
-				HeaderZ3(" ->WW ");
-				thenWW(includedTables);
-				HeaderZ3(" ->WR ");
-				thenWR(includedTables);
-				HeaderZ3(" WW-> ");
-				WWthen(includedTables);
-				HeaderZ3(" WR-> ");
-				WRthen(includedTables);
-				HeaderZ3(" RW-> ");
-				RWthen(includedTables);
+				updateRules(includedTables);
 			} catch (UnexoectedOrUnhandledConditionalExpression e) {
 				e.printStackTrace();
 			}
 			List<Tuple<String, Tuple<String, String>>> structure = unVersionedAnml.getCycleStructure();
 			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
 				addAssertion("versioning_props" + (iter++), ass);
+
+			slv.push();
 			HeaderZ3("NEW CYCLE ASSERTIONS");
 			// dependency assertions
 			addAssertion("gen_dep", staticAssrtions.mk_gen_dep());
 			// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
-			slv.push();
 			addAssertion("new-cycle", dynamicAssertions.mk_cycle(findCore, structure));
+
 			break;
 		case 3:
 			slv.pop();
