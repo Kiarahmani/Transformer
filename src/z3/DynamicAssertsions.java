@@ -434,19 +434,21 @@ public class DynamicAssertsions {
 			// BASE CYCLE CONSTRAINT (1)
 		} else {
 			int next = 1;
-			String dep = "D";
-			for (int i = 0; i < length; i++) {
-				if (i == length - 1)
-					next = 0;
-				else
-					next = i + 1;
-				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[next]);
-				if (dep.equals("D"))
-					dep = "X";
-				else
-					dep = "D";
+			String dep = "X";
+			// a base sibling esge must exist
+			depExprs[0] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[0], Os[1]),
+					(BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), Os[0], Os[1]));
+			depExprs[1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[1], Os[2]);
+			depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0]);
 
+			for (int i = 2; i < length - 1; i++) {
+				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[i+1]);
+				if (dep.equals("X"))
+					dep = "D";
+				else
+					dep = "X";
 			}
+
 		}
 		BoolExpr body = (structure != null && structure.size() > 0 && structure.size() == Os.length)
 				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
