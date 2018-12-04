@@ -158,6 +158,7 @@ public class Transformer extends BodyTransformer {
 									// the core anomaly if this class:
 									long step3Begin = System.currentTimeMillis();
 									Anomaly anml3 = zdr.analyze(3, null, seenAnmls, includedTables, anml2);
+									Anomaly anml4 = anml3;
 									while (anml3 != null) {
 										long step3Time = System.currentTimeMillis() - step3Begin;
 										anml3.setExtractionTime(step3Time, 0);
@@ -169,6 +170,22 @@ public class Transformer extends BodyTransformer {
 										System.out.println(runTimeFooter(step3Time, 0));
 										step3Begin = System.currentTimeMillis();
 										anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
+									}
+									// another loose inner iteration step
+									long step5Begin = System.currentTimeMillis();
+									Anomaly anml5 = zdr.analyze(5, null, seenAnmls, includedTables, anml4);
+									//pause();
+									while (anml5 != null) {
+										long step5Time = System.currentTimeMillis() - step5Begin;
+										anml5.setExtractionTime(step5Time, 0);
+										anml5.generateCycleStructure();
+										seenAnmls.add(anml5);
+										seenStructures.add(anml5.getCycleStructure());
+										System.out.println("\n\n\n~~~~ !!!Searching for MORE structurally simillar anomalies....\n");
+										anml5.announce(false, seenStructures.size());
+										System.out.println(runTimeFooter(step5Time, 0));
+										step5Begin = System.currentTimeMillis();
+										anml5 = zdr.analyze(4, null, seenAnmls, includedTables, anml5);
 									}
 
 									anml1.closeCtx();

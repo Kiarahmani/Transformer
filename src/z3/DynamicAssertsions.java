@@ -442,7 +442,7 @@ public class DynamicAssertsions {
 			depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0]);
 
 			for (int i = 2; i < length - 1; i++) {
-				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[i+1]);
+				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[i + 1]);
 				if (dep.equals("X"))
 					dep = "D";
 				else
@@ -504,6 +504,84 @@ public class DynamicAssertsions {
 								(BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), Os[i], Os[i + 1]))
 						: ctx.mkAnd(/* (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[i], Os[i + 1]), */
 								(BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[i], Os[i + 1]));
+			}
+			// last iteration
+			String op = structure.get(length - 1).x.equals("sibling") ? "sibling" : structure.get(length - 1).x + "_O";
+			depExprs[length - 1] = op.equals("sibling")
+					? ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]),
+							(BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), Os[length - 1], Os[0]))
+					: ctx.mkAnd(/* (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[length - 1], Os[0]), */
+							(BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0]));
+
+		} else {
+			System.err.println("--- something went wrong...");
+			System.err.println("structure: " + structure);
+			System.out.println("Os: " + Os);
+
+			int next = 1;
+			String dep = "D";
+			for (int i = 0; i < length; i++) {
+				if (i == length - 1)
+					next = 0;
+				else
+					next = i + 1;
+				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[next]);
+				if (dep.equals("D"))
+					dep = "X";
+				else
+					dep = "D";
+
+			}
+		}
+		BoolExpr body = (structure != null && structure.size() > 0 && structure.size() == Os.length)
+				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
+				: ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
+		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
+		return x;
+
+	}
+
+	// LOOSE CYCLE ENFORCEMENT (4)
+	public BoolExpr mk_more_loose_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
+
+		int length = ConstantArgs._Current_Cycle_Length;
+		Expr[] Os = new Expr[length];
+		for (int i = 0; i < length; i++)
+			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
+
+		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
+		int iter = 0;
+		for (int i = 0; i < length - 1; i++)
+			for (int j = i + 1; j < length; j++)
+				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(Os[i], Os[j]));
+
+		// constraints regarding previously found anomaly (limit the
+		// solutions to structurally close ones )
+		BoolExpr prevAnmlExprs[] = null;
+		BoolExpr depExprs[] = new BoolExpr[length];
+		if (structure != null && structure.size() > 0 && structure.size() == Os.length) {
+			prevAnmlExprs = new BoolExpr[structure.size()];
+			iter = 0;
+			FuncDecl ttypeFunc = objs.getfuncs("ttype");
+			FuncDecl parentFunc = objs.getfuncs("parent");
+			for (int i = 0; i < structure.size(); i++) {
+				String xs = structure.get(i).y.x;
+				String ts = xs.split("-")[0];
+				// trim the unneccessary | character
+				ts = ts.substring(1, ts.length());
+				FuncDecl cnstrX = objs.getConstructor("TType", ts);
+				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(ttypeFunc, ctx.mkApp(parentFunc, Os[i])), ctx.mkApp(cnstrX));
+				prevAnmlExprs[iter++] = lhsX;
+			}
+			// circular constraints
+			boolean firstFlag = true;
+			for (int i = 0; i < length - 1; i++) {
+				String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
+				if (op.equals("sibling") && firstFlag) {
+					depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(op), Os[i], Os[i + 1]);
+					firstFlag = false;
+				} else
+					depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[i], Os[i + 1]);
 			}
 			// last iteration
 			String op = structure.get(length - 1).x.equals("sibling") ? "sibling" : structure.get(length - 1).x + "_O";
