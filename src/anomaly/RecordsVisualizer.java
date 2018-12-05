@@ -6,9 +6,13 @@ package anomaly;
  * 
  */
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,12 +58,25 @@ public class RecordsVisualizer {
 
 	}
 
-	public void createGraph(String fileName, int anmlNo) {
+	public void createGraph(String fileName, int anmlNo) {		
 		try {
 			if (anmlNo == 1 && !ConstantArgs._CONTINUED_ANALYSIS) {
 				File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME);
 				file.getParentFile().mkdirs();
 				FileUtils.deleteDirectory(file);
+				
+				File resultFile = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/results.csv");
+				
+				resultFile.getParentFile().mkdirs(); 
+				resultFile.createNewFile();
+				String line = "Anomaly,category,length,#txns,Description,Internal/External,Analysis Time (ms),Annot. Time (ms)";
+				try {
+					Files.write(Paths.get("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/results.csv"),
+							(line + "\n").getBytes(), StandardOpenOption.APPEND);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
 			}
 		} catch (IOException e1) {
 			e1.printStackTrace();

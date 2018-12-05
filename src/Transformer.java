@@ -5,6 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -134,6 +138,7 @@ public class Transformer extends BodyTransformer {
 								seenStructures.add(anml1.getCycleStructure());
 								anml1.addData("\\l" + config.replaceAll("\\n", "\\l") + "\\l");
 								anml1.announce(false, seenStructures.size());
+								writeToCSV(seenStructures.size(), iter - 1, anml1);
 								System.out.println(runTimeFooter(System.currentTimeMillis() - step1Begin, 0));
 								anml1.closeCtx();
 							} else {
@@ -149,16 +154,14 @@ public class Transformer extends BodyTransformer {
 									seenStructures.add(anml2.getCycleStructure());
 									anml2.setExtractionTime(step1Time, step2Time);
 									anml2.announce(false, seenStructures.size());
-
+									writeToCSV(seenStructures.size(), iter - 1, anml2);
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
 									// pause();
-
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
 									long step3Begin = System.currentTimeMillis();
 									Anomaly anml3 = zdr.analyze(3, null, seenAnmls, includedTables, anml2);
-									Anomaly anml4 = anml3;
 									while (anml3 != null) {
 										long step3Time = System.currentTimeMillis() - step3Begin;
 										anml3.setExtractionTime(step3Time, 0);
@@ -167,25 +170,10 @@ public class Transformer extends BodyTransformer {
 										seenStructures.add(anml3.getCycleStructure());
 										System.out.println("~ Searching for structurally simillar anomalies....\n");
 										anml3.announce(false, seenStructures.size());
+										writeToCSV(seenStructures.size(), iter - 1, anml3);
 										System.out.println(runTimeFooter(step3Time, 0));
 										step3Begin = System.currentTimeMillis();
 										anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
-									}
-									// another loose inner iteration step
-									long step5Begin = System.currentTimeMillis();
-									Anomaly anml5 = zdr.analyze(5, null, seenAnmls, includedTables, anml4);
-									//pause();
-									while (anml5 != null) {
-										long step5Time = System.currentTimeMillis() - step5Begin;
-										anml5.setExtractionTime(step5Time, 0);
-										anml5.generateCycleStructure();
-										seenAnmls.add(anml5);
-										seenStructures.add(anml5.getCycleStructure());
-										System.out.println("\n\n\n~~~~ !!!Searching for MORE structurally simillar anomalies....\n");
-										anml5.announce(false, seenStructures.size());
-										System.out.println(runTimeFooter(step5Time, 0));
-										step5Begin = System.currentTimeMillis();
-										anml5 = zdr.analyze(4, null, seenAnmls, includedTables, anml5);
 									}
 
 									anml1.closeCtx();
@@ -231,6 +219,25 @@ public class Transformer extends BodyTransformer {
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(seenStructures);
 		oos.close();
+	}
+
+	private static void writeToCSV(int anmlNo, int run, Anomaly anml) {
+		String line = "";
+		line += ("#" + String.valueOf(anmlNo) + ","); // anomaly number
+		line += String.valueOf(run) + ","; // category
+		line += String.valueOf(anml.getCycleStructure().size()) + ","; // cycle length
+		line += String.valueOf(anml.parentChildPairs.size()) + ","; // number of txns
+		line += " " + ","; // description
+		line += " " + ","; // internal/external
+		line += String.valueOf(anml.getStepOneTime() + ",");
+		line += String.valueOf(anml.getStepTwoTime());
+
+		try {
+			Files.write(Paths.get("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/results.csv"),
+					(line + "\n").getBytes(), StandardOpenOption.APPEND);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void pause() {

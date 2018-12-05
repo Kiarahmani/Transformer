@@ -29,6 +29,27 @@ public class Anomaly {
 	private String name;
 	private Model model;
 	long stepOneTime, stepTwoTime;
+
+	public long getStepOneTime() {
+		return stepOneTime;
+	}
+
+	public long getStepTwoTime() {
+		return stepTwoTime;
+	}
+
+	public Map<Expr, Expr> getTtypes() {
+		return ttypes;
+	}
+
+	public List<Expr> getTs() {
+		return Ts;
+	}
+
+	public ArrayList<Table> getTables() {
+		return tables;
+	}
+
 	private Context ctx;
 	DeclaredObjects objs;
 	public Map<Expr, ArrayList<Expr>> visPairs;

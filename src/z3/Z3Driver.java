@@ -630,17 +630,6 @@ public class Z3Driver {
 			excludeAnomaly(unVersionedAnml, seenAnmls.size() + 1);
 			break;
 
-		case 5:
-			int iter640 = 0;
-			//slv.pop();
-			HeaderZ3("ROUND 5: newly pushed");
-			List<Tuple<String, Tuple<String, String>>> structure5 = unVersionedAnml.getCycleStructure();
-			addAssertion("more_loose_cycle_constraint", dynamicAssertions.mk_more_loose_cycle(findCore, structure5));
-			for (Anomaly anml : seenAnmls)
-				excludeAnomaly(anml, iter640++);
-
-			break;
-
 		default:
 			break;
 		}
