@@ -54,6 +54,10 @@ public class Query {
 	Kind kind;
 	Table table;
 	List<Column> s_columns;
+	public List<Column> getS_columns() {
+		return s_columns;
+	}
+
 	private List<Expression> i_values;
 	private Map<Column, Expression> u_updates;
 	Expression whereClause;
@@ -131,7 +135,7 @@ public class Query {
 					e.printStackTrace();
 				}
 				net.sf.jsqlparser.expression.Expression exp = updateStatement.getExpressions().get(iter++);
-				
+
 				if (exp.toString().equals("?")) {
 					JdbcParameter jp = (JdbcParameter) exp;
 					result.put(myCol, new UnknownExp("?", jp.getIndex()));
@@ -332,7 +336,7 @@ public class Query {
 		String wc = this.whereClause.toString();
 		switch (this.kind) {
 		case SELECT:
-			String c = "...";//this.s_columns.toString();
+			String c = (ConstantArgs.DEBUG_MODE) ? this.s_columns.toString() : "...";
 			return k + "[" + t + ":" + c + "] " + " <<" + wc + ">>";
 		case INSERT:
 			String v = this.getI_values().toString();
@@ -353,8 +357,6 @@ public class Query {
 		return text;
 	}
 
-		
-	
 	public void addStmt(RowSetVarExp newExp) {
 		this.setsVar(newExp);
 	}

@@ -26,10 +26,13 @@ case $key in
     -go|--genop)
     DIR="$2"
     ANMLNO="$3"
-    for filename in $DIR/*/*.dot; do
+    filename1=$DIR/anomaly\#$ANMLNO/anomaly_$ANMLNO.dot
+    filename2=$DIR/anomaly\#$ANMLNO/records_$ANMLNO.dot
+    filename3=$DIR/anomaly\#$ANMLNO/data_$ANMLNO.dot
+    for filename in $filename1 $filename2 $filename3; do 
       dot -Tpng  $filename -o "${filename}.png" 
+      echo "${DIR} \#${ANMLNO} successfully generated" 
     done
-    echo "${DIR} successfully generated" 
     for filename in "${DIR}/anomaly\#${ANMLNO}/*_${ANMLNO}.dot.png"; do
       open $filename
     done

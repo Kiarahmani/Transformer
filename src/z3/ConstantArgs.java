@@ -37,6 +37,7 @@ public class ConstantArgs {
 			ConstantArgs._MAX_NUM_PARTS = Integer.parseInt(prop.getProperty("_MAX_NUM_PARTS", "1"));
 			ConstantArgs._MAX_VERSIONS_ = Integer.parseInt(prop.getProperty("_MAX_VERSIONS_", "4"));
 			ConstantArgs._MAX_LOOP_UNROLL = Integer.parseInt(prop.getProperty("_MAX_LOOP_UNROLL", "4"));
+			ConstantArgs._DEP_ONLY_ON_READ_WRITES = Boolean.parseBoolean(prop.getProperty("_DEP_ONLY_ON_READ_WRITES"));
 			ConstantArgs._MAX_ROWS_SIZE = Integer.parseInt(prop.getProperty("_MAX_ROWS_SIZE", "4"));
 			ConstantArgs._MAX_TXN_INSTANCES = Integer.parseInt(prop.getProperty("_MAX_TXN_INSTANCES", "-1"));
 			ConstantArgs._MAX_ROW_INSTANCES = Integer.parseInt(prop.getProperty("_MAX_ROW_INSTANCES", "3"));
@@ -83,6 +84,7 @@ public class ConstantArgs {
 	public static int _MAX_TXN_INSTANCES;
 	public static int _MAX_ROW_INSTANCES;
 	public static int _MIN_ROW_INSTANCES;
+	public static boolean _DEP_ONLY_ON_READ_WRITES;
 	public static boolean _ENFORCE_VERSIONING;
 	public static boolean _CONTINUED_ANALYSIS;
 	public static boolean _current_version_enforcement;
