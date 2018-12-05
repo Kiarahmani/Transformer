@@ -33,6 +33,7 @@ public class ConstantArgs {
 		try {
 			input = new FileInputStream("src/config.properties");
 			prop.load(input);
+			ConstantArgs._LIMIT_ITERATIONS_PER_RUN = Integer.parseInt(prop.getProperty("_LIMIT_ITERATIONS_PER_RUN"));
 			ConstantArgs._MAX_CYCLE_LENGTH = Integer.parseInt(prop.getProperty("_MAX_CYCLE_LENGTH", "6"));
 			ConstantArgs._MAX_NUM_PARTS = Integer.parseInt(prop.getProperty("_MAX_NUM_PARTS", "1"));
 			ConstantArgs._MAX_VERSIONS_ = Integer.parseInt(prop.getProperty("_MAX_VERSIONS_", "4"));
@@ -76,6 +77,7 @@ public class ConstantArgs {
 		}
 	}
 
+	public static int _LIMIT_ITERATIONS_PER_RUN;
 	public static int _MAX_CYCLE_LENGTH;
 	public static int _MAX_NUM_PARTS;
 	public static int _MAX_VERSIONS_;

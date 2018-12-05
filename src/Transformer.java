@@ -100,6 +100,7 @@ public class Transformer extends BodyTransformer {
 			} catch (ClassNotFoundException | IOException e1) {
 			}
 		}
+		int limitingIter = 0;
 		// partitions
 		outerMostLoop: while (ConstantArgs._current_partition_size <= ConstantArgs._MAX_NUM_PARTS) {
 			int currentRowInstLimit = ConstantArgs._MIN_ROW_INSTANCES;
@@ -112,6 +113,7 @@ public class Transformer extends BodyTransformer {
 					do {
 						try {
 							save(seenStructures);
+							System.out.println(">> all models saved");
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -162,7 +164,9 @@ public class Transformer extends BodyTransformer {
 									// the core anomaly if this class:
 									long step3Begin = System.currentTimeMillis();
 									Anomaly anml3 = zdr.analyze(3, null, seenAnmls, includedTables, anml2);
-									while (anml3 != null) {
+									limitingIter = 0;
+									while (anml3 != null && limitingIter < ConstantArgs._LIMIT_ITERATIONS_PER_RUN) {
+										limitingIter++;
 										long step3Time = System.currentTimeMillis() - step3Begin;
 										anml3.setExtractionTime(step3Time, 0);
 										anml3.generateCycleStructure();

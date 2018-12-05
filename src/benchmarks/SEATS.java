@@ -142,7 +142,7 @@ public class SEATS {
 	 * (2) FIND FLIGHTS
 	 * 
 	 */
-/*
+
 	public void findFlights(int depart_aid, int arrive_aid, long start_date, long end_date, int distance)
 			throws Exception {
 		try {
@@ -249,13 +249,12 @@ public class SEATS {
 
 	}
 
-*/
 	/*
 	 * 
 	 * (3) FIND OPEN SEATS
 	 * 
 	 */
-/*
+
 	public void findOpenSeats(int f_id) throws Exception {
 		try {
 
@@ -314,13 +313,13 @@ public class SEATS {
 		}
 
 	}
-*/
+
 	/*
 	 * 
 	 * (4) NEW RESERVATION
 	 * 
 	 */
-/*
+
 	public void newReservation(int r_id, int c_id, int f_id, int seatnum, int price, int attrs[]) throws Exception {
 		try {
 
@@ -439,7 +438,7 @@ public class SEATS {
 		}
 
 	}
-*/
+
 	/*
 	 * 
 	 * (5) UPDATE CUSTOMER
@@ -532,7 +531,7 @@ public class SEATS {
 	 * (6) UPDATE RESERVATION
 	 * 
 	 */
-/*
+
 	public void updateReservation(int r_id, int f_id, int c_id, int seatnum, int attr_idx, int attr_val)
 			throws Exception {
 		try {
@@ -580,7 +579,7 @@ public class SEATS {
 		}
 
 	}
-*/
+
 }
 
 /*
