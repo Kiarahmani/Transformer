@@ -80,6 +80,7 @@ public class TPCC {
 			stmt_i_o.setInt(1, o_id);
 			stmt_i_o.setInt(2, d_id);
 			stmt_i_o.setInt(3, w_id);
+			stmt_i_o.setInt(4, c_id);
 			stmt_i_o.setInt(5, t_current);
 			stmt_i_o.setInt(6, o_ol_cnt);
 			stmt_i_o.setInt(7, o_all_local);
@@ -124,6 +125,7 @@ public class TPCC {
 					System.out.println("EXPECTED_ERROR_15: Invalid item id: (" + ol_i_id + ")");
 				}
 				int i_price = i_rs.getInt("I_PRICE");
+				int i_id = i_rs.getInt("I_ID");
 				String i_name = i_rs.getString("I_NAME");
 				String i_data = i_rs.getString("I_DATA");
 				itemPrices[ol_number - 1] = i_price;
@@ -131,7 +133,7 @@ public class TPCC {
 				// retrieve stock
 				PreparedStatement stmt_s = conn
 						.prepareStatement("SELECT  *  FROM " + "STOCK" + " WHERE S_I_ID = ? " + "   AND S_W_ID = ?");
-				stmt_s.setInt(1, i_rs.getInt("I_ID"));
+				stmt_s.setInt(1, i_id);
 				stmt_s.setInt(2, ol_supply_w_id);
 				ResultSet s_rs = stmt_s.executeQuery();
 				if (!s_rs.next()) {
@@ -175,7 +177,7 @@ public class TPCC {
 				stmtUpdateStock.setInt(2, s_ytd + ol_quantity);
 				stmtUpdateStock.setInt(3, s_order_cnt + 1);
 				stmtUpdateStock.setInt(4, s_remote_cnt + s_remote_cnt_increment);
-				stmtUpdateStock.setInt(5, ol_i_id);
+				stmtUpdateStock.setInt(5, i_id);
 				stmtUpdateStock.setInt(6, ol_supply_w_id);
 				stmtUpdateStock.executeUpdate();
 				//
@@ -218,7 +220,7 @@ public class TPCC {
 				i_stmt.setInt(2, d_id);
 				i_stmt.setInt(3, w_id);
 				i_stmt.setInt(4, ol_number);
-				i_stmt.setInt(5, ol_i_id);
+				i_stmt.setInt(5, i_id);
 				i_stmt.setInt(6, ol_supply_w_id);
 				i_stmt.setInt(7, ol_quantity);
 				i_stmt.setDouble(8, ol_amount);
