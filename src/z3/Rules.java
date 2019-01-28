@@ -273,7 +273,14 @@ public class Rules {
 			FuncDecl verFunc = objs.getfuncs(tableName + "_VERSION");
 			Expr lhsVal = ctx.mkApp(projFunc, rowVar, (ctx.mkApp(verFunc, rowVar, o)));
 			Expression rhsVal = updateFuncs.get(c);
-			versionConds[iter96++] = (ctx.mkEq(z3Util.irCondToZ3Expr(txn.getName(), t, rowVar, o, rhsVal), lhsVal));
+			try {
+				versionConds[iter96++] = (ctx.mkEq(z3Util.irCondToZ3Expr(txn.getName(), t, rowVar, o, rhsVal), lhsVal));
+			} catch (Exception kir) {
+				System.out.println(kir);
+				System.out.println("rhsVal:" + rhsVal);
+				System.out.println("tr(rhsVal):" + z3Util.irCondToZ3Expr(txn.getName(), t, rowVar, o, rhsVal));
+				System.out.println("lhsVal:" + lhsVal);
+			}
 		}
 		return versionConds;
 	}
@@ -351,6 +358,7 @@ public class Rules {
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),
 									z3Util.irCondToZ3Expr(txn1.getName(), vt1, rowVar, vo1,
 											q1.getI_values().get(iter++)));
+
 						}
 
 						BoolExpr allInsertedRowCond = ctx.mkAnd(insertedRowConds);

@@ -144,7 +144,6 @@ public class DynamicAssertsions {
 							(BoolExpr) z3Util.irCondToZ3Expr(txnName, tsort, rsort, o1, whClause)),
 					1, null, null, null, null);
 		} catch (UnexoectedOrUnhandledConditionalExpression e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return x;
