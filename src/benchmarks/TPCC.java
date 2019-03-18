@@ -23,11 +23,6 @@ public class TPCC {
 		p.setProperty("ID", String.valueOf(insID));
 	}
 
-	/*
-	 * 
-	 * GET FOLLOWERS
-	 * 
-	 */
 	public void newOrder(int w_id, int d_id, int c_id, int o_all_local, int o_ol_cnt, int t_current, int[] itemIDs,
 			int[] supplierWarehouseIDs, int[] orderQuantities) throws Exception {
 		try {
@@ -455,7 +450,7 @@ public class TPCC {
 			stmt_ol.setInt(3, o_id);
 			stmt_ol.setInt(4, (o_id + (-1 * 20)));
 			ResultSet ol_rs = stmt_ol.executeQuery();
-			//ol_rs.next();			
+			// ol_rs.next();
 			while (ol_rs.next()) {
 				int ol_i_id = ol_rs.getInt("ol_i_id");
 				PreparedStatement stmt_s = conn.prepareStatement(
@@ -476,24 +471,234 @@ public class TPCC {
 		}
 	}
 
-	/*
-	 * public void orderStatus() throws Exception { try {
-	 * Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
-	 * System.out.println("connecting..."); conn =
-	 * DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID +
-	 * "/testks");
-	 * 
-	 * } catch (Exception e) { throw e; } finally { } }
-	 * 
-	 * 
-	 * public void delivery() throws Exception { try {
-	 * Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
-	 * System.out.println("connecting..."); conn =
-	 * DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID +
-	 * "/testks");
-	 * 
-	 * } catch (Exception e) { throw e; } finally { } }
-	 */
+	public void orderStatus(int w_id, int d_id, int customerByName, int c_id, String c_last) throws Exception {
+		try {
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			conn = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+			if (customerByName == 0) {
+				PreparedStatement stmt_c = conn
+						.prepareStatement("SELECT " + "C_ID, C_FIRST, C_MIDDLE, C_LAST, C_BALANCE" + "  FROM "
+								+ "CUSTOMER" + " WHERE C_W_ID = ? " + "   AND C_D_ID = ? " + "   AND C_LAST = ? ");
+				stmt_c.setInt(1, w_id);
+				stmt_c.setInt(2, d_id);
+				stmt_c.setString(3, c_last);
+				ResultSet c_rs = stmt_c.executeQuery();
+				c_rs.next();
+				String c_first = c_rs.getString("c_first");
+				String c_middle = c_rs.getString("c_middle");
+				int c_balance = c_rs.getInt("c_balance");
+				int new_c_id = c_rs.getInt("C_ID");
+
+				c_rs.close();
+
+				// find the newest order for the customer
+				// retrieve the carrier & order date for the most recent order.
+				PreparedStatement stmt_o = conn.prepareStatement("SELECT O_ID, O_CARRIER_ID, O_ENTRY_D " + "  FROM "
+						+ "OORDER" + " WHERE O_W_ID = ? " + "   AND O_D_ID = ? " + "AND O_C_ID = ? ");
+				stmt_o.setInt(1, w_id);
+				stmt_o.setInt(2, d_id);
+				stmt_o.setInt(3, new_c_id);
+				ResultSet o_rs = stmt_o.executeQuery();
+				o_rs.next();
+				int o_id = o_rs.getInt("O_ID");
+				int o_carrier_id = o_rs.getInt("O_CARRIER_ID");
+				int o_entry_d = o_rs.getInt("O_ENTRY_D");
+				o_rs.close();
+				PreparedStatement stmt_ol = conn.prepareStatement(
+						"SELECT OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT, OL_DELIVERY_D " + "  FROM "
+								+ "ORDER_LINE" + " WHERE OL_O_ID = ?" + "   AND OL_D_ID = ?" + "   AND OL_W_ID = ?");
+				stmt_ol.setInt(1, o_id);
+				stmt_ol.setInt(2, d_id);
+				stmt_ol.setInt(3, w_id);
+				ResultSet ol_rs_1 = stmt_ol.executeQuery();
+				// craft the final result
+				ArrayList<String> orderLines = new ArrayList<String>();
+				while (ol_rs_1.next()) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("[");
+					sb.append(ol_rs_1.getInt("OL_SUPPLY_W_ID"));
+					sb.append(" - ");
+					sb.append(ol_rs_1.getInt("OL_I_ID"));
+					sb.append(" - ");
+					sb.append(ol_rs_1.getInt("OL_QUANTITY"));
+					sb.append(" - ");
+					sb.append(String.valueOf(ol_rs_1.getDouble("OL_AMOUNT")));
+					sb.append(" - ");
+					if (ol_rs_1.getInt("OL_DELIVERY_D") != -1)
+						sb.append(ol_rs_1.getInt("OL_DELIVERY_D"));
+					else
+						sb.append("99-99-9999");
+					sb.append("]");
+					orderLines.add(sb.toString());
+				}
+
+			} else {
+				PreparedStatement stmt_c2 = conn.prepareStatement("SELECT " + "C_FIRST, C_MIDDLE, C_LAST, C_BALANCE"
+						+ "  FROM " + "CUSTOMER" + " WHERE C_W_ID = ? " + "   AND C_D_ID = ? " + "   AND C_LAST = ? ");
+				stmt_c2.setInt(1, w_id);
+				stmt_c2.setInt(2, d_id);
+				stmt_c2.setString(3, c_last);
+				ResultSet c_rs2 = stmt_c2.executeQuery();
+				c_rs2.next();
+				String c_first = c_rs2.getString("c_first");
+				String c_middle = c_rs2.getString("c_middle");
+				String new_c_last = c_rs2.getString("c_last");
+				int c_balance = c_rs2.getInt("c_balance");
+				c_rs2.close();
+
+				// find the newest order for the customer
+				// retrieve the carrier & order date for the most recent order.
+				PreparedStatement stmt_o_2 = conn.prepareStatement("SELECT O_ID, O_CARRIER_ID, O_ENTRY_D " + "  FROM "
+						+ "OORDER" + " WHERE O_W_ID = ? " + "   AND O_D_ID = ? " + "AND O_C_ID = ? ");
+				stmt_o_2.setInt(1, w_id);
+				stmt_o_2.setInt(2, d_id);
+				stmt_o_2.setInt(3, c_id);
+				ResultSet o_rs_2 = stmt_o_2.executeQuery();
+				o_rs_2.next();
+				int o_id = o_rs_2.getInt("O_ID");
+				int o_carrier_id = o_rs_2.getInt("O_CARRIER_ID");
+				int o_entry_d = o_rs_2.getInt("O_ENTRY_D");
+				o_rs_2.close();
+				PreparedStatement stmt_ol_2 = conn.prepareStatement(
+						"SELECT OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT, OL_DELIVERY_D " + "  FROM "
+								+ "ORDER_LINE" + " WHERE OL_O_ID = ?" + "   AND OL_D_ID = ?" + "   AND OL_W_ID = ?");
+				stmt_ol_2.setInt(1, o_id);
+				stmt_ol_2.setInt(2, d_id);
+				stmt_ol_2.setInt(3, w_id);
+				ResultSet ol_rs_2 = stmt_ol_2.executeQuery();
+				// craft the final result
+				ArrayList<String> orderLines = new ArrayList<String>();
+				while (ol_rs_2.next()) {
+					StringBuilder sb = new StringBuilder();
+					sb.append("[");
+					sb.append(ol_rs_2.getInt("OL_SUPPLY_W_ID"));
+					sb.append(" - ");
+					sb.append(ol_rs_2.getInt("OL_I_ID"));
+					sb.append(" - ");
+					sb.append(ol_rs_2.getInt("OL_QUANTITY"));
+					sb.append(" - ");
+					sb.append(String.valueOf(ol_rs_2.getDouble("OL_AMOUNT")));
+					sb.append(" - ");
+					if (ol_rs_2.getInt("OL_DELIVERY_D") != -1)
+						sb.append(ol_rs_2.getInt("OL_DELIVERY_D"));
+					else
+						sb.append("99-99-9999");
+					sb.append("]");
+					orderLines.add(sb.toString());
+				}
+			}
+
+			// ❄❄❄❄❄❄❄❄❄❄❄❄❄❄❄
+			// TXN SUCCESSFUL!
+			// ❄❄❄❄❄❄❄❄❄❄❄❄❄❄❄
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+		}
+	}
+
+	public void delivery(int w_id, int o_carrier_id, int d_id, int currentTime) throws Exception {
+		try {
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			conn = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+			PreparedStatement stmt_d = conn.prepareStatement(
+					"SELECT NO_O_ID FROM " + "NEW_ORDER" + " WHERE NO_D_ID = ? " + "   AND NO_W_ID = ? ");
+			stmt_d.setInt(1, d_id);
+			stmt_d.setInt(2, w_id);
+			ResultSet no_rs = stmt_d.executeQuery();
+			if (!no_rs.next()) {
+				// This district has no new orders
+				// This can happen but should be rare
+				System.out.println(String.format("District has no new orders [W_ID=%d, D_ID=%d]", w_id, d_id));
+			}
+			int no_o_id = no_rs.getInt("NO_O_ID");
+			no_rs.close();
+			// retrieve order
+			PreparedStatement stmt_O = conn.prepareStatement(
+					"SELECT O_C_ID FROM " + "OORDER" + " WHERE O_ID = ? " + "   AND O_D_ID = ? " + "   AND O_W_ID = ?");
+			stmt_O.setInt(1, no_o_id);
+			stmt_O.setInt(2, d_id);
+			stmt_O.setInt(3, w_id);
+			ResultSet oo_rs = stmt_O.executeQuery();
+			if (!oo_rs.next()) {
+				System.out.println(String.format(
+						"ERROR_41: Failed to retrieve ORDER record [W_ID=%d, D_ID=%d, O_ID=%d]", w_id, d_id, no_o_id));
+			}
+			int c_id = oo_rs.getInt("O_C_ID");
+			oo_rs.close();
+
+			// delete the row containing the oldest order
+			PreparedStatement no_stmt = conn.prepareStatement(
+					"DELETE FROM " + "NEW_ORDER" + " WHERE NO_O_ID = ? " + " AND NO_D_ID = ?" + "   AND NO_W_ID = ?");
+
+			no_stmt.setInt(1, no_o_id);
+			no_stmt.setInt(2, d_id);
+			no_stmt.setInt(3, w_id);
+			no_stmt.executeUpdate();
+
+			//
+			// update order's carrier id
+			PreparedStatement oo_stmt = conn.prepareStatement("UPDATE OORDER  SET O_CARRIER_ID = ? "
+					+ " WHERE O_ID = ? " + "   AND O_D_ID = ?" + "   AND O_W_ID = ?");
+			oo_stmt.setInt(1, o_carrier_id);
+			oo_stmt.setInt(2, no_o_id);
+			oo_stmt.setInt(3, d_id);
+			oo_stmt.setInt(4, w_id);
+			oo_stmt.executeUpdate();
+
+			// retrieve and update all orderlines belonging to this order
+			PreparedStatement stmt_ol = conn.prepareStatement("SELECT OL_NUMBER, OL_AMOUNT FROM ORDER_LINE "
+					+ " WHERE OL_O_ID = ? " + "   AND OL_D_ID = ? " + "   AND OL_W_ID = ? ");
+			stmt_ol.setInt(1, no_o_id);
+			stmt_ol.setInt(2, d_id);
+			stmt_ol.setInt(3, w_id);
+			ResultSet ol_rs = stmt_ol.executeQuery();
+			// read all ol_numbers and get sum of ol_amounts
+			double ol_total = 0;
+			while (ol_rs.next()) {
+				int ol_number = ol_rs.getInt("OL_NUMBER");
+				ol_total += ol_rs.getDouble("OL_AMOUNT");
+				PreparedStatement ol_stmt = conn.prepareStatement("UPDATE " + "ORDER_LINE" + "   SET OL_DELIVERY_D = ? "
+						+ " WHERE OL_O_ID = ? " + "   AND OL_D_ID = ? " + "   AND OL_W_ID = ? " + "AND OL_NUMBER = ?");
+				ol_stmt.setInt(1, currentTime);
+				ol_stmt.setInt(2, no_o_id);
+				ol_stmt.setInt(3, d_id);
+				ol_stmt.setInt(4, w_id);
+				ol_stmt.setInt(5, ol_number);
+				ol_stmt.executeUpdate();
+			}
+			// retrieve customer's info
+			PreparedStatement stmt_c = conn.prepareStatement("SELECT  C_BALANCE, C_DELIVERY_CNT" + " FROM CUSTOMER"
+					+ " WHERE C_W_ID = ? " + "   AND C_D_ID = ? " + " AND C_ID = ? ");
+			stmt_c.setInt(1, w_id);
+			stmt_c.setInt(2, d_id);
+			stmt_c.setInt(3, c_id);
+			ResultSet c_rs = stmt_c.executeQuery();
+			if (!c_rs.next()) {
+				System.out.println("ERROR_42: customer does not exist: " + w_id + "," + d_id + "," + c_id);
+			}
+			int c_balance = c_rs.getInt("C_BALANCE");
+			int c_delivery_cnt = c_rs.getInt("C_DELIVERY_CNT");
+			c_rs.close();
+			// update customer's info
+			PreparedStatement cu_stmt = conn.prepareStatement("UPDATE " + "CUSTOMER" + " SET C_BALANCE = ?," + " C_DELIVERY_CNT = ? "
+					+ " WHERE C_W_ID = ? " + "   AND C_D_ID = ? " + " AND C_ID = ? ");
+			cu_stmt.setDouble(1, c_balance + ol_total);
+			cu_stmt.setInt(2, c_delivery_cnt + 1);
+			cu_stmt.setInt(3, w_id);
+			cu_stmt.setInt(4, d_id);
+			cu_stmt.setInt(5, c_id);
+			cu_stmt.executeUpdate();
+
+		} catch (Exception e) {
+			throw e;
+		} finally {
+		}
+	}
+
 }
 
 /*

@@ -342,7 +342,16 @@ public class Rules {
 						result.add(rowExistsCond);
 						//
 					} else if (q1.getKind() == Kind.INSERT && q2.getKind() == Kind.SELECT) {
-						String lhsVarName = ((RowSetVarExp) q2.getsVar()).getName();
+						String lhsVarName = "";
+						try {
+						lhsVarName = ((RowSetVarExp) q2.getsVar()).getName();
+						}catch (Exception e) {
+							System.out.println("q2:"+q2);
+							System.out.println("q2.getsVar():"+q2.getsVar());
+							System.out.println();
+							System.out.println();
+							System.out.println(e);
+						}
 						BoolExpr whereClause2 = (BoolExpr) z3Util.irCondToZ3Expr(txn2.getName(), vt2, rowVar, vo2,
 								q2.getWhClause());
 						BoolExpr aliveCond = (BoolExpr) ctx.mkApp(objs.getfuncs("IsAlive_" + tableName), rowVar, vo2);

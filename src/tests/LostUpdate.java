@@ -20,27 +20,44 @@ public class LostUpdate {
 	}
 
 
-	public void updateBalance(int val) throws Exception {
+	public void updateBalance() throws Exception {
 		try {
 
 			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 
-			PreparedStatement ps = connect.prepareStatement("select * from A where id=?");
-			ps.setInt(1, 1);
+			PreparedStatement ps ;
+			
+			ps = connect.prepareStatement("update A set balance = ? where id=1");
+			ps.setInt(1, 10);
+			ps.executeUpdate();
+			
+			ps = connect.prepareStatement("update A set balance = ? where id=1");
+			ps.setInt(1, 11);
+			ps.executeUpdate();
+			
+		} catch (Exception e) {
+			throw e;
+		} finally {
+
+		}
+
+	}
+	
+	
+	public void kir() throws Exception {
+		try {
+
+			Class.forName("com.github.adejanovski.cassandra.jdbc.CassandraDriver");
+			System.out.println("connecting...");
+			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
+
+			PreparedStatement ps = connect.prepareStatement("select balance from A where id=1");
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			int balance = rs.getInt("balance");
 			System.out.println(balance);
-			
-			ps = connect.prepareStatement("select * from A where id=?");
-			ps.setInt(1, 1);
-			rs = ps.executeQuery();
-			rs.next();
-			int balance2 = rs.getInt("balance");
-			System.out.println(balance2);
-
 			
 			
 		} catch (Exception e) {

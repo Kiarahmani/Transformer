@@ -30,6 +30,7 @@ import soot.grimp.internal.GLeExpr;
 import soot.grimp.internal.GLtExpr;
 import soot.grimp.internal.GMulExpr;
 import soot.grimp.internal.GNeExpr;
+import soot.grimp.internal.GSubExpr;
 import soot.jimple.IntConstant;
 import soot.jimple.LongConstant;
 import soot.jimple.StringConstant;
@@ -50,6 +51,10 @@ public class ValueToExpression {
 	public Expression valueToExpression(boolean shouldAbsConsts, int loopNo, Type tp, Unit callerU, Value v)
 			throws UnknownUnitException, ColumnDoesNotExist {
 		switch (v.getClass().getSimpleName()) {
+		case "GSubExpr":
+			GSubExpr gse = (GSubExpr) v;
+			return new BinOpExp(BinOp.MINUS, valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gse.getOp1()),
+					valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gse.getOp2()));
 		case "GAddExpr":
 			GAddExpr gae = (GAddExpr) v;
 			return new BinOpExp(BinOp.PLUS, valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gae.getOp1()),
@@ -117,11 +122,15 @@ public class ValueToExpression {
 			Expression result;
 			if (mName.equals("getInt") || mName.equals("getString") || mName.equals("getLong")) {
 				try {
+					System.out.println("~~~>>"+v);
 					RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
 					result = projectRow(rSet, iie.getArgs());
 					data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
 				} catch (NullPointerException e) {
-					System.out.println("----ValueToExpression.java:"+e);
+					//if (ConstantArgs.DEBUG_MODE) {
+						System.out.println("----" + e + " in ValueToExpression.java: ");
+						e.printStackTrace();
+					//}
 					break;
 				}
 				return result;

@@ -29,11 +29,21 @@ public class DirtyRead {
 			System.out.println("connecting...");
 			connect = DriverManager.getConnection("jdbc:cassandra://localhost" + ":1904" + insID + "/testks");
 			
+			
+			PreparedStatement kir = connect.prepareStatement("select * from A where id=1");
+			ResultSet kir_rs = kir.executeQuery();
+			kir_rs.next();
+			int	result = kir_rs.getInt("balance");
+			
+			
+			
+			
 			PreparedStatement preparedStatement = connect.prepareStatement("update A set balance= ? where id=1");
 			preparedStatement.setInt(1, value1);
 			preparedStatement.executeUpdate();
-			PreparedStatement preparedStatement2 = connect.prepareStatement("update A set balance= ? where id=1");
-			preparedStatement2.setInt(1, value1);
+			PreparedStatement preparedStatement2 = connect.prepareStatement("update A set balance= ? where id=?");
+			preparedStatement2.setInt(1, value2);
+			preparedStatement2.setInt(2, result);
 			preparedStatement2.executeUpdate();
 		} catch (Exception e) {
 			throw e;

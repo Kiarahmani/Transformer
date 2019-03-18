@@ -69,6 +69,11 @@ public class UnitHandler {
 		}
 	}
 
+	// last round of analysis to patch if conditions
+	public void finalAnalysis() throws UnknownUnitException {
+
+	}
+
 	// initial iteration over all units to extract useful information for later
 	// stages
 	public void InitialAnalysis() throws UnknownUnitException {

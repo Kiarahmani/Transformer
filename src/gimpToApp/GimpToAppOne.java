@@ -73,6 +73,9 @@ public class GimpToAppOne extends GimpToApp {
 
 		unitHandler.InitialAnalysis();
 		unitHandler.extractStatements();
+		unitHandler.finalAnalysis();
+		
+		//unitHandler.InitialAnalysis();
 
 		// craft the output transaction from the extracted data
 		for (Statement s : unitHandler.data.getStmts()) {

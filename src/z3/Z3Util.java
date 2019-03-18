@@ -75,7 +75,7 @@ public class Z3Util {
 		case "RowVarLoopExp":
 			RowVarLoopExp vle = (RowVarLoopExp) cond;
 			FuncDecl loopVarFunc = objs.getfuncs(txnName + "_" + vle.getName());
-			if (false)
+			if (false) //XXX
 				loopCount++;
 			return ctx.mkApp(loopVarFunc, txn, ctx.mkBV(loopCount, ConstantArgs._MAX_LOOP_UNROLL));
 		case "UnknownExp":

@@ -118,7 +118,7 @@ public class Transformer extends BodyTransformer {
 					// XXX
 					// XXX temp hack to skip non interesting cases for debugging
 					
-					//if (!includedTables.stream().findAny().get().getName().equalsIgnoreCase("stock"))
+					//if (!includedTables.stream().findAny().get().getName().equalsIgnoreCase("customer"))
 					//	continue;
 					
 					// XXX
