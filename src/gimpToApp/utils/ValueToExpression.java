@@ -65,7 +65,7 @@ public class ValueToExpression {
 					valueToExpression(shouldAbsConsts, loopNo, tp, callerU, gme.getOp2()));
 		case "GLeExpr":
 			GLeExpr gle = (GLeExpr) v;
-			return new BinOpExp(BinOp.LEQ, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, gle.getOp1()),
+			return new BinOpExp(BinOp.LT, valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, gle.getOp1()),
 					valueToExpression(shouldAbsConsts, loopNo, Type.REAL, callerU, gle.getOp2()));
 		case "GLtExpr":
 			GLtExpr glt = (GLtExpr) v;
@@ -122,7 +122,6 @@ public class ValueToExpression {
 			Expression result;
 			if (mName.equals("getInt") || mName.equals("getString") || mName.equals("getLong")) {
 				try {
-					System.out.println("~~~>>"+v);
 					RowVarExp rSet = (RowVarExp) data.getUTSEs().get(callerU).get(iie.getBase());
 					result = projectRow(rSet, iie.getArgs());
 					data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);

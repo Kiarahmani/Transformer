@@ -71,7 +71,15 @@ public class UnitHandler {
 
 	// last round of analysis to patch if conditions
 	public void finalAnalysis() throws UnknownUnitException {
-
+		for (Unit u : body.getUnits()) {
+			switch (u.getClass().getSimpleName()) {
+			case "GIfStmt":
+				ifFinalHandler(u);
+				break;
+			default:
+				break;
+			}
+		}
 	}
 
 	// initial iteration over all units to extract useful information for later
@@ -108,17 +116,30 @@ public class UnitHandler {
 		}
 	}
 
+	// to update the path conditions which are update at FinalAnalysis
+	public void finalizeStatements() throws UnknownUnitException {
+		for (Unit u : data.getQueries().keySet()) {
+			// this.data.addStmt(new InvokeStmt(data.getCondFromUnit(u),
+			// data.getQueryFromUnit(u)));
+			//System.out.println("~~" + data.getQueryFromUnit(u) + "~~" + data.getCondFromUnit(u));
+			data.getStmtByUnit(u).updatePathCond(data.getCondFromUnit(u));
+			//System.out.println("~~" + );
+			//System.out.println();
+		}
+	}
+
 	// The outermost function wrapping anlysis
 	// Has 4 main loops iterating over all units in the given body
 	public void extractStatements() throws UnknownUnitException {
 
 		// loop #1
 		// extract and create queries with holes
-		for (Unit u : body.getUnits())
+		for (Unit u : body.getUnits()) {
 			if (data.isExecute(u)) {
 				Query query = extractQuery(data.getExecuteValue(u), u);
 				this.data.addQuery(lastPreparedStatementUnit, query);
 			}
+		}
 		// loop #2
 		// helping datastructures
 		List<Value> LastRowSets = new ArrayList<>();
@@ -203,9 +224,11 @@ public class UnitHandler {
 			}
 		}
 		// loop #4
-		// now add invoke statements containing patched queries
-		for (Unit u : data.getQueries().keySet())
-			this.data.addStmt(new InvokeStmt(data.getCondFromUnit(u), data.getQueryFromUnit(u)));
+		// now add invoke statements containing patched queries and the path condition
+		for (Unit u : data.getQueries().keySet()) {
+			InvokeStmt newStmt = new InvokeStmt(data.getCondFromUnit(u), data.getQueryFromUnit(u));
+			this.data.addStmt(u, newStmt);
+		}
 
 		// loop #5
 		// here we patch up the not_null expressions previously created
@@ -285,21 +308,25 @@ public class UnitHandler {
 	 * 
 	 */
 
-	private void ifInitHandler(Unit u) {
+	private void ifFinalHandler(Unit u) {
 		GIfStmt gis = (GIfStmt) u;
-		this.data.addValToInvoke(u);
-
+		//System.out.println("\n\n----------ifFinalHandler: " + u);
 		try {
+
 			// handling the if path
 			Expression ifCond = veTranslator.valueToExpression(false, -1, ir.Type.BOOLEAN, u, gis.getCondition());
+			//System.out.println("FINAL1: ifCond: " + ifCond);
 			Unit pointsTo = (gis.getUnitBoxes().get(0).getUnit());
+			//System.out.println("FINAL2: pointsTo: " + pointsTo);
 			gotoInitHandler(new UnOpExp(UnOp.NOT, ifCond), u, pointsTo);
-			// handling the else path
-			Unit lastUnitInIf = body.getUnits().getPredOf(pointsTo);
 
+			 //handling the else path
+			Unit lastUnitInIf = body.getUnits().getPredOf(pointsTo);
+			//System.out.println("FINAL3: lastUnitInIf: " + lastUnitInIf);
 			//
 			// the second condition is to make sure if conditions used for loops are not
 			// accepted here
+			//System.out.println("FINAL4: lastUnitInIf.getClass(): " + lastUnitInIf.getClass());
 			if (lastUnitInIf.getClass().getSimpleName().equals("JGotoStmt")) {
 				Unit lastUnitpointsTo = ((JGotoStmt) lastUnitInIf).getUnitBoxes().get(0).getUnit();
 				if (data.units.indexOf(lastUnitpointsTo) != data.units.indexOf(u)) // they are equal in loops
@@ -309,12 +336,43 @@ public class UnitHandler {
 		} catch (UnknownUnitException | ColumnDoesNotExist e) {
 			e.printStackTrace();
 		}
+		//System.out.println("----------\n\n");
+	}
+
+	private void ifInitHandler(Unit u) {
+		GIfStmt gis = (GIfStmt) u;
+		this.data.addValToInvoke(u);
+
+		try {
+			// handling the if path only if it includes .next
+			if (gis.getCondition().toString().contains("next")) {
+				Expression ifCond = veTranslator.valueToExpression(false, -1, ir.Type.BOOLEAN, u, gis.getCondition());
+				Unit pointsTo = (gis.getUnitBoxes().get(0).getUnit());
+				gotoInitHandler(new UnOpExp(UnOp.NOT, ifCond), u, pointsTo);
+				// handling the else path
+				Unit lastUnitInIf = body.getUnits().getPredOf(pointsTo);
+
+				//
+				// the second condition is to make sure if conditions used for loops are not
+				// accepted here
+				if (lastUnitInIf.getClass().getSimpleName().equals("JGotoStmt")) {
+					Unit lastUnitpointsTo = ((JGotoStmt) lastUnitInIf).getUnitBoxes().get(0).getUnit();
+					if (data.units.indexOf(lastUnitpointsTo) != data.units.indexOf(u)) // they are equal in loops
+						gotoInitHandler(ifCond, lastUnitInIf, lastUnitpointsTo);
+				}
+			}
+		} catch (UnknownUnitException | ColumnDoesNotExist e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void gotoInitHandler(Expression pathCond, Unit pointsFrom, Unit pointsTo) {
-
+		// System.out.println(" gotoInitHandler");
+		// System.out.println(" path condition:"+pathCond);
 		int thisUnitNo = data.units.indexOf(pointsFrom);
+		// System.out.println(" thisUnitNo:"+thisUnitNo);
 		int pointsToUnitNo = data.units.indexOf(pointsTo);
+		// System.out.println(" pointsToUnitNo:"+pointsToUnitNo);
 		// HANDLING LOOPS
 		// set the loop boundaries
 		if (pointsToUnitNo != -1 && pointsToUnitNo < thisUnitNo) {
@@ -334,11 +392,15 @@ public class UnitHandler {
 			// if jumps to the end of the program
 			if (pointsToUnitNo == -1) {
 				for (int i = thisUnitNo; i < data.units.size(); i++) {
-					// data.addCondToUnit(data.units.get(i), pathCond);
-				}
-			} else
-				for (int i = thisUnitNo; i <= pointsToUnitNo; i++)
 					data.addCondToUnit(data.units.get(i), pathCond);
+				}
+			} else {
+				// System.out.println(" conditional not jumping to end");
+				for (int i = thisUnitNo; i <= pointsToUnitNo; i++) {
+					// System.out.println(" adding constraints for:"+data.units.get(i));
+					data.addCondToUnit(data.units.get(i), pathCond);
+				}
+			}
 		}
 	}
 

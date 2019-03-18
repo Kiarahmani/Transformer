@@ -37,6 +37,12 @@ public class UnitData {
 	public List<Unit> units;
 	// eventual data to be returned
 	private List<Statement> stmts;
+
+	// to relate statements to the unit they are coming from
+	// this is used to update the path condition of statements after units are
+	// updated
+	private Map<Unit, Statement> unitToStmt;
+
 	// holds the units which contain an execution of queries
 	Map<Unit, Value> executeUnits;
 	// initially crafted
@@ -71,6 +77,7 @@ public class UnitData {
 
 	public UnitData() {
 		this.absIter = 0;
+		unitToStmt = new HashMap<>();
 		stmts = new ArrayList<Statement>();
 		executeUnits = new HashMap<Unit, Value>();
 		definedAt = new HashMap<Value, Unit>();
@@ -86,6 +93,10 @@ public class UnitData {
 		this.pathConds = new HashMap<>();
 		this.loopLocals = new HashMap<>();
 
+	}
+
+	public Statement getStmtByUnit(Unit u) {
+		return this.unitToStmt.get(u);
 	}
 
 	public void addLoopLocal(int i, Value local) {
@@ -248,7 +259,7 @@ public class UnitData {
 		case "JimpleLocal":
 			result.add(v);
 			return result;
-			
+
 		case "StaticFieldRef":
 			return result;
 
@@ -336,8 +347,9 @@ public class UnitData {
 		return stmts;
 	}
 
-	public void addStmt(Statement s) {
+	public void addStmt(Unit u, Statement s) {
 		this.stmts.add(s);
+		this.unitToStmt.put(u, s);
 	}
 
 	public void addExecuteUnit(Unit u, Value v) {

@@ -58,10 +58,11 @@ public class GimpToAppOne extends GimpToApp {
 		// Parameter extraction
 		unitHandler.extractParams();
 		for (Local l : unitHandler.data.getParams().keySet()) {
-			Type t = Type.INT; // just to instanciate it, needed for calling the typing function
+			Type t = Type.INT; // just to instantiate it, needed for calling the typing function
 			Value v = unitHandler.data.getParams().get(l);
 
 			try {
+				
 				ParamValExp exp = (ParamValExp) new ParamValExp(l.toString(), t.fromJavaTypes(v), "to-do");
 				txn.addParam(l.toString(), exp);
 				// Also add it the unit data
@@ -74,8 +75,7 @@ public class GimpToAppOne extends GimpToApp {
 		unitHandler.InitialAnalysis();
 		unitHandler.extractStatements();
 		unitHandler.finalAnalysis();
-		
-		//unitHandler.InitialAnalysis();
+		unitHandler.finalizeStatements();
 
 		// craft the output transaction from the extracted data
 		for (Statement s : unitHandler.data.getStmts()) {

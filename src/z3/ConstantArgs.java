@@ -49,6 +49,8 @@ public class ConstantArgs {
 					.parseBoolean(prop.getProperty("_SHOULD_WRITE_ASSERTIONS_TO_FILE", "false"));
 			ConstantArgs._current_version_enforcement = _ENFORCE_VERSIONING;
 			ConstantArgs._ENFORCE_EXCLUSION = Boolean.parseBoolean(prop.getProperty("_ENFORCE_EXCLUSION", "true"));
+			ConstantArgs._ENFORCE_OPTIMIZED_ALGORITHM = Boolean
+					.parseBoolean(prop.getProperty("_ENFORCE_OPTIMIZED_ALGORITHM", "true"));
 			ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS = Boolean
 					.parseBoolean(prop.getProperty("_ENFORCE_ROW_INSTANCE_LIMITS", "true"));
 			ConstantArgs._NO_WW = Boolean.parseBoolean(prop.getProperty("_NO_WW", "false"));
@@ -87,6 +89,7 @@ public class ConstantArgs {
 	public static int _MAX_ROW_INSTANCES;
 	public static int _MIN_ROW_INSTANCES;
 	public static boolean _DEP_ONLY_ON_READ_WRITES;
+	public static boolean _ENFORCE_OPTIMIZED_ALGORITHM;
 	public static boolean _ENFORCE_VERSIONING;
 	public static boolean _CONTINUED_ANALYSIS;
 	public static boolean _current_version_enforcement;

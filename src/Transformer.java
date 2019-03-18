@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import soot.BodyTransformer;
 import soot.PhaseOptions;
 import soot.Scene;
 import soot.jimple.JimpleBody;
+import soot.options.Options;
 import soot.util.cfgcmd.CFGIntermediateRep;
 import sql.DDLParser;
 import utils.Tuple;
@@ -43,10 +45,20 @@ public class Transformer extends BodyTransformer {
 	protected void internalTransform(Body b, String phaseName, Map<String, String> options) {
 		if (bodies == null)
 			bodies = new ArrayList<Body>();
-		ir = CFGIntermediateRep.getIR(PhaseOptions.getString(options, irOptionName));
+		// options.put("brief", "fa");
+		Map<String, String> modifiedOptions = new HashMap<String, String>();
+		for (String option : options.keySet())
+			modifiedOptions.put(option, options.get(option));
+		
+		
+		
+		
+		modifiedOptions.put("use-original-names", "true");
+		//System.out.println("===: " + modifiedOptions);
+		ir = CFGIntermediateRep.getIR(PhaseOptions.getString(modifiedOptions, irOptionName));
+		// Options.v().set_output_format(Options.output_format_dex);
 		Body body = ir.getBody((JimpleBody) b);
 		if (!body.getMethod().isConstructor()) {
-			// System.out.println(body.getUnits().iterator());
 			bodies.add(body);
 		}
 	}
@@ -73,9 +85,8 @@ public class Transformer extends BodyTransformer {
 		/*
 		 * generate the intermediate representation
 		 */
-		gta = new GimpToAppOne(Scene.v(), bodies, tables);
 		try {
-			app = ((GimpToAppOne) gta).transform();
+			app = (new GimpToAppOne(Scene.v(), bodies, tables)).transform();
 		} catch (UnknownUnitException e) {
 			e.printStackTrace();
 		}
@@ -110,25 +121,7 @@ public class Transformer extends BodyTransformer {
 				for (Set<Table> includedTables : getAllTablesPerms(tables, currentRowInstLimit)) {
 					ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
 					// cycle length
-					
-					
-					
-					
-					
-					// XXX
-					// XXX temp hack to skip non interesting cases for debugging
-					
-					//if (!includedTables.stream().findAny().get().getName().equalsIgnoreCase("customer"))
-					//	continue;
-					
-					// XXX
-					// XXX
-					
-					
-					
-					
-					
-					
+
 					do {
 						try {
 							save(seenStructures);
@@ -165,7 +158,6 @@ public class Transformer extends BodyTransformer {
 							} else {
 								// Analysis Step 2
 								ConstantArgs._current_version_enforcement = true;
-								// zdr = new Z3Driver(app, tables, false);
 								long step2Begin = System.currentTimeMillis();
 								anml2 = zdr.analyze(2, null, seenAnmls, includedTables, anml1);
 								step2Time = System.currentTimeMillis() - step2Begin;
@@ -178,39 +170,43 @@ public class Transformer extends BodyTransformer {
 									writeToCSV(seenStructures.size(), iter - 1, anml2);
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
-									// pause();
+									
+									
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
-									long step3Begin = System.currentTimeMillis();
-									Anomaly anml3 = zdr.analyze(3, null, seenAnmls, includedTables, anml2);
-									limitingIter = 0;
-									while (anml3 != null && limitingIter < ConstantArgs._LIMIT_ITERATIONS_PER_RUN) {
-										limitingIter++;
-										long step3Time = System.currentTimeMillis() - step3Begin;
-										anml3.setExtractionTime(step3Time, 0);
-										anml3.generateCycleStructure();
-										seenAnmls.add(anml3);
-										seenStructures.add(anml3.getCycleStructure());
-										System.out.println("~ Searching for structurally simillar anomalies....\n");
-										anml3.announce(false, seenStructures.size());
-										writeToCSV(seenStructures.size(), iter - 1, anml3);
-										System.out.println(runTimeFooter(step3Time, 0));
-										step3Begin = System.currentTimeMillis();
-										anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
+									if (ConstantArgs._ENFORCE_OPTIMIZED_ALGORITHM) {
+										long step3Begin = System.currentTimeMillis();
+										Anomaly anml3 = zdr.analyze(3, null, seenAnmls, includedTables, anml2);
+										limitingIter = 0;
+										while (anml3 != null && limitingIter < ConstantArgs._LIMIT_ITERATIONS_PER_RUN) {
+											limitingIter++;
+											long step3Time = System.currentTimeMillis() - step3Begin;
+											anml3.setExtractionTime(step3Time, 0);
+											anml3.generateCycleStructure();
+											seenAnmls.add(anml3);
+											seenStructures.add(anml3.getCycleStructure());
+											System.out.println("~ Searching for structurally simillar anomalies....\n");
+											anml3.announce(false, seenStructures.size());
+											writeToCSV(seenStructures.size(), iter - 1, anml3);
+											System.out.println(runTimeFooter(step3Time, 0));
+											step3Begin = System.currentTimeMillis();
+											anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
+										}
 									}
-
+									
 									anml1.closeCtx();
 								}
 							}
 						} else
 							zdr.closeCtx();
-
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {
 							if (anml2 == null) // keep the length unchanged untill all of this length is found
 								ConstantArgs._Current_Cycle_Length++;
-						} else
+						} else {
 							ConstantArgs._Current_Cycle_Length++;
+							anml2.closeCtx();
+						}
 					} while (ConstantArgs._Current_Cycle_Length <= ConstantArgs._MAX_CYCLE_LENGTH);
 				}
 				currentRowInstLimit++;
