@@ -265,6 +265,8 @@ public class Z3Driver {
 						new Sort[] { tSort, objs.getSort("BitVec") }, objs.getSort(c.getType().toZ3String())));
 
 			addAssertion("pk_" + t.getName(), dynamicAssertions.mk_pk_tables(t));
+			addAssertion("pk_" + t.getName() + "_identical", dynamicAssertions.mk_pk_tables_identical(t));
+			LogZ3(";functions");
 			// dependecy relations on operations
 			objs.addFunc("IsAlive_" + t.getName(),
 					ctx.mkFuncDecl("IsAlive_" + t.getName(), new Sort[] { tSort, oSort }, objs.getSort("Bool")));

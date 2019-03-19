@@ -114,6 +114,23 @@ public class DynamicAssertsions {
 		return x;
 	}
 
+	public BoolExpr mk_pk_tables_identical(Table t) {
+		Expr r = ctx.mkFreshConst("r", objs.getSort(t.getName()));
+		Expr v1 = ctx.mkFreshConst("v", objs.getSort("BitVec"));
+		Expr v2 = ctx.mkFreshConst("v", objs.getSort("BitVec"));
+		FuncDecl verFunc = objs.getfuncs(t.getName() + "_VERSION");
+		BoolExpr rhs = ctx.mkTrue();
+		for (Column c : t.getColumns())
+			if (c.isPK()) {
+				Expr proj1 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r, v1);
+				Expr proj2 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r, v2);
+				rhs = ctx.mkAnd(rhs, ctx.mkEq(proj1, proj2));
+			}
+		//BoolExpr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { r , v1,v2}, rhs, 1, null, null, null, null);
+		return x;
+	}
+
 	public BoolExpr mk_pk_tables(Table t) {
 		Expr r1 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
 		Expr r2 = ctx.mkFreshConst("r", objs.getSort(t.getName()));
