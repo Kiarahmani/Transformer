@@ -272,6 +272,12 @@ public class Anomaly {
 					parentChildPairs, otypes, opart, conflictingRow);
 			av.createGraph("anomaly#" + anmlNo + "/anomaly_" + anmlNo + ".dot");
 
+			// create schedule
+			scheduleGen sg = new scheduleGen(ctx, model, objs, tables, conflictingRow, this.Ts, this.Os);
+			sg.createSchedule("anomaly#" + anmlNo + "/schedule" + ".json");
+			sg.createInstance("anomaly#" + anmlNo + "/instance" + ".json");
+			sg.createData("anomaly#" + anmlNo + "/" + anmlNo + ".cql");
+
 		}
 		// announce core model
 		else {
@@ -329,6 +335,29 @@ public class Anomaly {
 	}
 
 	private Map<Expr, Expr> getCycle(FuncDecl x) {
+		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
+		Map<Expr, Expr> result = new LinkedHashMap<>();
+
+		for (Expr o1 : Os)
+			for (Expr o2 : Os) {
+				if (model.eval(x.apply(o1, o2), true).toString().equals("true")) {
+					String o1Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o1), true).toString();
+					String o2Type = model.eval(ctx.mkApp(objs.getfuncs("otype"), o2), true).toString();
+					FuncDecl func = objs.getfuncs(o1Type.substring(1, o1Type.length() - 1) + "_"
+							+ o2Type.substring(1, o2Type.length() - 1) + "_conflict_rows");
+					Expr row = model.eval(ctx.mkApp(func, o1, o2), true);
+					String tableName = row.getSort().toString();
+					BitVecNum version = (BitVecNum) model
+							.eval(ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), row, o1), true);
+					result.put(o1, o2);
+					conflictingRow.put(new Tuple<Expr, Expr>(o1, o2), new Tuple<Expr, Integer>(row, version.getInt()));
+				}
+			}
+
+		return result;
+	}
+
+	private Map<Expr, Expr> moreStuff(FuncDecl x) {
 		Expr[] Os = model.getSortUniverse(objs.getSort("O"));
 		Map<Expr, Expr> result = new LinkedHashMap<>();
 

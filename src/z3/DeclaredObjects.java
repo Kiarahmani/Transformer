@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.microsoft.z3.*;
 
@@ -24,6 +25,14 @@ public class DeclaredObjects {
 		Map<String, FuncDecl> map = this.constructors.get(type);
 		map.put(cnstrctrName, cnstrctr);
 		this.constructors.put(type, map);
+	}
+
+	public Map<String, FuncDecl> getAllNextVars() {
+		List<String> allKeys = funcs.keySet().stream().filter(x -> x.contains("next")).collect(Collectors.toList());
+		Map<String, FuncDecl> results = new HashMap<>();
+		for (String key : allKeys)
+			results.put(key, funcs.get(key));
+		return results;
 	}
 
 	public Map<String, FuncDecl> getAllTTypes() {

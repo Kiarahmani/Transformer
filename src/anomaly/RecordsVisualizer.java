@@ -58,16 +58,16 @@ public class RecordsVisualizer {
 
 	}
 
-	public void createGraph(String fileName, int anmlNo) {		
+	public void createGraph(String fileName, int anmlNo) {
 		try {
 			if (anmlNo == 1 && !ConstantArgs._CONTINUED_ANALYSIS) {
 				File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME);
 				file.getParentFile().mkdirs();
 				FileUtils.deleteDirectory(file);
-				
+
 				File resultFile = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/results.csv");
-				
-				resultFile.getParentFile().mkdirs(); 
+
+				resultFile.getParentFile().mkdirs();
 				resultFile.createNewFile();
 				String line = "Anomaly,category,length,#txns,Description,Internal/External,Analysis Time (ms),Annot. Time (ms)";
 				try {
@@ -76,15 +76,16 @@ public class RecordsVisualizer {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				
+
 			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+		FileWriter writer = null, writerInstance = null, writerSchedule = null;
+
 		File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/" + fileName);
 		file.getParentFile().mkdirs();
 
-		FileWriter writer = null;
 		PrintWriter printer;
 		String node_style = "node[shape=record, color=midnightblue, fontcolor=midnightblue, fontsize=10, fontname=\"Helvetica\"]";
 
@@ -100,6 +101,7 @@ public class RecordsVisualizer {
 
 		Map<Expr, Set<Integer>> orderedVersionsMap = new HashMap<>();
 
+		
 		for (Tuple<Expr, Integer> versionedRow : conflictingRow.values()) {
 			Table table = tables.stream().filter(t -> versionedRow.x.toString().contains(t.getName())).findAny().get();
 			String content = "";
@@ -130,6 +132,10 @@ public class RecordsVisualizer {
 			printer.flush();
 
 		}
+		
+		
+		
+		
 		List<Integer> orderedListOfVersions = new ArrayList<>();
 		Set<Expr> seenExprs = new HashSet<>();
 		String edgeStyle = "[concentrate=true,weight=10, arrowhead=normal, arrowsize=0.7, color=gray70]";
@@ -141,6 +147,7 @@ public class RecordsVisualizer {
 				orderedListOfVersions.addAll(orderedVersionsMap.get(currentExpr));
 				Collections.sort(orderedListOfVersions);
 				for (int i = 0; i < orderedListOfVersions.size() - 1; i++) {
+					
 					String label = currentExpr.toString().replaceAll("!val!", "");
 					printer.append("\n" + label + orderedListOfVersions.get(i));
 					printer.append(" -> " + label + orderedListOfVersions.get(i + 1));
@@ -151,6 +158,8 @@ public class RecordsVisualizer {
 
 		printer.append("\n}");
 		printer.flush();
+
+
 
 	}
 
