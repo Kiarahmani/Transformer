@@ -260,6 +260,8 @@ public class Z3Driver {
 			Sort oSort = objs.getSort("O");
 			objs.addFunc(t.getName() + "_VERSION",
 					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort, oSort }, objs.getSort("BitVec")));
+			objs.addFunc(t.getName() + "_INITIAL_V",
+					ctx.mkFuncDecl(t.getName() + "_INITIAL_V", new Sort[] { tSort }, objs.getSort("BitVec")));
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
 						new Sort[] { tSort, objs.getSort("BitVec") }, objs.getSort(c.getType().toZ3String())));
@@ -282,6 +284,11 @@ public class Z3Driver {
 					new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
 			objs.addFunc("WW_Alive_" + t.getName(), ctx.mkFuncDecl("WW_Alive_" + t.getName(),
 					new Sort[] { tSort, oSort, oSort }, objs.getSort("Bool")));
+
+			// addAssertion(t.getName() + "_no_incom_edge_then_init_ver",
+			// dynamicAssertions._mk_no_incom_edge_then_init_ver(t.getName()));
+			// addAssertion(t.getName() + "_no_incom_edge_then_NOT_init_ver",
+			// dynamicAssertions._mk_no_incom_edge_then_NOT_init_ver(t.getName()));
 			addAssertion(t.getName() + "_RW_TABLE_then_RW", dynamicAssertions.mk_rw_then_deps(t.getName()));
 			addAssertion(t.getName() + "_WR_TABLE_then_WR", dynamicAssertions.mk_wr_then_deps(t.getName()));
 			addAssertion(t.getName() + "_WW_TABLE_then_WW", dynamicAssertions.mk_ww_then_deps(t.getName()));
@@ -461,6 +468,7 @@ public class Z3Driver {
 				List<BoolExpr> conditions = ruleGenerator.return_conditions_rw_then(t1, t2, vo1, vo2, vt1, vt2,
 						includedTables);
 				conditions.add(ctx.mkFalse());
+				// conditions.add(ctx.mkTrue());
 				BoolExpr rhs = ctx.mkOr(conditions.toArray(new BoolExpr[conditions.size()]));
 				BoolExpr lhs1 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo1), vt1);
 				BoolExpr lhs2 = ctx.mkEq(ctx.mkApp(objs.getfuncs("parent"), vo2), vt2);
@@ -471,6 +479,7 @@ public class Z3Driver {
 				BoolExpr lhs5 = ctx.mkNot(ctx.mkEq(vo1, vo2));
 				BoolExpr lhs6 = ctx.mkNot(ctx.mkEq(vt1, vt2));
 				BoolExpr lhs7 = (BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), vo1, vo2);
+
 				BoolExpr lhs = ctx.mkAnd(lhs1, lhs2, lhs3, lhs4, lhs5, lhs6, lhs7);
 				BoolExpr body = ctx.mkImplies(lhs, rhs);
 				Quantifier rw_then = ctx.mkForall(new Expr[] { vo1, vo2, vt1, vt2 }, body, 1, null, null, null, null);

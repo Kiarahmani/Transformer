@@ -95,13 +95,13 @@ public class SmallBank {
 
 		int status = stmt2.executeUpdate();
 		
-		
+	/*	
 		PreparedStatement stmt21 = connect
 				.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
 		stmt21.setLong(1, old_bal + amount+100);
 		stmt21.setLong(2, custId);
 
-		int status21 = stmt21.executeUpdate();
+		int status21 = stmt21.executeUpdate();*/
 	}
 
 	// ************************************************************************************

@@ -91,7 +91,6 @@ public class scheduleGen {
 	/////////////////////
 	public void createData(String fileName) {
 		File file = new File("anomalies/" + ConstantArgs._BENCHMARK_NAME + "/" + fileName);
-		System.out.println("######"+file);
 		file.getParentFile().mkdirs();
 		FileWriter writer = null;
 		PrintWriter printer;
@@ -123,7 +122,6 @@ public class scheduleGen {
 					FuncDecl projFunc = objs.getfuncs(table.getName() + "_PROJ_" + column.name);
 					FuncDecl verFunc = objs.getfuncs(table.getName() + "_VERSION");
 					Expr version = model.eval(verFunc.apply(row, o), true);
-					System.out.println("====version:"+version);
 					String val = model.eval(projFunc.apply(row, version), true).toString();
 					columnVals += (delim + val);
 					delim = ",";

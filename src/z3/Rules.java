@@ -106,7 +106,21 @@ public class Rules {
 									versionCond2, pathCond1, pathCond2, aliveCond, rwOnTableCond);
 							BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null,
 									null);
-							result.add(rowExistsCond);
+							// ----
+							Expr ivcO = ctx.mkFreshConst("o", objs.getSort("O"));
+							FuncDecl wr_func = objs.getfuncs("WR_O_" + tableName);
+							FuncDecl init_ver_func = objs.getfuncs(tableName + "_INITIAL_V");
+							FuncDecl ver_func = objs.getfuncs(tableName + "_VERSION");
+							Expr ivcBody = ctx.mkNot((BoolExpr) ctx.mkApp(wr_func, rowVar, ivcO, vo1));
+							Quantifier ivcLhs = ctx.mkForall(new Expr[] { rowVar, ivcO }, ivcBody, 1, null, null, null,
+									null);
+							BoolExpr ivcRhs = (BoolExpr) ctx.mkEq(ctx.mkApp(init_ver_func, rowVar),
+									ctx.mkApp(ver_func, rowVar, vo1));
+							BoolExpr initialVersionCondition = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS
+									&& ConstantArgs._current_version_enforcement) ? ctx.mkImplies(ivcLhs, ivcRhs)
+											: ctx.mkTrue();
+
+							result.add(ctx.mkAnd(rowExistsCond, initialVersionCondition));
 							//
 						}
 					} else if (q1.getKind() == Kind.SELECT && q2.getKind() == Kind.INSERT) {
@@ -344,10 +358,10 @@ public class Rules {
 					} else if (q1.getKind() == Kind.INSERT && q2.getKind() == Kind.SELECT) {
 						String lhsVarName = "";
 						try {
-						lhsVarName = ((RowSetVarExp) q2.getsVar()).getName();
-						}catch (Exception e) {
-							System.out.println("q2:"+q2);
-							System.out.println("q2.getsVar():"+q2.getsVar());
+							lhsVarName = ((RowSetVarExp) q2.getsVar()).getName();
+						} catch (Exception e) {
+							System.out.println("q2:" + q2);
+							System.out.println("q2.getsVar():" + q2.getsVar());
 							System.out.println();
 							System.out.println();
 							System.out.println(e);

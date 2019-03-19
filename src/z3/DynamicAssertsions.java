@@ -126,8 +126,8 @@ public class DynamicAssertsions {
 				Expr proj2 = ctx.mkApp(objs.getfuncs(t.getName() + "_PROJ_" + c.getName()), r, v2);
 				rhs = ctx.mkAnd(rhs, ctx.mkEq(proj1, proj2));
 			}
-		//BoolExpr body = ctx.mkImplies(lhs, rhs);
-		Quantifier x = ctx.mkForall(new Expr[] { r , v1,v2}, rhs, 1, null, null, null, null);
+		// BoolExpr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { r, v1, v2 }, rhs, 1, null, null, null, null);
 		return x;
 	}
 
@@ -186,6 +186,58 @@ public class DynamicAssertsions {
 		x = ctx.mkForall(new Expr[] { tsort, isort },
 				ctx.mkApp(objs.getfuncs(sVarName), tsort, (ctx.mkApp(objs.getfuncs(rowVarName), tsort, isort))), 1,
 				null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr _mk_no_incom_edge_then_NOT_init_ver(String tName) {
+		Expr o = ctx.mkFreshConst("o", objs.getSort("O"));
+		Expr o1 = ctx.mkFreshConst("o", objs.getSort("O"));
+		Expr r = ctx.mkFreshConst("r", objs.getSort(tName));
+
+		FuncDecl is_update_func = objs.getfuncs("is_update");
+		FuncDecl rw_func = objs.getfuncs("RW_O_" + tName);
+		FuncDecl wr_func = objs.getfuncs("WR_O_" + tName);
+		FuncDecl ww_func = objs.getfuncs("WW_O_" + tName);
+
+		BoolExpr lhs1 = (BoolExpr) ctx.mkApp(is_update_func, o);
+		BoolExpr lhs21 = (BoolExpr) ctx.mkApp(rw_func, r, o1, o);
+		BoolExpr lhs22 = (BoolExpr) ctx.mkApp(wr_func, r, o1, o);
+		BoolExpr lhs23 = (BoolExpr) ctx.mkApp(ww_func, r, o1, o);
+		BoolExpr lhs2 = ctx.mkForall(new Expr[] { o1 }, ctx.mkNot(ctx.mkOr(lhs21, lhs22, lhs23)), 1, null, null, null,
+				null);
+
+		BoolExpr lhs = ctx.mkAnd(lhs1, lhs2);
+		FuncDecl init_ver_func = objs.getfuncs(tName + "_INITIAL_V");
+		FuncDecl ver_func = objs.getfuncs(tName + "_VERSION");
+		BoolExpr rhs = (BoolExpr) ctx.mkNot(ctx.mkEq(ctx.mkApp(init_ver_func, r), ctx.mkApp(ver_func, r, o)));
+		Expr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { r, o }, body, 1, null, null, null, null);
+		return x;
+	}
+
+	public BoolExpr _mk_no_incom_edge_then_init_ver(String tName) {
+		Expr o = ctx.mkFreshConst("o", objs.getSort("O"));
+		Expr o1 = ctx.mkFreshConst("o", objs.getSort("O"));
+		Expr r = ctx.mkFreshConst("r", objs.getSort(tName));
+
+		FuncDecl is_update_func = objs.getfuncs("is_update");
+		FuncDecl rw_func = objs.getfuncs("RW_O_" + tName);
+		FuncDecl wr_func = objs.getfuncs("WR_O_" + tName);
+		FuncDecl ww_func = objs.getfuncs("WW_O_" + tName);
+
+		BoolExpr lhs1 = ctx.mkNot((BoolExpr) ctx.mkApp(is_update_func, o));
+		BoolExpr lhs21 = (BoolExpr) ctx.mkApp(rw_func, r, o1, o);
+		BoolExpr lhs22 = (BoolExpr) ctx.mkApp(wr_func, r, o1, o);
+		BoolExpr lhs23 = (BoolExpr) ctx.mkApp(ww_func, r, o1, o);
+		BoolExpr lhs2 = ctx.mkForall(new Expr[] { o1 }, ctx.mkNot(ctx.mkOr(lhs21, lhs22, lhs23)), 1, null, null, null,
+				null);
+
+		BoolExpr lhs = ctx.mkAnd(lhs1, lhs2);
+		FuncDecl init_ver_func = objs.getfuncs(tName + "_INITIAL_V");
+		FuncDecl ver_func = objs.getfuncs(tName + "_VERSION");
+		BoolExpr rhs = (BoolExpr) ctx.mkEq(ctx.mkApp(init_ver_func, r), ctx.mkApp(ver_func, r, o));
+		Expr body = ctx.mkImplies(lhs, rhs);
+		Quantifier x = ctx.mkForall(new Expr[] { r, o }, body, 1, null, null, null, null);
 		return x;
 	}
 
