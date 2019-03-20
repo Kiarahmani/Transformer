@@ -592,7 +592,7 @@ public class Z3Driver {
 			// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
-			addAssertion("base_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, null));
+			addAssertion("base_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, null, null));
 			HeaderZ3("EOF");
 			break;
 
@@ -618,6 +618,8 @@ public class Z3Driver {
 				e.printStackTrace();
 			}
 			List<Tuple<String, Tuple<String, String>>> structure = unVersionedAnml.getCycleStructure();
+			Map<String, Set<String>> completeStructure = unVersionedAnml.getCompleteStructure();
+
 			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
 				addAssertion("versioning_props" + (iter++), ass);
 			HeaderZ3("NEW CYCLE ASSERTIONS");
@@ -627,13 +629,8 @@ public class Z3Driver {
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
 			slv.push();
-			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, structure));
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, structure, completeStructure));
+		
 			break;
 		case 3:
 			slv.pop();

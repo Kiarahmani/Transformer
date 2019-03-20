@@ -458,18 +458,26 @@ public class DynamicAssertsions {
 
 	private List<List<Tuple<String, String>>> genCompleteStructure(
 			List<Tuple<String, Tuple<String, String>>> structure) {
-		for (Tuple<String, Tuple<String, String>> x: structure)
+		for (Tuple<String, Tuple<String, String>> x : structure)
 			System.out.println(x);
 		return null;
 
 	}
 
 	// the final assertion, generating a cycle on the dependency graph
-	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
+	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure,
+			Map<String, Set<String>> completeStructure) {
 
-
+		// how many new operations are here to be instantiated?
+		int additionalOperationCount = 0;
+		if (completeStructure != null)
+			for (Set<String> newSet : completeStructure.values())
+				if (newSet != null)
+					additionalOperationCount += newSet.size();
 
 		int length = ConstantArgs._Current_Cycle_Length;
+		int allOsLength = ConstantArgs._Current_Cycle_Length + additionalOperationCount;
+
 		Expr[] Os = new Expr[length];
 		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
@@ -509,7 +517,6 @@ public class DynamicAssertsions {
 					(op.equals("sibling") ? ctx.mkTrue()
 							: (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0])));
 
-
 			// BASE CYCLE CONSTRAINT (1)
 		} else {
 			int next = 1;
@@ -530,8 +537,11 @@ public class DynamicAssertsions {
 
 		}
 		BoolExpr body = (structure != null && structure.size() > 0 && structure.size() == Os.length)
-				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
-				: ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
+				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs)) // if it's step 2 of
+																									// the anlysis
+																									// (exact cycle
+																									// generation)
+				: ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs)); // if it is step one
 		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
 		return x;
 

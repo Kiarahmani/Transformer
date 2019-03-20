@@ -66,6 +66,8 @@ public class Anomaly {
 	public Map<Expr, Expr> opart;
 	public List<Expr> isUpdate;
 	private List<Tuple<String, Tuple<String, String>>> cycleStructure;
+	private Map<String, Set<String>> completeStructure;
+
 	private Map<String, Set<Tuple<String, String>>> coreStructure;
 	private Application app;
 	private boolean isCore;
@@ -106,26 +108,28 @@ public class Anomaly {
 		this.Os = Arrays.asList(model.getSortUniverse(objs.getSort("O")));
 
 		this.cycleStructure = new ArrayList<>();
+		this.completeStructure = new HashMap<>();
 		this.coreStructure = new HashMap<>();
 		FuncDecl ttypeFunc = objs.getfuncs("ttype");
 		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
 
-		// System.out.println("~~~"+cycle);
 		Os = Os.stream().filter(o -> cycle.keySet().contains(o) || cycle.values().contains(o))
 				.collect(Collectors.toList());
 		//////////////////////////////////
-
+		// here we construct the complete structure of the anomaly, which includes other
+		////////////////////////////////// operations from the transaction's of already
+		////////////////////////////////// instantiated operations
+		Map<Expr, Set<String>> txnToLeftAloneChildren = new HashMap<>();
 		for (Expr t : Ts) {
 			Set<String> allChildren = objs.getAllOTypes().keySet();
 			allChildren = allChildren.stream().filter(c -> c.contains(ttypes.get(t).toString()))
 					.collect(Collectors.toSet());
-			System.out.println("allChildren:" + allChildren);
-			for (Expr o : parentChildPairs.get(t)) 
+			for (Expr o : parentChildPairs.get(t))
 				allChildren.removeIf(s -> otypes.get(o).toString().contains(s));
-			
-			System.out.println("leftAlone Children: " + allChildren );
+			txnToLeftAloneChildren.put(t, allChildren);
 		}
+		// System.out.println("~~~" + completeStructure);
 
 		//////////////////////////////////
 		if (Os.size() <= 0)
@@ -133,6 +137,11 @@ public class Anomaly {
 		Expr e = Os.get(0);
 		for (int i = 0; i < Os.size(); i++) {
 			Expr y = this.cycle.get(e);
+			Expr t = model.eval(parentFunc.apply(e), true);
+			String eType = model.eval(otypeFunc.apply(e), true).toString();
+			completeStructure.put(eType, txnToLeftAloneChildren.get(t));
+			txnToLeftAloneChildren.remove(t);
+
 			if (y == null) {
 				// since there is no outgoing edge from this node, we should look for a sibling
 				// which is on the cycle
@@ -197,6 +206,10 @@ public class Anomaly {
 		return (!o1.equals(o2))
 				&& this.parentChildPairs.values().stream().anyMatch(set -> (set.contains(o1) && set.contains(o2)));
 
+	}
+
+	public Map<String, Set<String>> getCompleteStructure() {
+		return completeStructure;
 	}
 
 	public List<Tuple<String, Tuple<String, String>>> getCycleStructure() {
