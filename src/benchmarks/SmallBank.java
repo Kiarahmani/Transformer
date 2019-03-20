@@ -71,6 +71,7 @@ public class SmallBank {
 
 	// ************************************************************************************
 	public void depositChecking(String custName, long amount) throws SQLException {
+		
 		// First convert the custName to the custId
 		PreparedStatement stmt0 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
 		stmt0.setString(1, custName);
@@ -95,9 +96,21 @@ public class SmallBank {
 
 		int status = stmt2.executeUpdate();
 		
+	
+		PreparedStatement stmt21 = connect
+				.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
+		stmt21.setLong(1, old_bal + amount+100);
+		stmt21.setLong(2, custId+100);
 
+		int status21 = stmt21.executeUpdate();
 	}
 
+	
+	
+
+
+
+	
 	// ************************************************************************************
 	public void sendPayment() throws SQLException {
 	}

@@ -47,6 +47,8 @@ public class ConstantArgs {
 			ConstantArgs._CONTINUED_ANALYSIS = Boolean.parseBoolean(prop.getProperty("_CONTINUED_ANALYSIS", "false"));
 			ConstantArgs._INSTANTIATE_NON_CYCLE_OPS = Boolean
 					.parseBoolean(prop.getProperty("_INSTANTIATE_NON_CYCLE_OPS", "false"));
+			ConstantArgs._INSTANTIATE_PREVIOUS_ONLY = Boolean
+					.parseBoolean(prop.getProperty("_INSTANTIATE_PREVIOUS_ONLY", "true"));
 			ConstantArgs._SHOULD_WRITE_ASSERTIONS_TO_FILE = Boolean
 					.parseBoolean(prop.getProperty("_SHOULD_WRITE_ASSERTIONS_TO_FILE", "false"));
 			ConstantArgs._current_version_enforcement = _ENFORCE_VERSIONING;
@@ -108,5 +110,6 @@ public class ConstantArgs {
 	public static boolean EXTRACT_ONLY;
 	public static boolean _FIND_CORE;
 	public static boolean _INSTANTIATE_NON_CYCLE_OPS;
+	public static boolean _INSTANTIATE_PREVIOUS_ONLY;
 
 }

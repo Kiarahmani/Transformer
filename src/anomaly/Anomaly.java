@@ -66,7 +66,8 @@ public class Anomaly {
 	public Map<Expr, Expr> opart;
 	public List<Expr> isUpdate;
 	private List<Tuple<String, Tuple<String, String>>> cycleStructure;
-	private Map<String, Set<String>> completeStructure;
+	private List<Tuple<String, String>> cycleTxns;
+	private Map<Tuple<String, String>, Set<String>> completeStructure;
 
 	private Map<String, Set<Tuple<String, String>>> coreStructure;
 	private Application app;
@@ -87,6 +88,13 @@ public class Anomaly {
 
 	public void closeCtx() {
 		this.ctx.close();
+	}
+
+	private int OpTypeToOrder(String o) {
+		if (o.startsWith("|"))
+			return Integer.valueOf(o.substring(o.length() - 2, o.length() - 1));
+		else
+			return Integer.valueOf(o.substring(o.length() - 1, o.length()));
 	}
 
 	public void generateCycleStructure() {
@@ -110,6 +118,7 @@ public class Anomaly {
 		this.cycleStructure = new ArrayList<>();
 		this.completeStructure = new HashMap<>();
 		this.coreStructure = new HashMap<>();
+		this.cycleTxns = new ArrayList<>();
 		FuncDecl ttypeFunc = objs.getfuncs("ttype");
 		FuncDecl parentFunc = objs.getfuncs("parent");
 		FuncDecl otypeFunc = objs.getfuncs("otype");
@@ -122,12 +131,26 @@ public class Anomaly {
 		////////////////////////////////// instantiated operations
 		Map<Expr, Set<String>> txnToLeftAloneChildren = new HashMap<>();
 		for (Expr t : Ts) {
+			// System.out.println("===" + t);
 			Set<String> allChildren = objs.getAllOTypes().keySet();
+			// System.out.println("===" + allChildren);
 			allChildren = allChildren.stream().filter(c -> c.contains(ttypes.get(t).toString()))
 					.collect(Collectors.toSet());
-			for (Expr o : parentChildPairs.get(t))
-				allChildren.removeIf(s -> otypes.get(o).toString().contains(s));
-			txnToLeftAloneChildren.put(t, allChildren);
+			// System.out.println("===" + allChildren);
+			// System.out.println("===" + parentChildPairs);
+			if (parentChildPairs.get(t) != null) {
+				int maxOrderSeen = 0;
+				for (Expr o : parentChildPairs.get(t)) {
+					String thisOType = otypes.get(o).toString();
+					allChildren.removeIf(s -> thisOType.contains(s));
+					if (maxOrderSeen < OpTypeToOrder(thisOType))
+						maxOrderSeen = OpTypeToOrder(thisOType);
+				}
+				final int finalMaxOrderSeen = maxOrderSeen;
+				if (ConstantArgs._INSTANTIATE_PREVIOUS_ONLY)
+					allChildren.removeIf(s -> OpTypeToOrder(s) > finalMaxOrderSeen);
+				txnToLeftAloneChildren.put(t, allChildren);
+			}
 		}
 		//////////////////////////////////
 		if (Os.size() <= 0)
@@ -137,9 +160,10 @@ public class Anomaly {
 			Expr y = this.cycle.get(e);
 			Expr t = model.eval(parentFunc.apply(e), true);
 			String eType = model.eval(otypeFunc.apply(e), true).toString();
-			completeStructure.put(eType, txnToLeftAloneChildren.get(t));
+			// System.out.println("---->>>" + eType);
+			completeStructure.put(new Tuple<String, String>(t.toString(), eType), txnToLeftAloneChildren.get(t));
 			txnToLeftAloneChildren.remove(t);
-
+			Expr firstParent = t;
 			if (y == null) {
 				// since there is no outgoing edge from this node, we should look for a sibling
 				// which is on the cycle
@@ -149,6 +173,7 @@ public class Anomaly {
 					System.out.println("~~~~>>" + y);
 					System.out.println("~~~~>>" + e);
 				}
+
 				Tuple<String, String> newTuple = new Tuple<String, String>(
 						model.eval(otypeFunc.apply(e), true).toString(),
 						model.eval(otypeFunc.apply(y), true).toString());
@@ -165,9 +190,10 @@ public class Anomaly {
 				else if (WWPairs.get(e) != null && WWPairs.get(e).contains(y))
 					this.cycleStructure.add(new Tuple<String, Tuple<String, String>>("WW", newTuple));
 			}
+			Expr secondParent = model.eval(parentFunc.apply(y), true);
+			this.cycleTxns.add(new Tuple<String, String>(firstParent.toString(), secondParent.toString()));
 			e = y;
 		}
-		System.out.println("~~~~~~`"+completeStructure);
 
 		// generating the core for the innerloop iterations
 		for (Expr x : this.cycle.keySet()) {
@@ -207,7 +233,11 @@ public class Anomaly {
 
 	}
 
-	public Map<String, Set<String>> getCompleteStructure() {
+	public List<Tuple<String, String>> getCycleTxns() {
+		return this.cycleTxns;
+	}
+
+	public Map<Tuple<String, String>, Set<String>> getCompleteStructure() {
 		return completeStructure;
 	}
 
