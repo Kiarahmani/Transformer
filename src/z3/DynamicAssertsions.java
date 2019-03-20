@@ -477,7 +477,7 @@ public class DynamicAssertsions {
 
 		int length = ConstantArgs._Current_Cycle_Length;
 		int totalLength = length + additionalOperationCount;
-		
+
 		// variables for the operations that are part of the cycle
 		Expr[] Os = new Expr[length];
 		for (int i = 0; i < length; i++)
@@ -486,17 +486,18 @@ public class DynamicAssertsions {
 		Expr[] additionalOs = new Expr[additionalOperationCount];
 		for (int i = 0; i < additionalOperationCount; i++)
 			additionalOs[i] = ctx.mkFreshConst("o", objs.getSort("O"));
-
+		// copy the above two arrays into one which will contain all variables
+		// (new/original)
 		Expr[] allOs = new Expr[totalLength];
 		System.arraycopy(Os, 0, allOs, 0, length);
 		System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
-
 		
-		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
+		// constraints on vars not being equal
+		BoolExpr notEqExprs[] = new BoolExpr[totalLength * (totalLength - 1) / 2];
 		int iter = 0;
-		for (int i = 0; i < length - 1; i++)
-			for (int j = i + 1; j < length; j++)
-				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(Os[i], Os[j]));
+		for (int i = 0; i < totalLength - 1; i++)
+			for (int j = i + 1; j < totalLength; j++)
+				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(allOs[i], allOs[j]));
 
 		// constraints regarding previously found (unversioned) anomaly (limit the
 		// solutions to equal ones (structurally))
