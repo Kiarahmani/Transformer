@@ -476,12 +476,20 @@ public class DynamicAssertsions {
 					additionalOperationCount += newSet.size();
 
 		int length = ConstantArgs._Current_Cycle_Length;
-		int allOsLength = ConstantArgs._Current_Cycle_Length + additionalOperationCount;
+
+		Expr[] additionalOs = new Expr[additionalOperationCount];
+		for (int i = 0; i < additionalOperationCount; i++)
+			additionalOs[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 
 		Expr[] Os = new Expr[length];
 		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 
+		Expr[] allOs = new Expr[additionalOperationCount + length];
+		System.arraycopy(Os, 0, allOs, 0, length);
+		System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
+
+		
 		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
 		int iter = 0;
 		for (int i = 0; i < length - 1; i++)
@@ -537,10 +545,8 @@ public class DynamicAssertsions {
 
 		}
 		BoolExpr body = (structure != null && structure.size() > 0 && structure.size() == Os.length)
-				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs)) // if it's step 2 of
-																									// the anlysis
-																									// (exact cycle
-																									// generation)
+				// if it's step 2 of the anlysis (exact cycle generation)
+				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
 				: ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs)); // if it is step one
 		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
 		return x;
