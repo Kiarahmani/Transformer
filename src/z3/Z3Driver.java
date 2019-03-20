@@ -630,7 +630,12 @@ public class Z3Driver {
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
 			slv.push();
 			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, structure, completeStructure));
-		
+		//	try {
+			//	Thread.sleep(3000);
+		//	} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+		//		e.printStackTrace();
+		//	}
 			break;
 		case 3:
 			slv.pop();

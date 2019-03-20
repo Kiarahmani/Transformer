@@ -408,7 +408,7 @@ public class DynamicAssertsions {
 					ctx.mkBVAdd((BitVecExpr) ctx.mkApp(verFunc, r, o1), ctx.mkBV(1, ConstantArgs._MAX_VERSIONS_)));
 			body = ctx.mkImplies(lhs, rhs);
 			x = ctx.mkForall(new Expr[] { r, o1, o2 }, body, 1, null, null, null, null);
-			result.add(x);
+			// result.add(x);
 		}
 		return result;
 	}
@@ -493,10 +493,10 @@ public class DynamicAssertsions {
 		System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
 
 		// constraints on vars not being equal
-		BoolExpr notEqExprs[] = new BoolExpr[totalLength * (totalLength - 1) / 2];
+		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
 		int iter = 0;
-		for (int i = 0; i < totalLength - 1; i++)
-			for (int j = i + 1; j < totalLength; j++)
+		for (int i = 0; i < length - 1; i++)
+			for (int j = i + 1; j < length; j++)
 				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(allOs[i], allOs[j]));
 
 		// constraints regarding previously found (unversioned) anomaly (limit the
@@ -505,7 +505,13 @@ public class DynamicAssertsions {
 		BoolExpr depExprs[] = new BoolExpr[length];
 		// EXACT CYCLE ENFORCEMENT (4)
 		if (structure != null && structure.size() > 0 && structure.size() == Os.length) {
-			prevAnmlExprs = new BoolExpr[structure.size() + additionalOperationCount];
+			// prevAnmlExprs (below) will include original Os types (structure.size()
+			// constraints), newly instantiated Os types(additionalOperationCount
+			// constraints) and the fact that the new ones are sibling with
+			// the old ones (additionalOperationCount constraints)
+			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
+					? new BoolExpr[structure.size() + 2 * additionalOperationCount]
+					: new BoolExpr[structure.size()];
 			iter = 0;
 			FuncDecl otypeFunc = objs.getfuncs("otype");
 			for (int i = 0; i < structure.size(); i++) {
@@ -515,16 +521,26 @@ public class DynamicAssertsions {
 				prevAnmlExprs[iter++] = lhsX;
 			}
 
-			// add extra constraints on newly instantiated (non-cycle) os
-			for (int i = 0; i < structure.size(); i++) {
-				String xs = structure.get(i).y.x;
-				Set<String> newOTypes = completeStructure.get(xs);
-				if (newOTypes != null)
-					for (String newOType : newOTypes) {
-						FuncDecl cnstrX = objs.getConstructor("OType", newOType);
-						BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrX));
-						prevAnmlExprs[iter++] = lhsX;
+			if (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS) {
+				int newOsIter = iter;
+				// add extra constraints on newly instantiated (non-cycle) os --
+				// these nested loops will add 2*additionalOperationCount new constraints
+				for (int i = 0; i < structure.size(); i++) {
+					String xs = structure.get(i).y.x;
+					Expr parentOld = objs.getfuncs("parent").apply(Os[i]);
+					Set<String> newOTypes = completeStructure.get(xs);
+					if (newOTypes != null) {
+						for (String newOType : newOTypes) {
+							FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
+							BoolExpr consNewType = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrNew));
+							Expr parentNew = objs.getfuncs("parent").apply(allOs[iter++]);
+							prevAnmlExprs[newOsIter++] = consNewType;
+							prevAnmlExprs[newOsIter++] = ctx.mkEq(parentNew, parentOld);
+
+							// (BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), allOs[iter], Os[i]);
+						}
 					}
+				}
 			}
 
 			// circular constraints
