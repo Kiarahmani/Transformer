@@ -491,7 +491,7 @@ public class DynamicAssertsions {
 		Expr[] allOs = new Expr[totalLength];
 		System.arraycopy(Os, 0, allOs, 0, length);
 		System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
-		
+
 		// constraints on vars not being equal
 		BoolExpr notEqExprs[] = new BoolExpr[totalLength * (totalLength - 1) / 2];
 		int iter = 0;
@@ -505,7 +505,7 @@ public class DynamicAssertsions {
 		BoolExpr depExprs[] = new BoolExpr[length];
 		// EXACT CYCLE ENFORCEMENT (4)
 		if (structure != null && structure.size() > 0 && structure.size() == Os.length) {
-			prevAnmlExprs = new BoolExpr[structure.size()];
+			prevAnmlExprs = new BoolExpr[structure.size() + additionalOperationCount];
 			iter = 0;
 			FuncDecl otypeFunc = objs.getfuncs("otype");
 			for (int i = 0; i < structure.size(); i++) {
@@ -514,6 +514,19 @@ public class DynamicAssertsions {
 				BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, Os[i]), ctx.mkApp(cnstrX));
 				prevAnmlExprs[iter++] = lhsX;
 			}
+
+			// add extra constraints on newly instantiated (non-cycle) os
+			for (int i = 0; i < structure.size(); i++) {
+				String xs = structure.get(i).y.x;
+				Set<String> newOTypes = completeStructure.get(xs);
+				if (newOTypes != null)
+					for (String newOType : newOTypes) {
+						FuncDecl cnstrX = objs.getConstructor("OType", newOType);
+						BoolExpr lhsX = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrX));
+						prevAnmlExprs[iter++] = lhsX;
+					}
+			}
+
 			// circular constraints
 			for (int i = 0; i < length - 1; i++) {
 				String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
