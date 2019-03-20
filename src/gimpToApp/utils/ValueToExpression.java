@@ -126,10 +126,10 @@ public class ValueToExpression {
 					result = projectRow(rSet, iie.getArgs());
 					data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
 				} catch (NullPointerException e) {
-					//if (ConstantArgs.DEBUG_MODE) {
-						System.out.println("----" + e + " in ValueToExpression.java: ");
-						e.printStackTrace();
-					//}
+					// if (ConstantArgs.DEBUG_MODE) {
+					System.out.println("----" + e + " in ValueToExpression.java: ");
+					e.printStackTrace();
+					// }
 					break;
 				}
 				return result;
@@ -142,6 +142,7 @@ public class ValueToExpression {
 		default:
 			break;
 		}
+		
 		String resName = "Abs-" + tp + "#" + (data.absIter++);
 		if (ConstantArgs.DEBUG_MODE)
 			System.err

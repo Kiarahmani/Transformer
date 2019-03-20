@@ -315,18 +315,12 @@ public class UnitHandler {
 
 			// handling the if path
 			Expression ifCond = veTranslator.valueToExpression(false, -1, ir.Type.BOOLEAN, u, gis.getCondition());
-			//System.out.println("FINAL1: ifCond: " + ifCond);
 			Unit pointsTo = (gis.getUnitBoxes().get(0).getUnit());
-			//System.out.println("FINAL2: pointsTo: " + pointsTo);
 			gotoInitHandler(new UnOpExp(UnOp.NOT, ifCond), u, pointsTo);
-
 			 //handling the else path
 			Unit lastUnitInIf = body.getUnits().getPredOf(pointsTo);
-			//System.out.println("FINAL3: lastUnitInIf: " + lastUnitInIf);
-			//
 			// the second condition is to make sure if conditions used for loops are not
 			// accepted here
-			//System.out.println("FINAL4: lastUnitInIf.getClass(): " + lastUnitInIf.getClass());
 			if (lastUnitInIf.getClass().getSimpleName().equals("JGotoStmt")) {
 				Unit lastUnitpointsTo = ((JGotoStmt) lastUnitInIf).getUnitBoxes().get(0).getUnit();
 				if (data.units.indexOf(lastUnitpointsTo) != data.units.indexOf(u)) // they are equal in loops
@@ -336,7 +330,6 @@ public class UnitHandler {
 		} catch (UnknownUnitException | ColumnDoesNotExist e) {
 			e.printStackTrace();
 		}
-		//System.out.println("----------\n\n");
 	}
 
 	private void ifInitHandler(Unit u) {
