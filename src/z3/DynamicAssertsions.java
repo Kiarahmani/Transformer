@@ -476,16 +476,18 @@ public class DynamicAssertsions {
 					additionalOperationCount += newSet.size();
 
 		int length = ConstantArgs._Current_Cycle_Length;
-
+		int totalLength = length + additionalOperationCount;
+		
+		// variables for the operations that are part of the cycle
+		Expr[] Os = new Expr[length];
+		for (int i = 0; i < length; i++)
+			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
+		// variables for the additional ops that are not part of the cycle
 		Expr[] additionalOs = new Expr[additionalOperationCount];
 		for (int i = 0; i < additionalOperationCount; i++)
 			additionalOs[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 
-		Expr[] Os = new Expr[length];
-		for (int i = 0; i < length; i++)
-			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
-
-		Expr[] allOs = new Expr[additionalOperationCount + length];
+		Expr[] allOs = new Expr[totalLength];
 		System.arraycopy(Os, 0, allOs, 0, length);
 		System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
 
@@ -529,7 +531,7 @@ public class DynamicAssertsions {
 		} else {
 			int next = 1;
 			String dep = "X";
-			// a base sibling esge must exist
+			// a base sibling edge must exist
 			depExprs[0] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[0], Os[1]),
 					(BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), Os[0], Os[1]));
 			depExprs[1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[1], Os[2]);
@@ -548,7 +550,7 @@ public class DynamicAssertsions {
 				// if it's step 2 of the anlysis (exact cycle generation)
 				? ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs))
 				: ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs)); // if it is step one
-		Quantifier x = ctx.mkExists(Os, body, 1, null, null, null, null);
+		Quantifier x = ctx.mkExists(allOs, body, 1, null, null, null, null);
 		return x;
 
 	}
