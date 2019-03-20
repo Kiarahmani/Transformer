@@ -456,8 +456,18 @@ public class DynamicAssertsions {
 		return x;
 	}
 
+	private List<List<Tuple<String, String>>> genCompleteStructure(
+			List<Tuple<String, Tuple<String, String>>> structure) {
+		for (Tuple<String, Tuple<String, String>> x: structure)
+			System.out.println(x);
+		return null;
+
+	}
+
 	// the final assertion, generating a cycle on the dependency graph
 	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
+
+
 
 		int length = ConstantArgs._Current_Cycle_Length;
 		Expr[] Os = new Expr[length];
@@ -498,6 +508,7 @@ public class DynamicAssertsions {
 					(BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[length - 1], Os[0]),
 					(op.equals("sibling") ? ctx.mkTrue()
 							: (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0])));
+
 
 			// BASE CYCLE CONSTRAINT (1)
 		} else {

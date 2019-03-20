@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import com.microsoft.z3.BitVecNum;
@@ -113,6 +114,20 @@ public class Anomaly {
 		// System.out.println("~~~"+cycle);
 		Os = Os.stream().filter(o -> cycle.keySet().contains(o) || cycle.values().contains(o))
 				.collect(Collectors.toList());
+		//////////////////////////////////
+
+		for (Expr t : Ts) {
+			Set<String> allChildren = objs.getAllOTypes().keySet();
+			allChildren = allChildren.stream().filter(c -> c.contains(ttypes.get(t).toString()))
+					.collect(Collectors.toSet());
+			System.out.println("allChildren:" + allChildren);
+			for (Expr o : parentChildPairs.get(t)) 
+				allChildren.removeIf(s -> otypes.get(o).toString().contains(s));
+			
+			System.out.println("leftAlone Children: " + allChildren );
+		}
+
+		//////////////////////////////////
 		if (Os.size() <= 0)
 			System.out.println("~~cycle: " + cycle + "\n~~filtered Os: " + Os);
 		Expr e = Os.get(0);

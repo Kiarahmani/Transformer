@@ -39,7 +39,7 @@ public class SmallBank {
 	// ************************************************************************************
 
 	// ************************************************************************************
-/*	public void balance(String custName) throws SQLException {
+	public void balance(String custName) throws SQLException {
 		// First convert the acctName to the acctId
 		PreparedStatement stmt0 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
 		stmt0.setString(1, custName);
@@ -66,8 +66,8 @@ public class SmallBank {
 			String msg = String.format("No %s for customer #%d", "CHECKING", custId);
 			System.out.println(msg);
 		}
-	}*/
-	// ************************************************************************************
+	}
+	// ***********************************************************************************
 
 	// ************************************************************************************
 	public void depositChecking(String custName, long amount) throws SQLException {
@@ -95,13 +95,13 @@ public class SmallBank {
 
 		int status = stmt2.executeUpdate();
 		
-	/*	
+	
 		PreparedStatement stmt21 = connect
 				.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
 		stmt21.setLong(1, old_bal + amount+100);
 		stmt21.setLong(2, custId);
 
-		int status21 = stmt21.executeUpdate();*/
+		int status21 = stmt21.executeUpdate();
 	}
 
 	// ************************************************************************************

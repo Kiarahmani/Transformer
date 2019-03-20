@@ -107,7 +107,7 @@ public class Rules {
 							BoolExpr rowExistsCond = ctx.mkExists(new Expr[] { rowVar }, body, 1, null, null, null,
 									null);
 							// ----
-							Expr ivcO = ctx.mkFreshConst("o", objs.getSort("O"));
+					/*		Expr ivcO = ctx.mkFreshConst("o", objs.getSort("O"));
 							FuncDecl wr_func = objs.getfuncs("WR_O_" + tableName);
 							FuncDecl init_ver_func = objs.getfuncs(tableName + "_INITIAL_V");
 							FuncDecl ver_func = objs.getfuncs(tableName + "_VERSION");
@@ -119,8 +119,8 @@ public class Rules {
 							BoolExpr initialVersionCondition = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS
 									&& ConstantArgs._current_version_enforcement) ? ctx.mkImplies(ivcLhs, ivcRhs)
 											: ctx.mkTrue();
-
-							result.add(ctx.mkAnd(rowExistsCond, initialVersionCondition));
+*/
+							result.add(ctx.mkAnd(rowExistsCond));
 							//
 						}
 					} else if (q1.getKind() == Kind.SELECT && q2.getKind() == Kind.INSERT) {
