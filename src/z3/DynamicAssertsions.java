@@ -466,8 +466,8 @@ public class DynamicAssertsions {
 
 	// the final assertion, generating a cycle on the dependency graph
 	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure,
-			Map<String, Set<String>> completeStructure) {
-
+			Map<String, Set<String>> completeStructure) {		
+		
 		// how many new operations are here to be instantiated?
 		int additionalOperationCount = 0;
 		if (completeStructure != null)
@@ -510,7 +510,7 @@ public class DynamicAssertsions {
 			// constraints) and the fact that the new ones are sibling with
 			// the old ones (additionalOperationCount constraints)
 			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
-					? new BoolExpr[structure.size() + 2 * additionalOperationCount]
+					? new BoolExpr[structure.size() + 3 * additionalOperationCount]
 					: new BoolExpr[structure.size()];
 			iter = 0;
 			FuncDecl otypeFunc = objs.getfuncs("otype");
@@ -521,10 +521,10 @@ public class DynamicAssertsions {
 				prevAnmlExprs[iter++] = lhsX;
 			}
 
-			if (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS) {
+			if (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS) { // these are extra constrinats only for new Ops
 				int newOsIter = iter;
 				// add extra constraints on newly instantiated (non-cycle) os --
-				// these nested loops will add 2*additionalOperationCount new constraints
+				// these nested loops will add 3*additionalOperationCount new constraints
 				for (int i = 0; i < structure.size(); i++) {
 					String xs = structure.get(i).y.x;
 					Expr parentOld = objs.getfuncs("parent").apply(Os[i]);
@@ -533,9 +533,19 @@ public class DynamicAssertsions {
 						for (String newOType : newOTypes) {
 							FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
 							BoolExpr consNewType = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrNew));
-							Expr parentNew = objs.getfuncs("parent").apply(allOs[iter++]);
+							Expr parentNew = objs.getfuncs("parent").apply(allOs[iter]);
 							prevAnmlExprs[newOsIter++] = consNewType;
 							prevAnmlExprs[newOsIter++] = ctx.mkEq(parentNew, parentOld);
+							Expr vo1 = ctx.mkFreshConst("o", objs.getSort("O"));
+							BoolExpr body1 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), vo1, allOs[iter]));
+							BoolExpr body2 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), allOs[iter], vo1));
+							BoolExpr body3 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), vo1, allOs[iter]));
+							BoolExpr body4 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), allOs[iter], vo1));
+							BoolExpr body5 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), vo1, allOs[iter]));
+							BoolExpr body6 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), allOs[iter], vo1));
+							prevAnmlExprs[newOsIter++] = ctx.mkForall(new Expr[] { vo1 }, ctx.mkAnd(body1,body2,body3,body4,body5,body6), 1, null, null, null,
+									null);
+							iter++;
 
 							// (BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), allOs[iter], Os[i]);
 						}

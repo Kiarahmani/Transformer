@@ -129,8 +129,6 @@ public class Anomaly {
 				allChildren.removeIf(s -> otypes.get(o).toString().contains(s));
 			txnToLeftAloneChildren.put(t, allChildren);
 		}
-		// System.out.println("~~~" + completeStructure);
-
 		//////////////////////////////////
 		if (Os.size() <= 0)
 			System.out.println("~~cycle: " + cycle + "\n~~filtered Os: " + Os);
@@ -169,6 +167,7 @@ public class Anomaly {
 			}
 			e = y;
 		}
+		System.out.println("~~~~~~`"+completeStructure);
 
 		// generating the core for the innerloop iterations
 		for (Expr x : this.cycle.keySet()) {
