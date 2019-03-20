@@ -82,7 +82,7 @@ public class SmallBank {
 		r1.next();
 		int old_bal = r1.getInt("bal");
 
-		if (old_bal > 12) {
+		if (old_bal > 102) {
 			PreparedStatement stmt2 = connect
 					.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
 			stmt2.setInt(1, old_bal + amount);

@@ -113,8 +113,8 @@ public class AnomalyVisualizer {
 				for (Expr o : parentChildPairs.get(t)) {
 					String otime = model.eval(objs.getfuncs("otime").apply(o), true).toString();
 					String name = o.toString().replaceAll("!val!", "");
-					String title = "[ label=\"" + otime + ": "
-							+ otype.get(o).toString().replace('|', ' ').replace('-', ' ').split(" ")[2] + "\"]";
+					String title = "[ label=\"@" +otime + " " + name + ":"
+ 							+ otype.get(o).toString().replace('|', ' ').replace('-', ' ').split(" ")[2] + "\"]";
 					printer.append(name + title + ";\n ");
 				}
 				printer.append("}");

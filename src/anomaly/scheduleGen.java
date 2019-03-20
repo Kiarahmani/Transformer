@@ -101,12 +101,13 @@ public class scheduleGen {
 		}
 		printer = new PrintWriter(writer);
 		model.getSortUniverse(objs.getSort("T"));
-		model.getSortUniverse(objs.getSort("O"));
+		Expr[] allOs = model.getSortUniverse(objs.getSort("O"));
 		/////////// ADD INSTANTIATED ROWS
-
+		
+		
 		System.out.println("\n\n\n\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
-		for (Expr o : os)
+		for (Expr o : allOs)
 			for (String nextVar : allNextVars.keySet()) {
 				FuncDecl varFunc = allNextVars.get(nextVar);
 				FuncDecl parent = objs.getfuncs("parent");
@@ -116,7 +117,7 @@ public class scheduleGen {
 				String delim = "";
 				String columnNames = "(";
 				String columnVals = "(";
-				String header = "T#" + t + " O#" + o + ": ";
+				String header =  t + "-"+ o + ": " + table.getName()+":";
 				for (Column column : table.getColumns()) {
 					columnNames += (delim + column.name);
 					FuncDecl projFunc = objs.getfuncs(table.getName() + "_PROJ_" + column.name);

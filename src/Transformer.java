@@ -121,7 +121,16 @@ public class Transformer extends BodyTransformer {
 				for (Set<Table> includedTables : getAllTablesPerms(tables, currentRowInstLimit)) {
 					ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
 					// cycle length
-
+					
+					// XXX
+					// XXX temp hack to skip non interesting cases for debugging
+					
+					if (!includedTables.stream().findAny().get().getName().equalsIgnoreCase("CHECKING"))
+						continue;
+					
+					// XXX
+					// XXX
+					
 					do {
 						try {
 							save(seenStructures);
@@ -129,6 +138,7 @@ public class Transformer extends BodyTransformer {
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
+									
 						anml2 = null;
 						long step1Begin = System.currentTimeMillis();
 						long step1Time = -100000, step2Time = 0;
