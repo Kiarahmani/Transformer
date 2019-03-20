@@ -103,10 +103,39 @@ public class scheduleGen {
 		model.getSortUniverse(objs.getSort("T"));
 		Expr[] allOs = model.getSortUniverse(objs.getSort("O"));
 		/////////// ADD INSTANTIATED ROWS
-		
-		
+
 		System.out.println("\n\n\n\n\n\n\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
+		for (Table t : tables) {
+			Expr[] allRs = model.getSortUniverse(objs.getSort(t.getName()));
+			String delim = "";
+			String columnNames = "(";
+			for (Column column : t.getColumns()) {
+				columnNames += (delim + column.name);
+				delim = ",";
+			}
+			for (Expr r : allRs) {
+				System.out.println("-------" + r.toString().replaceAll("!val!", "#"));
+				for (int i = 0; i < 8; i++) {
+					delim = "";
+
+					String columnVals = "(";
+					String header = "V" + i + ": ";
+					for (Column column : t.getColumns()) {
+						columnNames += (delim + column.name);
+						FuncDecl projFunc = objs.getfuncs(t.getName() + "_PROJ_" + column.name);
+						String val = model.eval(projFunc.apply(r, ctx.mkBV(i, ConstantArgs._MAX_VERSIONS_)), true)
+								.toString();
+						columnVals += (delim + val);
+						delim = ",";
+					}
+					System.out.println(header + columnVals + ")");
+				}
+
+			}
+		}
+
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		for (Expr o : allOs)
 			for (String nextVar : allNextVars.keySet()) {
 				FuncDecl varFunc = allNextVars.get(nextVar);
@@ -114,20 +143,16 @@ public class scheduleGen {
 				Expr t = model.eval(parent.apply(o), true);
 				Expr row = model.eval(varFunc.apply(t), true);
 				Table table = tables.stream().filter(tab -> row.toString().contains(tab.getName())).findAny().get();
+				FuncDecl verFunc = objs.getfuncs(table.getName() + "_VERSION");
+				Expr version = model.eval(verFunc.apply(row, o), true);
+
 				String delim = "";
-				String columnNames = "(";
-				String columnVals = "(";
-				String header =  t + "-"+ o + ": " + table.getName()+":";
-				for (Column column : table.getColumns()) {
-					columnNames += (delim + column.name);
-					FuncDecl projFunc = objs.getfuncs(table.getName() + "_PROJ_" + column.name);
-					FuncDecl verFunc = objs.getfuncs(table.getName() + "_VERSION");
-					Expr version = model.eval(verFunc.apply(row, o), true);
-					String val = model.eval(projFunc.apply(row, version), true).toString();
-					columnVals += (delim + val);
-					delim = ",";
-				}
-				System.out.println(header + columnNames + "):" + columnVals + ")");
+				String columnNames = "";
+				String columnVals = "";
+				String header = t.toString().replaceAll("!val!", "") + "-" + o.toString().replaceAll("!val!", "") + ": "
+						+ table.getName() + ": V" + version + " ";
+
+				System.out.println(header + columnNames + "" + columnVals + "");
 				// System.out.println();
 			}
 		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n\n\n\n\n\n\n");
