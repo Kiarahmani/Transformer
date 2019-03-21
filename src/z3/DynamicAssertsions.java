@@ -465,35 +465,26 @@ public class DynamicAssertsions {
 
 	}
 
+	//////////////////////////////////////////////////////////////////
 	// the final assertion, generating a cycle on the dependency graph
+	// this function has two totally separated use-cases:
+	// 1. when a basic cycle is generated
+	// 2. when a cycle with additional operations is generated
 	public BoolExpr mk_cycle(boolean findCore, Anomaly unVersionedAnml) {
-
 		List<Tuple<String, Tuple<String, String>>> structure = null;
 		Map<Tuple<String, String>, Set<String>> completeStructure = null;
 		List<Tuple<String, String>> cycleTxns = null;
 		boolean isStepTwo = false;
 		int length = ConstantArgs._Current_Cycle_Length;
 		Expr[] Os = new Expr[length];
-
 		if (unVersionedAnml != null) {
 			structure = unVersionedAnml.getCycleStructure();
 			completeStructure = unVersionedAnml.getCompleteStructure();
 			cycleTxns = unVersionedAnml.getCycleTxns();
 			isStepTwo = (structure != null && structure.size() > 0 && structure.size() == Os.length);
 		}
-
-		// variables for the operations that are part of the cycle
-
 		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
-		// variables for the additional ops that are not part of the cycle
-
-		// copy the above two arrays into one which will contain all variables
-		// (new/original)
-
-		// constraints regarding previously found (unversioned) anomaly (limit the
-		// constraints on vars not being equal
-
 		Quantifier x = null;
 		if (isStepTwo) {
 			// how many new operations are here to be instantiated?
@@ -539,6 +530,10 @@ public class DynamicAssertsions {
 
 	}
 
+	/////////////////////////////////////////////////
+	// Helping function which returns additional conditions for a complete structure
+	// of cycles that must be enforced
+	// used in: mk_cycle
 	private void prepareCompleteCycle(BoolExpr[] depExprs, BoolExpr[] prevAnmlExprs,
 			List<Tuple<String, Tuple<String, String>>> structure,
 			Map<Tuple<String, String>, Set<String>> completeStructure, List<Tuple<String, String>> cycleTxns,
@@ -578,7 +573,6 @@ public class DynamicAssertsions {
 				}
 			}
 		}
-
 		// circular constraints
 		for (int i = 0; i < length - 1; i++) {
 			String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
@@ -593,6 +587,9 @@ public class DynamicAssertsions {
 						: (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0])));
 	}
 
+	////////////////////////////////////////////////////////
+	// Helping function that returns constraints for a basic cycle
+	// used in: mk_cycle
 	private void prepareBasicCycle(BoolExpr depExprs[], Expr[] Os, int length) {
 		String dep = "X";
 		// a base sibling edge must exist
