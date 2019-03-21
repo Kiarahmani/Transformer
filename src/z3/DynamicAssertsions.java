@@ -511,8 +511,7 @@ public class DynamicAssertsions {
 			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
 					? new BoolExpr[structure.size() + 2 * additionalOperationCount]
 					: new BoolExpr[structure.size()];
-			prepareCompleteCycle(depExprs, prevAnmlExprs, structure, completeStructure, cycleTxns,
-					additionalOperationCount, length, Os, allOs);
+			prepareCompleteCycle(depExprs, prevAnmlExprs, structure, completeStructure, cycleTxns, length, Os, allOs);
 			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs));
 			x = ctx.mkExists(allOs, body, 1, null, null, null, null);
 		} else {
@@ -537,7 +536,7 @@ public class DynamicAssertsions {
 	private void prepareCompleteCycle(BoolExpr[] depExprs, BoolExpr[] prevAnmlExprs,
 			List<Tuple<String, Tuple<String, String>>> structure,
 			Map<Tuple<String, String>, Set<String>> completeStructure, List<Tuple<String, String>> cycleTxns,
-			int additionalOperationCount, int length, Expr[] Os, Expr[] allOs) {
+			int length, Expr[] Os, Expr[] allOs) {
 		// prevAnmlExprs (below) will include original Os types, newly instantiated Os
 		// types and the fact that the new ones are sibling with the old ones
 
