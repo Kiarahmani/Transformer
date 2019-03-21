@@ -501,21 +501,24 @@ public class DynamicAssertsions {
 			additionalOs[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 		// copy the above two arrays into one which will contain all variables
 		// (new/original)
-		Expr[] allOs = new Expr[totalLength];
-		System.arraycopy(Os, 0, allOs, 0, length);
-		System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
+
 
 		// constraints regarding previously found (unversioned) anomaly (limit the
-		// solutions to equal ones (structurally))
-		BoolExpr depExprs[] = new BoolExpr[length];
 		// constraints on vars not being equal
-		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
-		int iter = 0;
-		for (int i = 0; i < length - 1; i++)
-			for (int j = i + 1; j < length; j++)
-				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(allOs[i], allOs[j]));
+
 		Quantifier x = null;
 		if (isStepTwo) {
+			Expr[] allOs = new Expr[totalLength];
+			System.arraycopy(Os, 0, allOs, 0, length);
+			System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
+			BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
+			int iter = 0;
+			for (int i = 0; i < length - 1; i++)
+				for (int j = i + 1; j < length; j++)
+					notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(allOs[i], allOs[j]));
+
+
+			BoolExpr depExprs[] = new BoolExpr[length];
 			BoolExpr prevAnmlExprs[] = null;
 			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
 					? new BoolExpr[structure.size() + 2 * additionalOperationCount]
@@ -525,8 +528,14 @@ public class DynamicAssertsions {
 			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs));
 			x = ctx.mkExists(allOs, body, 1, null, null, null, null);
 		} else {
+			BoolExpr notEqExprs2[] = new BoolExpr[length * (length - 1) / 2];
+			int iter = 0;
+			for (int i = 0; i < length - 1; i++)
+				for (int j = i + 1; j < length; j++)
+					notEqExprs2[iter++] = ctx.mkNot(ctx.mkEq(Os[i], Os[j]));
+			BoolExpr depExprs[] = new BoolExpr[length];
 			prepareBasicCycle(depExprs, Os, length);
-			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
+			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs2), ctx.mkAnd(depExprs));
 			x = ctx.mkExists(Os, body, 1, null, null, null, null);
 		}
 		return x;
