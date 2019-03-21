@@ -471,11 +471,15 @@ public class DynamicAssertsions {
 		List<Tuple<String, Tuple<String, String>>> structure = null;
 		Map<Tuple<String, String>, Set<String>> completeStructure = null;
 		List<Tuple<String, String>> cycleTxns = null;
+		boolean isStepTwo = false;
+		int length = ConstantArgs._Current_Cycle_Length;
+		Expr[] Os = new Expr[length];
 
 		if (unVersionedAnml != null) {
 			structure = unVersionedAnml.getCycleStructure();
 			completeStructure = unVersionedAnml.getCompleteStructure();
 			cycleTxns = unVersionedAnml.getCycleTxns();
+			isStepTwo = (structure != null && structure.size() > 0 && structure.size() == Os.length);
 		}
 
 		// how many new operations are here to be instantiated?
@@ -485,11 +489,10 @@ public class DynamicAssertsions {
 				if (newSet != null)
 					additionalOperationCount += newSet.size();
 
-		int length = ConstantArgs._Current_Cycle_Length;
 		int totalLength = length + additionalOperationCount;
 
 		// variables for the operations that are part of the cycle
-		Expr[] Os = new Expr[length];
+
 		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 		// variables for the additional ops that are not part of the cycle
@@ -502,32 +505,30 @@ public class DynamicAssertsions {
 		System.arraycopy(Os, 0, allOs, 0, length);
 		System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
 
+		// constraints regarding previously found (unversioned) anomaly (limit the
+		// solutions to equal ones (structurally))
+		BoolExpr depExprs[] = new BoolExpr[length];
 		// constraints on vars not being equal
 		BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
 		int iter = 0;
 		for (int i = 0; i < length - 1; i++)
 			for (int j = i + 1; j < length; j++)
 				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(allOs[i], allOs[j]));
-
-		// constraints regarding previously found (unversioned) anomaly (limit the
-		// solutions to equal ones (structurally))
-
-		BoolExpr depExprs[] = new BoolExpr[length];
-		BoolExpr body = null;
-		if (structure != null && structure.size() > 0 && structure.size() == Os.length) {
+		Quantifier x = null;
+		if (isStepTwo) {
 			BoolExpr prevAnmlExprs[] = null;
 			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
 					? new BoolExpr[structure.size() + 2 * additionalOperationCount]
 					: new BoolExpr[structure.size()];
 			prepareCompleteCycle(depExprs, prevAnmlExprs, structure, completeStructure, cycleTxns,
 					additionalOperationCount, length, Os, allOs);
-			body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs));
+			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs));
+			x = ctx.mkExists(allOs, body, 1, null, null, null, null);
 		} else {
 			prepareBasicCycle(depExprs, Os, length);
-			body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
+			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(depExprs));
+			x = ctx.mkExists(Os, body, 1, null, null, null, null);
 		}
-
-		Quantifier x = ctx.mkExists(allOs, body, 1, null, null, null, null);
 		return x;
 
 	}
