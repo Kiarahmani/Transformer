@@ -568,12 +568,15 @@ public class DynamicAssertsions {
 				// build additional operations on top of a node in the basic cycle
 				if (newOTypes != null) {
 					for (String newOType : newOTypes) {
-						Expr parentNew = objs.getfuncs("parent").apply(allOs[iter]); // the current transaction
+						Expr thisO = allOs[iter];
+						Expr parentNew = objs.getfuncs("parent").apply(thisO); // the current transaction
 						String currTxnType = unVersionedAnml.getTypeOfTxnByName(currTxnInsName); // the ttype of current transaction
 						List<String> allNextVarsForThisTxn = objs.getAllNextVars().keySet().stream().filter(key -> key.contains(currTxnType)).collect(Collectors.toList()); 
 						for (String nextVarKey:allNextVarsForThisTxn) {
 						FuncDecl rowFunc = objs.getAllNextVars().get(nextVarKey);
-						System.out.println(ctx.mkApp(rowFunc, parentNew));
+						Expr rowAtThisTxn = ctx.mkApp(rowFunc, parentNew);
+						FuncDecl verFunc = objs.getfuncs(rowFunc.getRange()+"_VERSION");
+						System.out.println(verFunc);
 						System.out.println();
 						
 						}
