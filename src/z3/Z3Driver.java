@@ -260,8 +260,8 @@ public class Z3Driver {
 			Sort oSort = objs.getSort("O");
 			objs.addFunc(t.getName() + "_VERSION",
 					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort, oSort }, objs.getSort("BitVec")));
-			objs.addFunc(t.getName() + "_INITIAL_V",
-					ctx.mkFuncDecl(t.getName() + "_INITIAL_V", new Sort[] { tSort }, objs.getSort("BitVec")));
+			//objs.addFunc(t.getName() + "_INITIAL_V",
+			//		ctx.mkFuncDecl(t.getName() + "_INITIAL_V", new Sort[] { tSort }, objs.getSort("BitVec")));
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
 						new Sort[] { tSort, objs.getSort("BitVec") }, objs.getSort(c.getType().toZ3String())));
@@ -632,7 +632,7 @@ public class Z3Driver {
 			slv.push();
 			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, structure, completeStructure,cycleTxns));
 			try {
-				Thread.sleep(1111);
+				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

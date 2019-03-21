@@ -468,10 +468,9 @@ public class DynamicAssertsions {
 	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure,
 			Map<Tuple<String, String>, Set<String>> completeStructure, List<Tuple<String, String>> cycleTxns) {
 
+		// System.out.println("~~~~1:"+completeStructure);
+		// System.out.println("~~~~2:"+cycleTxns);
 
-		//System.out.println("~~~~1:"+completeStructure);
-		//System.out.println("~~~~2:"+cycleTxns);
-		
 		// how many new operations are here to be instantiated?
 		int additionalOperationCount = 0;
 		if (completeStructure != null)
@@ -502,21 +501,19 @@ public class DynamicAssertsions {
 		for (int i = 0; i < length - 1; i++)
 			for (int j = i + 1; j < length; j++)
 				notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(allOs[i], allOs[j]));
-		
-		
-		
+
 		// constraints regarding previously found (unversioned) anomaly (limit the
 		// solutions to equal ones (structurally))
 		BoolExpr prevAnmlExprs[] = null;
 		BoolExpr depExprs[] = new BoolExpr[length];
+		//////////////////////////////
 		// EXACT CYCLE ENFORCEMENT (4)
+		//////////////////////////////
 		if (structure != null && structure.size() > 0 && structure.size() == Os.length) {
-			// prevAnmlExprs (below) will include original Os types (structure.size()
-			// constraints), newly instantiated Os types(additionalOperationCount
-			// constraints) and the fact that the new ones are sibling with
-			// the old ones (additionalOperationCount constraints)
+			// prevAnmlExprs (below) will include original Os types, newly instantiated Os
+			// types and the fact that the new ones are sibling with the old ones
 			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
-					? new BoolExpr[structure.size() + 3 * additionalOperationCount]
+					? new BoolExpr[structure.size() + 2 * additionalOperationCount]
 					: new BoolExpr[structure.size()];
 			iter = 0;
 			FuncDecl otypeFunc = objs.getfuncs("otype");
@@ -527,17 +524,17 @@ public class DynamicAssertsions {
 				prevAnmlExprs[iter++] = lhsX;
 			}
 
-			if (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS) { // these are extra constrinats only for new Ops
+			// These are extra constrinats only for new Ops
+			System.out.println(objs.getAllNextVars());
+			if (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS) {
 				int newOsIter = iter;
 				// add extra constraints on newly instantiated (non-cycle) os --
-				// these nested loops will add 3*additionalOperationCount new constraints
+				// these nested loops will add 2*additionalOperationCount new constraints
 				for (int i = 0; i < structure.size(); i++) {
 					String xs = structure.get(i).y.x;
 					Expr parentOld = objs.getfuncs("parent").apply(Os[i]);
-					//System.out.println("===="+);
-					
+
 					Set<String> newOTypes = completeStructure.get(new Tuple<>(cycleTxns.get(i).x, xs));
-					//System.out.println("-----newOTypes: " + newOTypes);
 					if (newOTypes != null) {
 						for (String newOType : newOTypes) {
 							FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
@@ -545,18 +542,7 @@ public class DynamicAssertsions {
 							Expr parentNew = objs.getfuncs("parent").apply(allOs[iter]);
 							prevAnmlExprs[newOsIter++] = consNewType;
 							prevAnmlExprs[newOsIter++] = ctx.mkEq(parentNew, parentOld);
-							Expr vo1 = ctx.mkFreshConst("o", objs.getSort("O"));
-							BoolExpr body1 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), vo1, allOs[iter]));
-							BoolExpr body2 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("RW_O"), allOs[iter], vo1));
-							BoolExpr body3 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), vo1, allOs[iter]));
-							BoolExpr body4 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WR_O"), allOs[iter], vo1));
-							BoolExpr body5 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), vo1, allOs[iter]));
-							BoolExpr body6 = ctx.mkNot((BoolExpr) ctx.mkApp(objs.getfuncs("WW_O"), allOs[iter], vo1));
-							prevAnmlExprs[newOsIter++] = ctx.mkForall(new Expr[] { vo1 },
-									ctx.mkAnd(body1, body2, body3, body4, body5, body6), 1, null, null, null, null);
 							iter++;
-
-							// (BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), allOs[iter], Os[i]);
 						}
 					}
 				}
