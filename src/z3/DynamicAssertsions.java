@@ -569,10 +569,15 @@ public class DynamicAssertsions {
 				if (newOTypes != null) {
 					for (String newOType : newOTypes) {
 						Expr parentNew = objs.getfuncs("parent").apply(allOs[iter]); // the current transaction
-						String currTxnType = unVersionedAnml.getTypeOfTxnByName(currTxnInsName);
-						List<String> allNextVarsForThisTxn = objs.getAllNextVars().keySet().stream().filter(key -> key.contains(currTxnType)).collect(Collectors.toList());
-						System.out.println("allNextVarsForThisTxn:"+allNextVarsForThisTxn);
+						String currTxnType = unVersionedAnml.getTypeOfTxnByName(currTxnInsName); // the ttype of current transaction
+						List<String> allNextVarsForThisTxn = objs.getAllNextVars().keySet().stream().filter(key -> key.contains(currTxnType)).collect(Collectors.toList()); 
+						for (String nextVarKey:allNextVarsForThisTxn) {
+						FuncDecl rowFunc = objs.getAllNextVars().get(nextVarKey);
+						System.out.println(ctx.mkApp(rowFunc, parentNew));
 						System.out.println();
+						
+						}
+						System.out.println("---");
 						FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
 						BoolExpr consNewType = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrNew));
 
