@@ -482,33 +482,31 @@ public class DynamicAssertsions {
 			isStepTwo = (structure != null && structure.size() > 0 && structure.size() == Os.length);
 		}
 
-		// how many new operations are here to be instantiated?
-		int additionalOperationCount = 0;
-		if (completeStructure != null)
-			for (Set<String> newSet : completeStructure.values())
-				if (newSet != null)
-					additionalOperationCount += newSet.size();
-
-		int totalLength = length + additionalOperationCount;
-
 		// variables for the operations that are part of the cycle
 
 		for (int i = 0; i < length; i++)
 			Os[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 		// variables for the additional ops that are not part of the cycle
-		Expr[] additionalOs = new Expr[additionalOperationCount];
-		for (int i = 0; i < additionalOperationCount; i++)
-			additionalOs[i] = ctx.mkFreshConst("o", objs.getSort("O"));
+
 		// copy the above two arrays into one which will contain all variables
 		// (new/original)
-
 
 		// constraints regarding previously found (unversioned) anomaly (limit the
 		// constraints on vars not being equal
 
 		Quantifier x = null;
 		if (isStepTwo) {
+			// how many new operations are here to be instantiated?
+			int additionalOperationCount = 0;
+			if (completeStructure != null)
+				for (Set<String> newSet : completeStructure.values())
+					if (newSet != null)
+						additionalOperationCount += newSet.size();
+			int totalLength = length + additionalOperationCount;
 			Expr[] allOs = new Expr[totalLength];
+			Expr[] additionalOs = new Expr[additionalOperationCount];
+			for (int i = 0; i < additionalOperationCount; i++)
+				additionalOs[i] = ctx.mkFreshConst("o", objs.getSort("O"));
 			System.arraycopy(Os, 0, allOs, 0, length);
 			System.arraycopy(additionalOs, 0, allOs, length, additionalOperationCount);
 			BoolExpr notEqExprs[] = new BoolExpr[length * (length - 1) / 2];
@@ -516,7 +514,6 @@ public class DynamicAssertsions {
 			for (int i = 0; i < length - 1; i++)
 				for (int j = i + 1; j < length; j++)
 					notEqExprs[iter++] = ctx.mkNot(ctx.mkEq(allOs[i], allOs[j]));
-
 
 			BoolExpr depExprs[] = new BoolExpr[length];
 			BoolExpr prevAnmlExprs[] = null;
