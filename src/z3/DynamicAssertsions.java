@@ -516,7 +516,7 @@ public class DynamicAssertsions {
 																					// the sizes match
 					: new BoolExpr[structure.size()];
 			prepareCompleteCycle(unVersionedAnml, depExprs, prevAnmlExprs, structure, completeStructure, cycleTxns,
-					length, Os, allOs);
+					length, Os, allOs, additionalOs);
 			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs));
 			x = ctx.mkExists(allOs, body, 1, null, null, null, null);
 		} else {
@@ -541,7 +541,7 @@ public class DynamicAssertsions {
 	private void prepareCompleteCycle(Anomaly unVersionedAnml, BoolExpr[] depExprs, BoolExpr[] prevAnmlExprs,
 			List<Tuple<String, Tuple<String, String>>> structure,
 			Map<Tuple<String, String>, Set<String>> completeStructure, List<Tuple<String, String>> cycleTxns,
-			int length, Expr[] Os, Expr[] allOs) {
+			int length, Expr[] Os, Expr[] allOs, Expr[] additionalOs) {
 		// prevAnmlExprs (below) will include original Os types, newly instantiated Os
 		// types and the fact that the new ones are sibling with the old ones
 
@@ -575,19 +575,34 @@ public class DynamicAssertsions {
 						List<String> allNextVarsForThisTxn = objs.getAllNextVars().keySet().stream()
 								.filter(key -> key.contains(currTxnType)).collect(Collectors.toList());
 						BoolExpr[] zeroVerEnforcement = new BoolExpr[allNextVarsForThisTxn.size()];
-						int rowIter = 0;
+						int rowIter = 0; // just to keep the constraints for all rows-next
 						for (String nextVarKey : allNextVarsForThisTxn) {
 							FuncDecl rowFunc = objs.getAllNextVars().get(nextVarKey);
 							Expr rowAtThisTxn = ctx.mkApp(rowFunc, parentNew);
 							FuncDecl verFunc = objs.getfuncs(rowFunc.getRange() + "_VERSION");
+							FuncDecl wrFunc = objs.getfuncs("WR_O_" + rowFunc.getRange());
 							Expr versionAtThisO = ctx.mkApp(verFunc, rowAtThisTxn, thisO);
 							BoolExpr versionConstraint = ctx.mkEq(versionAtThisO,
-									ctx.mkBV(0, ConstantArgs._MAX_VERSIONS_)); 
-							
-							
-							
-							zeroVerEnforcement[rowIter++] = versionConstraint;
+									ctx.mkBV(0, ConstantArgs._MAX_VERSIONS_));
+
+							// construct the constraints regarding wr existence of some other new op to this
+							// one
+							BoolExpr[] wrenforcement = new BoolExpr[additionalOs.length - 1];
+							int weIter = 0;
+							// for all other additional Os, there should be at least one wr to this o
+							for (Expr otherO : additionalOs) // for all other additional Os, there should be at least
+																// one wr to this o
+								if (!thisO.equals(otherO)) {
+									BoolExpr wrVerConstraint = ctx.mkBVSGT((BitVecExpr) ctx.mkApp(verFunc, otherO),
+											ctx.mkBV(0, ConstantArgs._MAX_VERSIONS_));
+									System.out.println("-->"+wrVerConstraint);
+									wrenforcement[weIter++] = (BoolExpr) ctx.mkApp(wrFunc, rowAtThisTxn, otherO, thisO);
+								}
+
+							BoolExpr wrConstraint = ctx.mkOr(wrenforcement);
+							zeroVerEnforcement[rowIter++] = ctx.mkOr(versionConstraint, wrConstraint);
 						}
+
 						System.out.println("---");
 						FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
 						BoolExpr consNewType = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrNew));

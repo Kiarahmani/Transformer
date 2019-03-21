@@ -63,9 +63,8 @@ public class SmallBank {
 	// ***********************************************************************************
 
 	// ************************************************************************************
-	public void depositChecking(String custName, int amount) throws SQLException {
-
-
+	public void depositChecking(int custId, int amount) throws SQLException {
+/*
 		// First convert the custName to the custId
 		PreparedStatement stmt0 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
 		stmt0.setString(1, custName);
@@ -75,14 +74,14 @@ public class SmallBank {
 			System.out.println(msg);
 		}
 		int custId = r0.getInt("custid");
-
+*/
 		// Then update their checking balance
 		PreparedStatement stmt1 = connect.prepareStatement("SELECT bal FROM " + "CHECKING" + " WHERE custid = ?");
 		stmt1.setInt(1, custId);
 		ResultSet r1 = stmt1.executeQuery();
 		r1.next();
 		int old_bal = r1.getInt("bal");
-
+/*
 		if (old_bal > 102) {
 			PreparedStatement stmt2 = connect
 					.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
@@ -91,13 +90,31 @@ public class SmallBank {
 
 			int status = stmt2.executeUpdate();
 		}
-		/*
-		 * PreparedStatement stmt21 = connect .prepareStatement("UPDATE " + "CHECKING" +
-		 * " SET bal = ? " + " WHERE custid = ?"); stmt21.setLong(1, old_bal + amount +
-		 * 100); stmt21.setLong(2, custId + 100);
-		 * 
-		 * int status21 = stmt21.executeUpdate();
-		 */
+
+		PreparedStatement stmt21 = connect
+				.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
+		stmt21.setLong(1, old_bal + amount + 100);
+		stmt21.setLong(2, custId + 100);
+
+		int status21 = stmt21.executeUpdate();
+*/
+	}
+
+	public void XdepositXCheckingX(int custId, int amount) throws SQLException {
+		
+			PreparedStatement stmt2 = connect
+					.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
+			stmt2.setInt(1, amount);
+			stmt2.setInt(2, custId);
+			int status = stmt2.executeUpdate();
+		
+
+		PreparedStatement stmt21 = connect
+				.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");
+		stmt21.setInt(1, amount + 100);
+		stmt21.setInt(2, custId );
+		int status21 = stmt21.executeUpdate();
+
 	}
 
 	// ************************************************************************************

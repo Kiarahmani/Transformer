@@ -147,6 +147,8 @@ public class Anomaly {
 						maxOrderSeen = OpTypeToOrder(thisOType);
 				}
 				final int finalMaxOrderSeen = maxOrderSeen;
+				
+				
 				if (ConstantArgs._INSTANTIATE_PREVIOUS_ONLY)
 					allChildren.removeIf(s -> OpTypeToOrder(s) > finalMaxOrderSeen);
 				txnToLeftAloneChildren.put(t, allChildren);
