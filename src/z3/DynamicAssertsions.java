@@ -510,7 +510,7 @@ public class DynamicAssertsions {
 			BoolExpr depExprs[] = new BoolExpr[length];
 			BoolExpr prevAnmlExprs[] = null;
 			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
-					? new BoolExpr[structure.size() + 2 * additionalOperationCount] // XXX this array is instantiated
+					? new BoolExpr[structure.size() + 3 * additionalOperationCount] // XXX this array is instantiated
 																					// here and populated in
 																					// prepareCompleteCycle : make sure
 																					// the sizes match
@@ -570,15 +570,23 @@ public class DynamicAssertsions {
 					for (String newOType : newOTypes) {
 						Expr thisO = allOs[iter];
 						Expr parentNew = objs.getfuncs("parent").apply(thisO); // the current transaction
-						String currTxnType = unVersionedAnml.getTypeOfTxnByName(currTxnInsName); // the ttype of current transaction
-						List<String> allNextVarsForThisTxn = objs.getAllNextVars().keySet().stream().filter(key -> key.contains(currTxnType)).collect(Collectors.toList()); 
-						for (String nextVarKey:allNextVarsForThisTxn) {
-						FuncDecl rowFunc = objs.getAllNextVars().get(nextVarKey);
-						Expr rowAtThisTxn = ctx.mkApp(rowFunc, parentNew);
-						FuncDecl verFunc = objs.getfuncs(rowFunc.getRange()+"_VERSION");
-						System.out.println(verFunc);
-						System.out.println();
-						
+						String currTxnType = unVersionedAnml.getTypeOfTxnByName(currTxnInsName); // the ttype of current
+																									// transaction
+						List<String> allNextVarsForThisTxn = objs.getAllNextVars().keySet().stream()
+								.filter(key -> key.contains(currTxnType)).collect(Collectors.toList());
+						BoolExpr[] zeroVerEnforcement = new BoolExpr[allNextVarsForThisTxn.size()];
+						int rowIter = 0;
+						for (String nextVarKey : allNextVarsForThisTxn) {
+							FuncDecl rowFunc = objs.getAllNextVars().get(nextVarKey);
+							Expr rowAtThisTxn = ctx.mkApp(rowFunc, parentNew);
+							FuncDecl verFunc = objs.getfuncs(rowFunc.getRange() + "_VERSION");
+							Expr versionAtThisO = ctx.mkApp(verFunc, rowAtThisTxn, thisO);
+							BoolExpr versionConstraint = ctx.mkEq(versionAtThisO,
+									ctx.mkBV(0, ConstantArgs._MAX_VERSIONS_)); 
+							
+							
+							
+							zeroVerEnforcement[rowIter++] = versionConstraint;
 						}
 						System.out.println("---");
 						FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
@@ -586,6 +594,7 @@ public class DynamicAssertsions {
 
 						prevAnmlExprs[newOsIter++] = consNewType;
 						prevAnmlExprs[newOsIter++] = ctx.mkEq(parentNew, parentOld);
+						prevAnmlExprs[newOsIter++] = ctx.mkAnd(zeroVerEnforcement);
 						iter++;
 					}
 				}
