@@ -571,22 +571,7 @@ public class DynamicAssertsions {
 
 			// BASE CYCLE CONSTRAINT (1)
 		} else {
-			int next = 1;
-			String dep = "X";
-			// a base sibling edge must exist
-			depExprs[0] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[0], Os[1]),
-					(BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), Os[0], Os[1]));
-			depExprs[1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[1], Os[2]);
-			depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0]);
-
-			for (int i = 2; i < length - 1; i++) {
-				depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[i + 1]);
-				if (dep.equals("X"))
-					dep = "D";
-				else
-					dep = "X";
-			}
-
+			prepareBasicCycle(depExprs, Os, length);
 		}
 		BoolExpr body = (structure != null && structure.size() > 0 && structure.size() == Os.length)
 				// if it's step 2 of the anlysis (exact cycle generation)
@@ -597,11 +582,27 @@ public class DynamicAssertsions {
 
 	}
 
-	/*
-	 * 
-	 * 
-	 * 
-	 */
+	
+	
+	private void prepareBasicCycle(BoolExpr depExprs[], Expr[] Os, int length) {
+		String dep = "X";
+		// a base sibling edge must exist
+		depExprs[0] = ctx.mkAnd((BoolExpr) ctx.mkApp(objs.getfuncs("X"), Os[0], Os[1]),
+				(BoolExpr) ctx.mkApp(objs.getfuncs("sibling"), Os[0], Os[1]));
+		depExprs[1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[1], Os[2]);
+		depExprs[length - 1] = (BoolExpr) ctx.mkApp(objs.getfuncs("D"), Os[length - 1], Os[0]);
+
+		for (int i = 2; i < length - 1; i++) {
+			depExprs[i] = (BoolExpr) ctx.mkApp(objs.getfuncs(dep), Os[i], Os[i + 1]);
+			if (dep.equals("X"))
+				dep = "D";
+			else
+				dep = "X";
+		}
+	}
+
+
+	
 
 	// LOOSE CYCLE ENFORCEMENT (4)
 	public BoolExpr mk_loose_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure) {
