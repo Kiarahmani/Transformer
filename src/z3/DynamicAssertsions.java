@@ -15,6 +15,7 @@ import com.microsoft.z3.FuncDecl;
 import com.microsoft.z3.Quantifier;
 import com.microsoft.z3.Sort;
 
+import anomaly.Anomaly;
 import exceptions.UnexoectedOrUnhandledConditionalExpression;
 import ir.Application;
 import ir.Transaction;
@@ -465,11 +466,17 @@ public class DynamicAssertsions {
 	}
 
 	// the final assertion, generating a cycle on the dependency graph
-	public BoolExpr mk_cycle(boolean findCore, List<Tuple<String, Tuple<String, String>>> structure,
-			Map<Tuple<String, String>, Set<String>> completeStructure, List<Tuple<String, String>> cycleTxns) {
+	public BoolExpr mk_cycle(boolean findCore, Anomaly unVersionedAnml) {
 
-		// System.out.println("~~~~1:"+completeStructure);
-		// System.out.println("~~~~2:"+cycleTxns);
+		List<Tuple<String, Tuple<String, String>>> structure = null;
+		Map<Tuple<String, String>, Set<String>> completeStructure = null;
+		List<Tuple<String, String>> cycleTxns = null;
+
+		if (unVersionedAnml != null) {
+			structure = unVersionedAnml.getCycleStructure();
+			completeStructure = unVersionedAnml.getCompleteStructure();
+			cycleTxns = unVersionedAnml.getCycleTxns();
+		}
 
 		// how many new operations are here to be instantiated?
 		int additionalOperationCount = 0;

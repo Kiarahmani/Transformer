@@ -592,7 +592,7 @@ public class Z3Driver {
 			// addAssertion("gen_dep_props", staticAssrtions.mk_gen_dep_props());
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
-			addAssertion("base_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, null, null,null));
+			addAssertion("base_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, null));
 			HeaderZ3("EOF");
 			break;
 
@@ -630,7 +630,7 @@ public class Z3Driver {
 			addAssertion("gen_depx", staticAssrtions.mk_gen_depx());
 			// addAssertion("gen_depx_props", staticAssrtions.mk_gen_depx_props());
 			slv.push();
-			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, structure, completeStructure,cycleTxns));
+			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, unVersionedAnml));
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {

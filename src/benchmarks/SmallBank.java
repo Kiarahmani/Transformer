@@ -65,11 +65,6 @@ public class SmallBank {
 	// ************************************************************************************
 	public void depositChecking(String custName, int amount) throws SQLException {
 
-		PreparedStatement stmt10 = connect.prepareStatement("INSERT INTO ACCOUNTS VALUES (1,?)");
-		stmt10.setString(1, "");
-		stmt10.executeUpdate();
-	
-		
 		// First convert the custName to the custId
 		PreparedStatement stmt0 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
 		stmt0.setString(1, custName);
