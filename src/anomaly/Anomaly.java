@@ -227,6 +227,13 @@ public class Anomaly {
 		return null;
 	}
 
+	public String getTypeOfTxnByName(String txnName) {
+		Expr tInstance = this.Ts.stream().filter(t -> t.toString().contains(txnName)).collect(Collectors.toList())
+				.get(0);
+		FuncDecl ttypeFunc = objs.getfuncs("ttype");
+		return this.model.eval(ttypeFunc.apply(tInstance), true).toString();
+	}
+
 	private boolean areSibling(Expr o1, Expr o2) {
 		return (!o1.equals(o2))
 				&& this.parentChildPairs.values().stream().anyMatch(set -> (set.contains(o1) && set.contains(o2)));

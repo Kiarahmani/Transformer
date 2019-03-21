@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.microsoft.z3.ArithExpr;
 import com.microsoft.z3.BitVecExpr;
@@ -509,9 +510,13 @@ public class DynamicAssertsions {
 			BoolExpr depExprs[] = new BoolExpr[length];
 			BoolExpr prevAnmlExprs[] = null;
 			prevAnmlExprs = (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS)
-					? new BoolExpr[structure.size() + 2 * additionalOperationCount]
+					? new BoolExpr[structure.size() + 2 * additionalOperationCount] // XXX this array is instantiated
+																					// here and populated in
+																					// prepareCompleteCycle : make sure
+																					// the sizes match
 					: new BoolExpr[structure.size()];
-			prepareCompleteCycle(depExprs, prevAnmlExprs, structure, completeStructure, cycleTxns, length, Os, allOs);
+			prepareCompleteCycle(unVersionedAnml, depExprs, prevAnmlExprs, structure, completeStructure, cycleTxns,
+					length, Os, allOs);
 			BoolExpr body = ctx.mkAnd(ctx.mkAnd(notEqExprs), ctx.mkAnd(prevAnmlExprs), ctx.mkAnd(depExprs));
 			x = ctx.mkExists(allOs, body, 1, null, null, null, null);
 		} else {
@@ -533,7 +538,7 @@ public class DynamicAssertsions {
 	// Helping function which returns additional conditions for a complete structure
 	// of cycles that must be enforced
 	// used in: mk_cycle
-	private void prepareCompleteCycle(BoolExpr[] depExprs, BoolExpr[] prevAnmlExprs,
+	private void prepareCompleteCycle(Anomaly unVersionedAnml, BoolExpr[] depExprs, BoolExpr[] prevAnmlExprs,
 			List<Tuple<String, Tuple<String, String>>> structure,
 			Map<Tuple<String, String>, Set<String>> completeStructure, List<Tuple<String, String>> cycleTxns,
 			int length, Expr[] Os, Expr[] allOs) {
@@ -549,8 +554,8 @@ public class DynamicAssertsions {
 			prevAnmlExprs[iter++] = lhsX;
 		}
 
+		// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		// These are extra constrinats only for new Ops
-		System.out.println(objs.getAllNextVars());
 		if (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS) {
 			int newOsIter = iter;
 			// add extra constraints on newly instantiated (non-cycle) os --
@@ -558,13 +563,19 @@ public class DynamicAssertsions {
 			for (int i = 0; i < structure.size(); i++) {
 				String xs = structure.get(i).y.x;
 				Expr parentOld = objs.getfuncs("parent").apply(Os[i]);
-
-				Set<String> newOTypes = completeStructure.get(new Tuple<>(cycleTxns.get(i).x, xs));
+				String currTxnInsName = cycleTxns.get(i).x;
+				Set<String> newOTypes = completeStructure.get(new Tuple<>(currTxnInsName, xs));
+				// build additional operations on top of a node in the basic cycle
 				if (newOTypes != null) {
 					for (String newOType : newOTypes) {
+						Expr parentNew = objs.getfuncs("parent").apply(allOs[iter]); // the current transaction
+						String currTxnType = unVersionedAnml.getTypeOfTxnByName(currTxnInsName);
+						List<String> allNextVarsForThisTxn = objs.getAllNextVars().keySet().stream().filter(key -> key.contains(currTxnType)).collect(Collectors.toList());
+						System.out.println("allNextVarsForThisTxn:"+allNextVarsForThisTxn);
+						System.out.println();
 						FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
 						BoolExpr consNewType = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrNew));
-						Expr parentNew = objs.getfuncs("parent").apply(allOs[iter]);
+
 						prevAnmlExprs[newOsIter++] = consNewType;
 						prevAnmlExprs[newOsIter++] = ctx.mkEq(parentNew, parentOld);
 						iter++;
@@ -572,6 +583,7 @@ public class DynamicAssertsions {
 				}
 			}
 		}
+		// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		// circular constraints
 		for (int i = 0; i < length - 1; i++) {
 			String op = structure.get(i).x.equals("sibling") ? "sibling" : structure.get(i).x + "_O";
