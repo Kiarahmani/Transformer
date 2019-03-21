@@ -76,9 +76,9 @@ public class SmallBank {
 		int custId = r0.getInt("custid");
 */
 		// Then update their checking balance
-		PreparedStatement stmt0 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE id = 5");
-		stmt0.setString(1, "koon");
-		stmt0.executeUpdate();
+//		PreparedStatement stmt0 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE id = 5");
+	//	stmt0.setString(1, "kos");
+	//	stmt0.executeUpdate();
 		
 		// First convert the custName to the custId
 				PreparedStatement stmt01 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
@@ -121,9 +121,9 @@ public class SmallBank {
 		
 		
 		// Then update their checking balance
-		PreparedStatement stmt10 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE id = 5");
-		stmt10.setString(1, custName);
-		stmt10.executeUpdate();
+	//	PreparedStatement stmt10 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE id = 5");
+	//	stmt10.setString(1, "kos");
+	//	stmt10.executeUpdate();
 		
 		// First convert the custName to the custId
 		PreparedStatement stmt01 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");

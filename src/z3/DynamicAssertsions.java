@@ -588,18 +588,24 @@ public class DynamicAssertsions {
 							// construct the constraints regarding wr existence of some other new op to this
 							// one
 							BoolExpr[] wrenforcement = new BoolExpr[additionalOs.length - 1];
+							BoolExpr[] mustHaveWRs = new BoolExpr[additionalOs.length - 1];
 							int weIter = 0;
 							// for all other additional Os, there should be at least one wr to this o
-							for (Expr otherO : additionalOs) // for all other additional Os, there should be at least
-																// one wr to this o
+							for (Expr otherO : additionalOs)
 								if (!thisO.equals(otherO)) {
-									BoolExpr wrVerConstraint = ctx.mkBVSGT((BitVecExpr) ctx.mkApp(verFunc,rowAtThisTxn, otherO),
-											ctx.mkBV(0, ConstantArgs._MAX_VERSIONS_));
-									wrenforcement[weIter++] = (BoolExpr) ctx.mkApp(wrFunc, rowAtThisTxn, otherO, thisO);
+									wrenforcement[weIter] = (BoolExpr) ctx.mkApp(wrFunc, rowAtThisTxn, otherO, thisO);
+									FuncDecl is_update = objs.getfuncs("is_update");
+									BoolExpr otherIsUpdate = (BoolExpr) ctx.mkApp(is_update, otherO);
+									BoolExpr thisIsUpdate = (BoolExpr) ctx.mkApp(is_update, thisO);
+									mustHaveWRs[weIter] = ctx.mkImplies(
+											ctx.mkAnd(ctx.mkNot(thisIsUpdate), otherIsUpdate), wrenforcement[weIter]);
+									weIter++;
 								}
 
 							BoolExpr wrConstraint = ctx.mkOr(wrenforcement);
-							zeroVerEnforcement[rowIter++] = ctx.mkOr(versionConstraint, wrConstraint);
+							BoolExpr thenWR = ctx.mkAnd(mustHaveWRs);
+							zeroVerEnforcement[rowIter++] = ctx.mkAnd(ctx.mkOr(versionConstraint, wrConstraint),
+									thenWR);
 						}
 
 						FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
