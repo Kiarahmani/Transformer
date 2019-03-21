@@ -632,7 +632,7 @@ public class Z3Driver {
 			slv.push();
 			addAssertion("exact_cycle_enforcement", dynamicAssertions.mk_cycle(findCore, unVersionedAnml));
 			try {
-				Thread.sleep(1111);
+				Thread.sleep(0);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

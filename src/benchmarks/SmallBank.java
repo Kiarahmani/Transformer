@@ -63,7 +63,7 @@ public class SmallBank {
 	// ***********************************************************************************
 
 	// ************************************************************************************
-	public void depositChecking(int custId, int amount) throws SQLException {
+	public void depositChecking( int amount) throws SQLException {
 /*
 		// First convert the custName to the custId
 		PreparedStatement stmt0 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
@@ -76,11 +76,28 @@ public class SmallBank {
 		int custId = r0.getInt("custid");
 */
 		// Then update their checking balance
+		PreparedStatement stmt0 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE id = 5");
+		stmt0.setString(1, "koon");
+		stmt0.executeUpdate();
+		
+		// First convert the custName to the custId
+				PreparedStatement stmt01 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
+				stmt01.setString(1, "kos");
+				ResultSet r01 = stmt01.executeQuery();
+				if (r01.next() == false) {
+					String msg = "Invalid account '"  + "'";
+					System.out.println(msg);
+				}
+				int custId = r01.getInt("custid");
+
+		if (custId == 5) {
 		PreparedStatement stmt1 = connect.prepareStatement("SELECT bal FROM " + "CHECKING" + " WHERE custid = ?");
 		stmt1.setInt(1, custId);
 		ResultSet r1 = stmt1.executeQuery();
 		r1.next();
 		int old_bal = r1.getInt("bal");
+		
+		}
 /*
 		if (old_bal > 102) {
 			PreparedStatement stmt2 = connect
@@ -100,7 +117,23 @@ public class SmallBank {
 */
 	}
 
-	public void XdepositXCheckingX(int custId, int amount) throws SQLException {
+	public void XdepositXCheckingX(String custName, int amount) throws SQLException {
+		
+		
+		// Then update their checking balance
+		PreparedStatement stmt10 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE id = 5");
+		stmt10.setString(1, custName);
+		stmt10.executeUpdate();
+		
+		// First convert the custName to the custId
+		PreparedStatement stmt01 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
+		stmt01.setString(1, "kos");
+		ResultSet r01 = stmt01.executeQuery();
+		if (r01.next() == false) {
+			String msg = "Invalid account '" + custName + "'";
+			System.out.println(msg);
+		}
+		int custId = r01.getInt("custid");
 		
 			PreparedStatement stmt2 = connect
 					.prepareStatement("UPDATE " + "CHECKING" + " SET bal = ? " + " WHERE custid = ?");

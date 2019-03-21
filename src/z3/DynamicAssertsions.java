@@ -593,9 +593,8 @@ public class DynamicAssertsions {
 							for (Expr otherO : additionalOs) // for all other additional Os, there should be at least
 																// one wr to this o
 								if (!thisO.equals(otherO)) {
-									BoolExpr wrVerConstraint = ctx.mkBVSGT((BitVecExpr) ctx.mkApp(verFunc, otherO),
+									BoolExpr wrVerConstraint = ctx.mkBVSGT((BitVecExpr) ctx.mkApp(verFunc,rowAtThisTxn, otherO),
 											ctx.mkBV(0, ConstantArgs._MAX_VERSIONS_));
-									System.out.println("-->"+wrVerConstraint);
 									wrenforcement[weIter++] = (BoolExpr) ctx.mkApp(wrFunc, rowAtThisTxn, otherO, thisO);
 								}
 
@@ -603,7 +602,6 @@ public class DynamicAssertsions {
 							zeroVerEnforcement[rowIter++] = ctx.mkOr(versionConstraint, wrConstraint);
 						}
 
-						System.out.println("---");
 						FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
 						BoolExpr consNewType = ctx.mkEq(ctx.mkApp(otypeFunc, allOs[iter]), ctx.mkApp(cnstrNew));
 
