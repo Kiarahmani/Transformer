@@ -617,9 +617,7 @@ public class Z3Driver {
 			} catch (UnexoectedOrUnhandledConditionalExpression e) {
 				e.printStackTrace();
 			}
-			List<Tuple<String, Tuple<String, String>>> structure = unVersionedAnml.getCycleStructure();
-			Map<Tuple<String,String>, Set<String>> completeStructure = unVersionedAnml.getCompleteStructure();
-			List<Tuple<String, String>> cycleTxns = unVersionedAnml.getCycleTxns();
+
 
 			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
 				addAssertion("versioning_props" + (iter++), ass);

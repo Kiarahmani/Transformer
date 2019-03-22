@@ -276,7 +276,7 @@ public class Rules {
 		return versionConds;
 	}
 
-	private BoolExpr[] getVersionCondsWR(Transaction txn, Expr t, Expr o, Query q, Expr rowVar)
+	public BoolExpr[] getVersionCondsWR(Transaction txn, Expr t, Expr o, Query q, Expr rowVar)
 			throws UnexoectedOrUnhandledConditionalExpression {
 		Map<Column, Expression> updateFuncs = q.getU_updates();
 		String tableName = q.getTable().getName();

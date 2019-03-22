@@ -591,21 +591,23 @@ public class DynamicAssertsions {
 								.filter(key -> key.contains(currTxnType)).collect(Collectors.toList());
 						BoolExpr[] zeroVerEnforcement = new BoolExpr[allNextVarsForThisTxn.size()];
 						int rowIter = 0; // just to keep the constraints for all rows-next
+						// iterate over all ...-next variables
 						for (String nextVarKey : allNextVarsForThisTxn) {
 							FuncDecl rowFunc = objs.getAllNextVars().get(nextVarKey);
 							Expr rowAtThisTxn = ctx.mkApp(rowFunc, parentNew);
-							FuncDecl verFunc = objs.getfuncs(rowFunc.getRange() + "_VERSION");
-							FuncDecl wrFunc = objs.getfuncs("WR_O_" + rowFunc.getRange());
+							String tableName = rowFunc.getRange().toString();
+							FuncDecl verFunc = objs.getfuncs(tableName + "_VERSION");
+							FuncDecl wrFunc = objs.getfuncs("WR_O_" + tableName);
 							Expr versionAtThisO = ctx.mkApp(verFunc, rowAtThisTxn, thisO);
 							BoolExpr versionConstraint = ctx.mkEq(versionAtThisO,
 									ctx.mkBV(0, ConstantArgs._MAX_VERSIONS_));
 
 							// construct the constraints regarding wr existence of some other new op to this
-							// one
 							BoolExpr[] wrenforcement = new BoolExpr[additionalOs.length - 1];
+							// additional constraints *enforcing* existence of wr under certain conditions
 							BoolExpr[] mustHaveWRs = new BoolExpr[additionalOs.length - 1];
 							int weIter = 0;
-							// for all other additional Os, there should be at least one wr to this o?
+							// i all other additional Os
 							for (Expr otherO : additionalOs)
 								if (!thisO.equals(otherO)) {
 									wrenforcement[weIter] = (BoolExpr) ctx.mkApp(wrFunc, rowAtThisTxn, otherO, thisO);
@@ -623,36 +625,55 @@ public class DynamicAssertsions {
 									Query otherQuery = (((InvokeStmt) otherTxn.getStmtByType(otherOType)).getQuery());
 									BoolExpr thisWhereClause = ctx.mkFalse();
 									BoolExpr otherWhereClause = ctx.mkFalse();
+									Expr otherParent = objs.getfuncs("parent").apply(otherO);
+									BoolExpr allVersionConds = ctx.mkTrue();
+									// construct the pre conditions in order to enforce a wr edge
 									if (thisQuery.getTable().getName().equals(otherQuery.getTable().getName())) {
-										if (thisQuery.getTable().getName().equals(rowFunc.getRange().toString())) {
+										if (thisQuery.getTable().getName().equals(tableName)) {
 											try {
-												// System.out.println("row Range "+rowFunc.getRange());
-												// System.out.println("this: " + thisOType);
-												// System.out.println("this query:  "+thisQuery);
-												// System.out.println("other query: "+otherQuery);
-												// System.out.println("other: " + otherOType);
+												// evaluate the extracted queries
 												thisWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(thisTxn.getName(),
 														parentNew, rowAtThisTxn, thisO, thisQuery.getWhClause());
-
 												otherWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(otherTxn.getName(),
-														objs.getfuncs("parent").apply(otherO), rowAtThisTxn, otherO,
-														otherQuery.getWhClause());
-												 System.out.println("===this WH value\n" + thisWhereClause);
-												 System.out.println("===other WH value\n" + thisWhereClause);
+														otherParent, rowAtThisTxn, otherO, otherQuery.getWhClause());
+												// relate the conflicting row the values that are being updated at the other node
+												if (otherQuery.getKind() == Kind.UPDATE) {
+													Map<Column, Expression> updateFuncs = otherQuery.getU_updates();
+													BoolExpr[] versionConds = new BoolExpr[updateFuncs.size() + 1];
+													int iter96 = 0;
+													for (Column c : updateFuncs.keySet()) {
+														FuncDecl projFunc = objs.getfuncs(tableName + "_PROJ_" + c);
+														Expr lhsVal = ctx.mkApp(projFunc, rowAtThisTxn,
+																(ctx.mkApp(verFunc, rowAtThisTxn, otherO)));
+														Expression rhsVal = updateFuncs.get(c);
+														try {
+															versionConds[iter96++] = (ctx.mkEq(
+																	z3Util.irCondToZ3Expr(otherTxn.getName(),
+																			otherParent, rowAtThisTxn, otherO, rhsVal),
+																	lhsVal));
+														} catch (Exception e) {
+														}
+													}
+													versionConds[iter96++] = ctx.mkEq(
+															verFunc.apply(rowAtThisTxn, otherO),
+															verFunc.apply(rowAtThisTxn, thisO));
+													allVersionConds = ctx.mkAnd(versionConds);
+												}
 											} catch (UnexoectedOrUnhandledConditionalExpression e) {
 												e.printStackTrace();
 											}
 
 										}
 									}
-									System.out.println("\n\n---\n\n");
 									FuncDecl is_update = objs.getfuncs("is_update");
 									BoolExpr otherIsUpdate = (BoolExpr) ctx.mkApp(is_update, otherO);
 									BoolExpr thisIsUpdate = (BoolExpr) ctx.mkApp(is_update, thisO);
 									BoolExpr otherIsVisibleToThis = (BoolExpr) ctx.mkApp(objs.getfuncs("vis"), otherO,
 											thisO);
-									BoolExpr wePreCond = ctx.mkAnd(otherIsVisibleToThis, ctx.mkNot(thisIsUpdate),
-											otherIsUpdate, thisWhereClause, otherWhereClause);
+
+									BoolExpr wePreCond = ctx.mkAnd(allVersionConds, otherIsVisibleToThis,
+											ctx.mkNot(thisIsUpdate), otherIsUpdate, thisWhereClause, otherWhereClause);
+
 									mustHaveWRs[weIter] = ctx.mkAnd(ctx.mkImplies(wePreCond, wrenforcement[weIter]),
 											ctx.mkImplies(ctx.mkNot(wePreCond), versionConstraint));
 									weIter++;

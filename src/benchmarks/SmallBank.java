@@ -63,13 +63,9 @@ public class SmallBank {
 	// ***********************************************************************************
 
 	// ************************************************************************************
-	public void depositChecking(int amount) throws SQLException {
+	public void depositChecking(int id, int amount) throws SQLException {
 
-		// Then update their checking balance
-	 	PreparedStatement stmt0 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE custid = ?");
-		stmt0.setString(1, "kos");
-		stmt0.setInt(2, 5);
-		stmt0.executeUpdate();
+
 
 		// First convert the custName to the custId
 	//	PreparedStatement stmt01 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
@@ -83,7 +79,7 @@ public class SmallBank {
 
 		//if (custId == 5) {
 			PreparedStatement stmt1 = connect.prepareStatement("SELECT bal FROM " + "CHECKING" + " WHERE custid = ?");
-			stmt1.setInt(1, 5);
+			stmt1.setInt(1, id);
 			ResultSet r1 = stmt1.executeQuery();
 			r1.next();
 			int old_bal = r1.getInt("bal");
@@ -94,18 +90,11 @@ public class SmallBank {
 
 	public void XdepositXCheckingX(String custName, int amount) throws SQLException {
 
-		// Then update their checking balance
 
-		// Then update their checking balance
-	 	PreparedStatement stmt0 = connect.prepareStatement("UPDATE ACCOUNTS SET name = ? WHERE custid = ?");
-		stmt0.setString(1, "KIRI");
-		stmt0.setInt(2, 5);
-		stmt0.executeUpdate();
-		
 		
 		// First convert the custName to the custId
 		PreparedStatement stmt01 = connect.prepareStatement("SELECT * FROM " + "ACCOUNTS" + " WHERE name = ?");
-		stmt01.setString(1, "kos");
+		stmt01.setString(1, custName);
 		ResultSet r01 = stmt01.executeQuery();
 		if (r01.next() == false) {
 			String msg = "Invalid account '" + custName + "'";
