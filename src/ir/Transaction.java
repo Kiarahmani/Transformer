@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import ir.expression.Expression;
 import ir.expression.vals.ParamValExp;
@@ -38,6 +39,24 @@ public class Transaction {
 
 	public void addStmt(Statement stmt) {
 		this.stmts.add(stmt);
+	}
+
+	public Statement getStmtByType(String type) {
+		List<InvokeStmt> invokations = new ArrayList<InvokeStmt>();
+		for (Statement s : this.stmts)
+			try {
+				InvokeStmt is = (InvokeStmt) s;
+				invokations.add(is);
+			} catch (Exception e) {
+			}
+
+		List<InvokeStmt> x = invokations.stream().filter(invk -> invk.getType().toString().equals(type))
+				.collect(Collectors.toList());
+		if (x.size() > 0)
+			return x.get(0);
+		else
+			return null;
+
 	}
 
 	public void setTypes() {

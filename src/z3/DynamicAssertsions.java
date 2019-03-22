@@ -2,6 +2,7 @@ package z3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -547,6 +548,7 @@ public class DynamicAssertsions {
 
 		int iter = 0;
 		FuncDecl otypeFunc = objs.getfuncs("otype");
+		FuncDecl ttypeFunc = objs.getfuncs("ttype");
 		for (int i = 0; i < structure.size(); i++) {
 			String xs = structure.get(i).y.x;
 			FuncDecl cnstrX = objs.getConstructor("OType", xs.substring(1, xs.length() - 1));
@@ -558,6 +560,19 @@ public class DynamicAssertsions {
 		// These are extra constrinats only for new Ops
 		if (ConstantArgs._INSTANTIATE_NON_CYCLE_OPS) {
 			int newOsIter = iter;
+
+			// just to make a mapping to be used in the next loop(s)
+			Map<Expr, String> additionalOsToTypes = new HashMap<>();
+			int mapIter = iter;
+			for (int i = 0; i < structure.size(); i++) {
+				String xs = structure.get(i).y.x;
+				String currTxnInsName = cycleTxns.get(i).x;
+				Set<String> newOTypes = completeStructure.get(new Tuple<>(currTxnInsName, xs));
+				if (newOTypes != null)
+					for (String newOType : newOTypes)
+						additionalOsToTypes.put(allOs[mapIter++], newOType);
+
+			}
 			// add extra constraints on newly instantiated (non-cycle) os --
 			// these nested loops will add 2*additionalOperationCount new constraints
 			for (int i = 0; i < structure.size(); i++) {
@@ -590,22 +605,62 @@ public class DynamicAssertsions {
 							BoolExpr[] wrenforcement = new BoolExpr[additionalOs.length - 1];
 							BoolExpr[] mustHaveWRs = new BoolExpr[additionalOs.length - 1];
 							int weIter = 0;
-							// for all other additional Os, there should be at least one wr to this o
+							// for all other additional Os, there should be at least one wr to this o?
 							for (Expr otherO : additionalOs)
 								if (!thisO.equals(otherO)) {
 									wrenforcement[weIter] = (BoolExpr) ctx.mkApp(wrFunc, rowAtThisTxn, otherO, thisO);
+
+									// XXX here I will try to extract the where clauses and generate appropriate
+									// constraints
+									String thisOType = additionalOsToTypes.get(thisO);
+									String otherOType = additionalOsToTypes.get(otherO);
+									Transaction otherTxn = app
+											.getTxnByName(otherOType.substring(0, otherOType.indexOf('-')));
+									Transaction thisTxn = app
+											.getTxnByName(thisOType.substring(0, thisOType.indexOf('-')));
+
+									Query thisQuery = ((InvokeStmt) thisTxn.getStmtByType(thisOType)).getQuery();
+									Query otherQuery = (((InvokeStmt) otherTxn.getStmtByType(otherOType)).getQuery());
+									BoolExpr thisWhereClause = ctx.mkFalse();
+									BoolExpr otherWhereClause = ctx.mkFalse();
+									if (thisQuery.getTable().getName().equals(otherQuery.getTable().getName())) {
+										if (thisQuery.getTable().getName().equals(rowFunc.getRange().toString())) {
+											try {
+												// System.out.println("row Range "+rowFunc.getRange());
+												// System.out.println("this: " + thisOType);
+												// System.out.println("this query:  "+thisQuery);
+												// System.out.println("other query: "+otherQuery);
+												// System.out.println("other: " + otherOType);
+												thisWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(thisTxn.getName(),
+														parentNew, rowAtThisTxn, thisO, thisQuery.getWhClause());
+
+												otherWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(otherTxn.getName(),
+														objs.getfuncs("parent").apply(otherO), rowAtThisTxn, otherO,
+														otherQuery.getWhClause());
+												 System.out.println("===this WH value\n" + thisWhereClause);
+												 System.out.println("===other WH value\n" + thisWhereClause);
+											} catch (UnexoectedOrUnhandledConditionalExpression e) {
+												e.printStackTrace();
+											}
+
+										}
+									}
+									System.out.println("\n\n---\n\n");
 									FuncDecl is_update = objs.getfuncs("is_update");
 									BoolExpr otherIsUpdate = (BoolExpr) ctx.mkApp(is_update, otherO);
 									BoolExpr thisIsUpdate = (BoolExpr) ctx.mkApp(is_update, thisO);
-									mustHaveWRs[weIter] = ctx.mkImplies(
-											ctx.mkAnd(ctx.mkNot(thisIsUpdate), otherIsUpdate), wrenforcement[weIter]);
+									BoolExpr otherIsVisibleToThis = (BoolExpr) ctx.mkApp(objs.getfuncs("vis"), otherO,
+											thisO);
+									BoolExpr wePreCond = ctx.mkAnd(otherIsVisibleToThis, ctx.mkNot(thisIsUpdate),
+											otherIsUpdate, thisWhereClause, otherWhereClause);
+									mustHaveWRs[weIter] = ctx.mkAnd(ctx.mkImplies(wePreCond, wrenforcement[weIter]),
+											ctx.mkImplies(ctx.mkNot(wePreCond), versionConstraint));
 									weIter++;
 								}
 
 							BoolExpr wrConstraint = ctx.mkOr(wrenforcement);
 							BoolExpr thenWR = ctx.mkAnd(mustHaveWRs);
-							zeroVerEnforcement[rowIter++] = ctx.mkAnd(ctx.mkOr(versionConstraint, wrConstraint),
-									thenWR);
+							zeroVerEnforcement[rowIter++] = thenWR;
 						}
 
 						FuncDecl cnstrNew = objs.getConstructor("OType", newOType);
