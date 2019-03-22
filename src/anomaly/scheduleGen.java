@@ -116,20 +116,22 @@ public class scheduleGen {
 			}
 			for (Expr r : allRs) {
 				System.out.println("-------" + r.toString().replaceAll("!val!", "#"));
-				for (int i = 0; i < 8; i++) {
+				for (int i = 0; i < (Math.pow(2, ConstantArgs._MAX_VERSIONS_)); i++) {
 					delim = "";
-
 					String columnVals = "(";
 					String header = "V" + i + ": ";
 					for (Column column : t.getColumns()) {
-						columnNames += (delim + column.name);
+						//columnNames += (delim + column.name);
 						FuncDecl projFunc = objs.getfuncs(t.getName() + "_PROJ_" + column.name);
 						String val = model.eval(projFunc.apply(r, ctx.mkBV(i, ConstantArgs._MAX_VERSIONS_)), true)
 								.toString();
 						columnVals += (delim + val);
 						delim = ",";
 					}
-					System.out.println(header + columnVals + ")");
+					if (i == 0) {
+						printer.append("\nINSERT INTO testks." + t.getName().toUpperCase() + columnNames+ ")" + " VALUES" + columnVals+ ")" + ";");
+					}
+						System.out.println(header + columnVals + ")");
 				}
 
 			}
@@ -181,7 +183,7 @@ public class scheduleGen {
 			String tableName = dataElement.x;
 			String Cnames = dataElement.y.x;
 			String Vals = dataElement.y.y;
-			printer.append("INSERT INTO testks." + tableName.toUpperCase() + Cnames + " VALUES" + Vals + ";");
+			printer.append("\nINSERT INTO testks." + tableName.toUpperCase() + Cnames + " VALUES" + Vals + ";");
 			printer.flush();
 		}
 
