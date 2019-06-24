@@ -29,6 +29,7 @@ import ir.statement.InvokeStmt;
 import ir.statement.Statement;
 import soot.Value;
 import utils.Tuple;
+import z3.initialConstraints.InitialAssertions;
 
 public class Z3Driver {
 	int _MAX_VERSIONS = 2;
@@ -40,6 +41,7 @@ public class Z3Driver {
 	Model model;
 	DeclaredObjects objs;
 	StaticAssertions staticAssrtions;
+	InitialAssertions initialAssrtions;
 	DynamicAssertsions dynamicAssertions;
 	Rules ruleGenerator;
 	// a log file containing all assertions and defs for debugging
@@ -52,7 +54,6 @@ public class Z3Driver {
 
 	// constructor
 	public Z3Driver(Application app, ArrayList<Table> tables, boolean findCore) {
-
 		this.findCore = findCore;
 		this.app = app;
 		this.tables = tables;
@@ -75,6 +76,7 @@ public class Z3Driver {
 		this.objs = new DeclaredObjects(printer);
 		ctxInitializeSorts();
 		this.staticAssrtions = new StaticAssertions(ctx, objs);
+		this.initialAssrtions = new InitialAssertions(ctx, objs);
 		this.dynamicAssertions = new DynamicAssertsions(ctx, objs, this.app);
 		this.ruleGenerator = new Rules(ctx, objs, this.app, this.tables);
 
@@ -260,8 +262,9 @@ public class Z3Driver {
 			Sort oSort = objs.getSort("O");
 			objs.addFunc(t.getName() + "_VERSION",
 					ctx.mkFuncDecl(t.getName() + "_VERSION", new Sort[] { tSort, oSort }, objs.getSort("BitVec")));
-			//objs.addFunc(t.getName() + "_INITIAL_V",
-			//		ctx.mkFuncDecl(t.getName() + "_INITIAL_V", new Sort[] { tSort }, objs.getSort("BitVec")));
+			// objs.addFunc(t.getName() + "_INITIAL_V",
+			// ctx.mkFuncDecl(t.getName() + "_INITIAL_V", new Sort[] { tSort },
+			// objs.getSort("BitVec")));
 			for (Column c : t.getColumns())
 				objs.addFunc(t.getName() + "_PROJ_" + c.getName(), ctx.mkFuncDecl(t.getName() + "_PROJ_" + c.getName(),
 						new Sort[] { tSort, objs.getSort("BitVec") }, objs.getSort(c.getType().toZ3String())));
@@ -296,6 +299,10 @@ public class Z3Driver {
 
 		}
 		// =====================================================================================================================================================
+
+		HeaderZ3("Initial Assertions");
+		// initial assertions
+		//addAssertion("all_logs_greater_than_zero", initialAssrtions.mk_all_logs_greater_than_zero());
 
 		// =====================================================================================================================================================
 
@@ -617,7 +624,6 @@ public class Z3Driver {
 			} catch (UnexoectedOrUnhandledConditionalExpression e) {
 				e.printStackTrace();
 			}
-
 
 			for (BoolExpr ass : dynamicAssertions.mk_versioning_props(tables))
 				addAssertion("versioning_props" + (iter++), ass);

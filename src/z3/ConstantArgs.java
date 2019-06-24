@@ -16,8 +16,8 @@ public class ConstantArgs {
 	 * 
 	 */
 	public static String _TESTS_OR_BENCHMARKS = "benchmarks.";
-	public static String _DDL_FILE = "ddl_small_bank.sql";
-	public static String _BENCHMARK_NAME = "SmallBank";
+	public static String _DDL_FILE = "ddl_logging.sql";
+	public static String _BENCHMARK_NAME = "logging";
 	public static List<String> _EXCLUDED_TXNS = Arrays.asList("initialize");
 
 	/*

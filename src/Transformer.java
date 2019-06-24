@@ -49,12 +49,9 @@ public class Transformer extends BodyTransformer {
 		Map<String, String> modifiedOptions = new HashMap<String, String>();
 		for (String option : options.keySet())
 			modifiedOptions.put(option, options.get(option));
-		
-		
-		
-		
+
 		modifiedOptions.put("use-original-names", "true");
-		//System.out.println("===: " + modifiedOptions);
+		// System.out.println("===: " + modifiedOptions);
 		ir = CFGIntermediateRep.getIR(PhaseOptions.getString(modifiedOptions, irOptionName));
 		// Options.v().set_output_format(Options.output_format_dex);
 		Body body = ir.getBody((JimpleBody) b);
@@ -121,16 +118,17 @@ public class Transformer extends BodyTransformer {
 				for (Set<Table> includedTables : getAllTablesPerms(tables, currentRowInstLimit)) {
 					ConstantArgs._Current_Cycle_Length = ConstantArgs._Minimum_Cycle_Length;
 					// cycle length
-					
+
 					// XXX
 					// XXX temp hack to skip non interesting cases for debugging
-					
-					if (!includedTables.stream().findAny().get().getName().equalsIgnoreCase("CHECKING"))
-						continue;
-					
+
+					// if
+					// (!includedTables.stream().findAny().get().getName().equalsIgnoreCase("CHECKING"))
+					// continue;
+
 					// XXX
 					// XXX
-					
+
 					do {
 						try {
 							save(seenStructures);
@@ -138,7 +136,7 @@ public class Transformer extends BodyTransformer {
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-									
+
 						anml2 = null;
 						long step1Begin = System.currentTimeMillis();
 						long step1Time = -100000, step2Time = 0;
@@ -180,8 +178,7 @@ public class Transformer extends BodyTransformer {
 									writeToCSV(seenStructures.size(), iter - 1, anml2);
 									anml2.addData("\\l" + config + "\\l");
 									System.out.println(runTimeFooter(step1Time, step2Time));
-									
-									
+
 									// inner iterations pushing Z3 into finding similar anoamlies together
 									// the core anomaly if this class:
 									if (ConstantArgs._ENFORCE_OPTIMIZED_ALGORITHM) {
@@ -203,7 +200,7 @@ public class Transformer extends BodyTransformer {
 											anml3 = zdr.analyze(4, null, seenAnmls, includedTables, anml3);
 										}
 									}
-									
+
 									anml1.closeCtx();
 								}
 							}
@@ -211,8 +208,14 @@ public class Transformer extends BodyTransformer {
 							zdr.closeCtx();
 						// update global variables for the next round
 						if (ConstantArgs._ENFORCE_EXCLUSION) {
+							if( ConstantArgs._ENFORCE_ROW_INSTANCE_LIMITS) {
 							if (anml2 == null) // keep the length unchanged untill all of this length is found
 								ConstantArgs._Current_Cycle_Length++;
+							}else {
+								if (anml2 == null && anml1 == null) // keep the length unchanged untill all of this length is found
+									ConstantArgs._Current_Cycle_Length++;
+							}
+							
 						} else {
 							ConstantArgs._Current_Cycle_Length++;
 							anml2.closeCtx();

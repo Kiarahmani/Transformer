@@ -632,12 +632,17 @@ public class DynamicAssertsions {
 										if (thisQuery.getTable().getName().equals(tableName)) {
 											try {
 												// evaluate the extracted queries
-												thisWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(thisTxn.getName(),
-														parentNew, rowAtThisTxn, thisO, thisQuery.getWhClause());
-												otherWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(otherTxn.getName(),
-														otherParent, rowAtThisTxn, otherO, otherQuery.getWhClause());
-												// relate the conflicting row the values that are being updated at the other node
 												if (otherQuery.getKind() == Kind.UPDATE) {
+
+													thisWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(
+															thisTxn.getName(), parentNew, rowAtThisTxn, thisO,
+															thisQuery.getWhClause());
+													otherWhereClause = (BoolExpr) z3Util.irCondToZ3Expr(
+															otherTxn.getName(), otherParent, rowAtThisTxn, otherO,
+															otherQuery.getWhClause());
+													// relate the conflicting row the values that are being updated at
+													// the other node
+
 													Map<Column, Expression> updateFuncs = otherQuery.getU_updates();
 													BoolExpr[] versionConds = new BoolExpr[updateFuncs.size() + 1];
 													int iter96 = 0;

@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class TWITTER {
+public class Twitter {
 	private Connection connect = null;
 	private int _ISOLATION = Connection.TRANSACTION_READ_COMMITTED;
 	private int insID;
 	Properties p;
 
-	public TWITTER(int insID) {
+	public Twitter(int insID) {
 		this.insID = insID;
 		p = new Properties();
 		p.setProperty("ID", String.valueOf(insID));

@@ -54,6 +54,7 @@ public class QueryPatcher {
 							}
 
 						} catch (NumberFormatException | UnknownUnitException | ColumnDoesNotExist e) {
+							System.out.println("Qery:"+q);
 							e.printStackTrace();
 						}
 

@@ -127,7 +127,8 @@ public class ValueToExpression {
 					data.addExp(new FakeJimpleLocal(rSet.getName() + "_proj", null, null), result);
 				} catch (NullPointerException e) {
 					// if (ConstantArgs.DEBUG_MODE) {
-					System.out.println("----" + e + " in ValueToExpression.java: ");
+					//System.out.println("---- " + e + " in ValueToExpression.java: ");
+					System.out.println(v);
 					e.printStackTrace();
 					// }
 					break;

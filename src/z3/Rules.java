@@ -381,6 +381,7 @@ public class Rules {
 						BoolExpr[] insertedRowConds = new BoolExpr[table.getColumns().size()];
 						int iter = 0;
 						for (Column c : table.getColumns()) {
+							
 							Expr version = ctx.mkApp(objs.getfuncs(tableName + "_VERSION"), rowVar, vo1);
 							insertedRowConds[iter] = ctx.mkEq(
 									ctx.mkApp(objs.getfuncs(tableName + "_PROJ_" + c.getName()), rowVar, version),

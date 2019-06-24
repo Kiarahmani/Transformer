@@ -249,12 +249,6 @@ public class SEATS {
 
 	}
 
-	/*
-	 * 
-	 * (3) FIND OPEN SEATS
-	 * 
-	 */
-
 	public void findOpenSeats(int f_id) throws Exception {
 		try {
 
@@ -314,12 +308,6 @@ public class SEATS {
 
 	}
 
-	/*
-	 * 
-	 * (4) NEW RESERVATION
-	 * 
-	 */
-
 	public void newReservation(int r_id, int c_id, int f_id, int seatnum, int price, int attrs[]) throws Exception {
 		try {
 
@@ -332,6 +320,8 @@ public class SEATS {
 			stmt11.setInt(1, f_id);
 			ResultSet rs1 = stmt11.executeQuery();
 			boolean found1 = rs1.next();
+			int airline_id = rs1.getInt("F_AL_ID");
+			int seats_left = rs1.getInt("F_SEATS_LEFT");
 			// Airline Information
 			PreparedStatement stmt12 = connect.prepareStatement("SELECT * FROM AIRLINE WHERE AL_ID = ?");
 			stmt12.setInt(1, f_id);
@@ -340,13 +330,11 @@ public class SEATS {
 			if (!found1 || !found2) {
 				System.out.println("Invalid flight");
 			}
-			int airline_id = rs1.getInt("F_AL_ID");
-			int seats_left = rs1.getInt("F_SEATS_LEFT");
-			rs.close();
 			if (seats_left <= 0) {
 				System.out.println(" No more seats available for flight");
 			}
 			// Check if Seat is Available
+
 			PreparedStatement stmt2 = connect
 					.prepareStatement("SELECT R_ID FROM RESERVATION WHERE R_F_ID = ? and R_SEAT = ?");
 			stmt2.setInt(1, f_id);
@@ -372,9 +360,10 @@ public class SEATS {
 					"SELECT C_BASE_AP_ID, C_BALANCE, C_SATTR00, C_IATTR10, C_IATTR11 FROM CUSTOMER WHERE C_ID = ? ");
 			stmt4.setInt(1, c_id);
 			ResultSet rs5 = stmt4.executeQuery();
+			boolean found5 = rs5.next();
 			int oldAttr10 = rs5.getInt("C_IATTR10");
 			int oldAttr11 = rs5.getInt("C_IATTR11");
-			boolean found5 = rs5.next();
+
 			if (found5 == false) {
 				throw new Exception(String.format(" Invalid customer id: %d / %s", c_id, c_id));
 			}
@@ -439,12 +428,6 @@ public class SEATS {
 
 	}
 
-	/*
-	 * 
-	 * (5) UPDATE CUSTOMER
-	 * 
-	 */
-
 	public void updateCustomer(int c_id, int cidGiven, String c_id_str, int update_ff, int shouldUpdateFF, int attr0,
 			int attr1) throws Exception {
 		try {
@@ -506,8 +489,7 @@ public class SEATS {
 					stmt5.setInt(4, ff_al_id);
 					System.out.println(ff_al_id);
 					stmt5.executeUpdate();
-				} // WHILE
-				ff_results.close();
+				} // WHILE ff_results.close();
 
 				PreparedStatement stmt6 = connect
 						.prepareStatement("UPDATE CUSTOMER SET C_IATTR00 = ?, C_IATTR01 = ? WHERE C_ID = ?");
@@ -525,12 +507,6 @@ public class SEATS {
 		}
 
 	}
-
-	/*
-	 * 
-	 * (6) UPDATE RESERVATION
-	 * 
-	 */
 
 	public void updateReservation(int r_id, int f_id, int c_id, int seatnum, int attr_idx, int attr_val)
 			throws Exception {
@@ -570,7 +546,7 @@ public class SEATS {
 				stmt3.setInt(4, c_id);
 				stmt3.setInt(5, f_id);
 				int updated = stmt3.executeUpdate();
-				
+
 			}
 		} catch (Exception e) {
 			throw e;

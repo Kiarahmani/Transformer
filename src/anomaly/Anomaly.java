@@ -343,6 +343,7 @@ public class Anomaly {
 			sg.createSchedule("anomaly#" + anmlNo + "/schedule" + ".json");
 			sg.createInstance("anomaly#" + anmlNo + "/instance" + ".json");
 			sg.createData("anomaly#" + anmlNo + "/" + anmlNo + ".cql");
+			sg.createDump("anomaly#" + anmlNo + "/" + anmlNo + ".dump");
 
 		}
 		// announce core model
